@@ -3,6 +3,11 @@ using QUANLYTHUVIEN.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDbContext<QlthuvienContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
 builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 
 // Add services to the container.
