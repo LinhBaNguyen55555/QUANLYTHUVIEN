@@ -13,5 +13,4 @@ public partial class Category
 
     public virtual ICollection<Book> Books { get; set; } = new List<Book>();
 
-    public virtual ICollection<Book> BooksNavigation { get; set; } = new List<Book>();
 }

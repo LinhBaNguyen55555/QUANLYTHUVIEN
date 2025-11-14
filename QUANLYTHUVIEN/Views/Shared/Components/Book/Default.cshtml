@@ -6,20 +6,20 @@
         {
             <li class="category-item books">
                 <figure>
-
-                    <img src="@Url.Content(!string.IsNullOrEmpty(item.CoverImage)
-                                                      ? "~/images/category-filter/home-v1/" + item.CoverImage
-                                                      : "~/images/category-filter/home-v1/category-filter-img-01.jpg")" alt="@item.Title" />
+                    <img src="@Url.Content(item.CoverImageUrl)" alt="@item.Title" />
 
                     <figcaption class="bg-orange">
                         <div class="info-block">
                             <h4>@item.Title</h4>
+
                             <span class="author">
                                 <strong>Author:</strong>
-                                @(item.Authors != null && item.Authors.Any() ? string.Join(", ", item.Authors.Select(a => a.AuthorName)) : "N/A")
+                                @item.AuthorNames
                             </span>
+
                             <span class="author">
-                                <strong>ISBN:</strong> @item.Isbn
+                                <strong>ISBN:</strong>
+                                @item.DisplayIsbn
                             </span>
 
                             <div class="rating">
@@ -27,14 +27,12 @@
                             </div>
 
                             <p>
-                                @(string.IsNullOrEmpty(item.Description)
-                                                            ? "No description available."
-                                                            : (item.Description.Length > 180
-                                                            ? item.Description.Substring(0, 180) + "..."
-                                                            : item.Description))
-                        </p>
+                                @item.TruncatedDescription
+                            </p>
 
-                            <a href="#">Read More <i class="fa fa-long-arrow-right"></i></a>
+                            <a href="#">
+                                Read More <i class="fa fa-long-arrow-right"></i>
+                            </a>
 
                             <ol>
                                 <li><a href="#"><i class="fa fa-shopping-cart"></i></a></li>
@@ -43,15 +41,17 @@
                                 <li><a href="#"><i class="fa fa-share-alt"></i></a></li>
                                 <li><a href="#"><i class="fa fa-search"></i></a></li>
                             </ol>
+
                         </div>
                     </figcaption>
                 </figure>
             </li>
-                }
+        }
     </ul>
 
     <div class="center-content">
         <a href="#" class="btn btn-primary">View More</a>
     </div>
+
     <div class="clearfix"></div>
 </div>

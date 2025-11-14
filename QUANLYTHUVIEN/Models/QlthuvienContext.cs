@@ -48,11 +48,6 @@ public partial class QlthuvienContext : DbContext
     public virtual DbSet<TbRole> TbRoles { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("data source=DESKTOP-B3RC6GD\\SQLEXPRESS; initial catalog=QLTHUVIEN; integrated security=True;TrustServerCertificate=True;");
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Author>(entity =>
@@ -111,22 +106,7 @@ public partial class QlthuvienContext : DbContext
                         j.IndexerProperty<int>("AuthorId").HasColumnName("AuthorID");
                     });
 
-            entity.HasMany(d => d.Categories).WithMany(p => p.BooksNavigation)
-                .UsingEntity<Dictionary<string, object>>(
-                    "TbBookCategory",
-                    r => r.HasOne<Category>().WithMany()
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_BookCategories_Categories"),
-                    l => l.HasOne<Book>().WithMany()
-                        .HasForeignKey("BookId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_BookCategories_Books"),
-                    j =>
-                    {
-                        j.HasKey("BookId", "CategoryId").HasName("PK_BookCategories");
-                        j.ToTable("tb_BookCategories");
-                    });
+            
         });
 
         modelBuilder.Entity<Category>(entity =>
