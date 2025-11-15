@@ -4,7 +4,24 @@
     <ul class="category-list">
         @foreach (var item in Model)
         {
-            <li class="category-item books">
+            // --- BẮT ĐẦU PHẦN SỬA QUAN TRỌNG ---
+
+            // 1. Tạo "slug" (tag) cho danh mục
+            // Logic này PHẢI GIỐNG HỆT logic ở Bước 5 (CategoryFilter)
+            string categoryTag = "unknown"; // Mặc định nếu sách không có category
+            if (item.Category != null && !string.IsNullOrEmpty(item.Category.CategoryName))
+            {
+                categoryTag = item.Category.CategoryName.ToLower()
+                .Replace(" & ", "-")
+                .Replace(" ", "-");
+            }
+
+            // 2. Thêm tag này vào class của 'li'
+            // (Ví dụ: <li class="category-item books kids-teens">)
+            <li class="category-item books @categoryTag">
+
+                // --- KẾT THÚC PHẦN SỬA QUAN TRỌNG ---
+
                 <figure>
                     <img src="@Url.Content(item.CoverImageUrl)" alt="@item.Title" />
 

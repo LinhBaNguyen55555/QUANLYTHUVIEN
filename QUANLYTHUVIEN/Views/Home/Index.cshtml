@@ -126,33 +126,10 @@
                                 <div class="fact-icon">
                                     <i class="ebook"></i>
                                 </div>
-                                <span>eBooks<strong class="fact-counter">45780</strong></span>
+                                <span>Books<strong class="fact-counter">45780</strong></span>
                             </div>
                         </li>
-                        <li class="bg-green">
-                            <div class="fact-item">
-                                <div class="fact-icon">
-                                    <i class="eaudio"></i>
-                                </div>
-                                <span>eAudio<strong class="fact-counter">32450</strong></span>
-                            </div>
-                        </li>
-                        <li class="bg-red">
-                            <div class="fact-item">
-                                <div class="fact-icon">
-                                    <i class="magazine"></i>
-                                </div>
-                                <span>Magazine<strong class="fact-counter">14450</strong></span>
-                            </div>
-                        </li>
-                        <li class="bg-blue">
-                            <div class="fact-item">
-                                <div class="fact-icon">
-                                    <i class="videos"></i>
-                                </div>
-                                <span>Videos<strong class="fact-counter">32450</strong></span>
-                            </div>
-                        </li>
+                       
                     </ul>
                 </div>
             </div>
@@ -167,112 +144,16 @@
         <div class="center-content">
             <div class="row">
                 <div class="col-md-6 col-md-offset-3">
-                    <h2 class="section-title">Check Out The New Releases</h2>
+                    <h2 class="section-title">Check Out The Category</h2>
                     <span class="underline center"></span>
                     <p class="lead">The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested.</p>
                 </div>
             </div>
         </div>
-        <div class="filter-buttons">
-            <div class="filter btn" data-filter="all">All Releases</div>
-            <div class="filter btn" data-filter=".adults">Adults</div>
-            <div class="filter btn" data-filter=".kids-teens">Kids &amp; Teens</div>
-            <div class="filter btn" data-filter=".video">Video</div>
-            <div class="filter btn" data-filter=".audio">Audio</div>
-            <div class="filter btn" data-filter=".books">Books</div>
-            <div class="filter btn" data-filter=".magazines">Magazines</div>
-        </div>
+        @await Component.InvokeAsync("CategoryFilter")
     </div>
     @await Component.InvokeAsync("Book")
 </section>
-<!-- Start: Category Filter -->
-<!-- Start: Features -->
-<section class="features">
-    <div class="container">
-        <ul>
-            <li class="bg-yellow">
-                <div class="feature-box">
-                    <i class="yellow"></i>
-                    <h3>Books</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque dolor turpis, pulvinar varius dui id, convallis iaculis eros.</p>
-                    <a class="yellow" href="#">
-                        View Selection <i class="fa fa-long-arrow-right"></i>
-                    </a>
-                </div>
-            </li>
-            <li class="bg-light-green">
-                <div class="feature-box">
-                    <i class="light-green"></i>
-                    <h3>eBooks</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque dolor turpis, pulvinar varius dui id, convallis iaculis eros.</p>
-                    <a class="light-green" href="#">
-                        View Selection <i class="fa fa-long-arrow-right"></i>
-                    </a>
-                </div>
-            </li>
-            <li class="bg-blue">
-                <div class="feature-box">
-                    <i class="blue"></i>
-                    <h3>DVDs</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque dolor turpis, pulvinar varius dui id, convallis iaculis eros.</p>
-                    <a class="blue" href="#">
-                        View Selection <i class="fa fa-long-arrow-right"></i>
-                    </a>
-                </div>
-            </li>
-            <li class="bg-red">
-                <div class="feature-box">
-                    <i class="red"></i>
-                    <h3>Magazines</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque dolor turpis, pulvinar varius dui id, convallis iaculis eros.</p>
-                    <a class="red" href="#">
-                        View Selection <i class="fa fa-long-arrow-right"></i>
-                    </a>
-                </div>
-            </li>
-            <li class="bg-violet">
-                <div class="feature-box">
-                    <i class="violet"></i>
-                    <h3>Audio</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque dolor turpis, pulvinar varius dui id, convallis iaculis eros.</p>
-                    <a class="violet" href="#">
-                        View Selection <i class="fa fa-long-arrow-right"></i>
-                    </a>
-                </div>
-            </li>
-            <li class="bg-green">
-                <div class="feature-box">
-                    <i class="green"></i>
-                    <h3>eAudio</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque dolor turpis, pulvinar varius dui id, convallis iaculis eros.</p>
-                    <a class="green" href="#">
-                        View Selection <i class="fa fa-long-arrow-right"></i>
-                    </a>
-                </div>
-            </li>
-        </ul>
-    </div>
-</section>
-<!-- End: Features -->
-<!-- Start: Newsletter -->
-<section class="newsletter section-padding">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-8 col-md-offset-2">
-                <div class="center-content">
-                    <h2 class="section-title">Subscribe to our Newsletters</h2>
-                    <span class="underline center"></span>
-                    <p class="lead">The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested.</p>
-                </div>
-                <div class="form-group">
-                    <input class="form-control" placeholder="Enter your Email!" id="newsletter" name="newsletter" type="email">
-                    <input class="form-control" value="Subscribe" type="submit">
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-<!-- End: Newsletter -->
 <!-- Start: Meet Staff -->
 <section class="team section-padding">
     <div class="container">
@@ -965,115 +846,3 @@
     </div>
 </section>
 <!-- End: Our Community Section -->
-<!-- Start: News & Event -->
-<section class="news-events section-padding banner">
-    <div class="container">
-        <div class="center-content">
-            <h2 class="section-title c-light">News &amp; Events</h2>
-            <span class="underline center"></span>
-            <p class="lead c-light">The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested.</p>
-        </div>
-        <div class="news-events-list">
-            <div class="single-news-event">
-                <figure>
-                    <img src="~/images/news-event/news-event-01.jpg" alt="News & Event" />
-                </figure>
-                <div class="content-block">
-                    <div class="member-info">
-                        <div class="content_meta_category">
-                            <span class="arrow-right"></span>
-                            <a href="#." rel="category tag">EVENT</a>
-                        </div>
-                        <ul class="news-event-info">
-                            <li>
-                                <a href="#" target="_blank">
-                                    <i class="fa fa-calendar"></i>
-                                    July 25, 2016
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" target="_blank">
-                                    <i class="fa fa-clock-o"></i>
-                                    10:15 AM - 10:15 PM
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" target="_blank">
-                                    <i class="fa fa-map-marker"></i>
-                                    New York, USA
-                                </a>
-                            </li>
-                        </ul>
-                        <h3><a href=".html#">It uses a dictionary of over 200 Latin word</a></h3>
-                        <p>The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model.</p>
-                        <a class="btn btn-primary" href="#">Read More</a>
-                    </div>
-                </div>
-                <div class="clearfix"></div>
-            </div>
-            <div class="single-news-event">
-                <figure>
-                    <img src="~/images/news-event/news-event-02.jpg" alt="News & Event" />
-                </figure>
-                <div class="content-block">
-                    <div class="member-info">
-                        <div class="content_meta_category">
-                            <span class="arrow-right"></span>
-                            <a href="#." rel="category tag">EVENT</a>
-                        </div>
-                        <ul class="news-event-info">
-                            <li>
-                                <a href="#" target="_blank">
-                                    <i class="fa fa-calendar"></i>
-                                    July 25, 2016
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" target="_blank">
-                                    <i class="fa fa-map-marker"></i>
-                                    New York, USA
-                                </a>
-                            </li>
-                        </ul>
-                        <h3><a href=".html#">It uses a dictionary of over 200 Latin word</a></h3>
-                        <p>The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', </p>
-                        <a class="btn btn-primary" href="#">Read More</a>
-                    </div>
-                </div>
-                <div class="clearfix"></div>
-            </div>
-            <div class="single-news-event">
-                <figure>
-                    <img src="~/images/news-event/news-event-03.jpg" alt="News & Event" />
-                </figure>
-                <div class="content-block">
-                    <div class="member-info">
-                        <div class="content_meta_category">
-                            <span class="arrow-right"></span>
-                            <a href="#." rel="category tag">EVENT</a>
-                        </div>
-                        <ul class="news-event-info">
-                            <li>
-                                <a href="#" target="_blank">
-                                    <i class="fa fa-calendar"></i>
-                                    July 25, 2016
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" target="_blank">
-                                    <i class="fa fa-map-marker"></i>
-                                    New York, USA
-                                </a>
-                            </li>
-                        </ul>
-                        <h3><a href=".html#">It uses a dictionary of over 200 Latin word</a></h3>
-                        <p>The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', </p>
-                        <a class="btn btn-primary" href="#">Read More</a>
-                    </div>
-                </div>
-            </div>
-            <div class="clearfix"></div>
-        </div>
-    </div>
-</section>
-<!-- End: News & Event -->

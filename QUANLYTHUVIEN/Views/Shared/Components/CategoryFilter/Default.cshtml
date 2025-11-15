@@ -1,0 +1,18 @@
+﻿@model IEnumerable<QUANLYTHUVIEN.Models.Category>
+
+<div class="filter-buttons">
+    <div class="filter btn" data-filter="all">All</div>
+
+    @foreach (var category in Model)
+    {
+        // Tạo "slug" (tag) từ CategoryName
+        // Ví dụ: "Kids & Teens" -> "kids-teens"
+        string filterTag = category.CategoryName.ToLower()
+        .Replace(" & ", "-")
+        .Replace(" ", "-");
+
+        <div class="filter btn" data-filter=".@filterTag">
+            @category.CategoryName
+        </div>
+    }
+</div>
