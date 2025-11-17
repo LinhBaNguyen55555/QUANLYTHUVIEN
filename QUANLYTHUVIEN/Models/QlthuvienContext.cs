@@ -48,6 +48,8 @@ public partial class QlthuvienContext : DbContext
     public virtual DbSet<TbRole> TbRoles { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Author>(entity =>
@@ -56,6 +58,7 @@ public partial class QlthuvienContext : DbContext
 
             entity.Property(e => e.AuthorId).HasColumnName("AuthorID");
             entity.Property(e => e.AuthorName).HasMaxLength(100);
+            entity.Property(e => e.Image).HasMaxLength(255);
         });
 
         modelBuilder.Entity<Book>(entity =>
@@ -105,8 +108,6 @@ public partial class QlthuvienContext : DbContext
                         j.IndexerProperty<int>("BookId").HasColumnName("BookID");
                         j.IndexerProperty<int>("AuthorId").HasColumnName("AuthorID");
                     });
-
-            
         });
 
         modelBuilder.Entity<Category>(entity =>

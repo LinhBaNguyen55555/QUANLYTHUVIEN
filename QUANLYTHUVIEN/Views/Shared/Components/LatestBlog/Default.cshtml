@@ -1,0 +1,89 @@
+﻿@model IEnumerable<QUANLYTHUVIEN.Models.TbBlog>
+
+@using System.Globalization @{
+    // 2. TẠO MỘT BIẾN VĂN HÓA VIỆT NAM
+    var culture = new CultureInfo("vi-VN");
+
+    var colors = new[] { "bg-yellow", "bg-light-green", "bg-blue", "bg-red", "bg-violet", "bg-green" };
+}
+
+<div class="tabs-container">
+    <div class="tabs-menu">
+        <ul>
+            @{
+                int tabIndex = 0;
+            }
+            @foreach (var post in Model)
+            {
+                string activeClass = (tabIndex == 0) ? "active" : "";
+                string colorClass = colors[tabIndex % 6];
+                string iconClass = "yellow";
+
+                <li class="@activeClass">
+                    <a href="#" class="@colorClass">
+                        <div class="title">
+                            <i class="@iconClass"></i>
+
+                            <h3>@post.CreatedDate?.ToString("dd/MM/yyyy", culture)</h3>
+
+                        </div>
+                    </a>
+                </li>
+                tabIndex++;
+            }
+        </ul>
+    </div>
+    <div class="tabs-list">
+        @{
+            int contentIndex = 0;
+        }
+        @foreach (var post in Model)
+        {
+            string activeClass = (contentIndex == 0) ? "active" : "";
+
+            <div class="tab-content @activeClass">
+                <article>
+                    <figure>
+                        <img src="@Url.Content(post.BlogImageUrl)" alt="@post.Title">
+                        <figcaption>
+                            <a href="#">
+                                <span class="date">@post.CreatedDate?.ToString("dd")</span>
+                                <span class="month">@post.CreatedDate?.ToString("MMMM", culture)</span>
+                            </a>
+                        </figcaption>
+                    </figure>
+                    <div class="post-detail">
+                        <div class="info-bar">
+                            <div class="comments">
+                                <a href="#"><i class="fa fa-comment"></i> @post.TbBlogComments.Count</a>
+                            </div>
+                            <div class="likes">
+                                <a href="#"><i class="fa fa-thumbs-o-up"></i> ...</a>
+                            </div>
+                            <div class="viewed">
+                                <a href="#"><i class="fa fa-eye"></i> @post.Views</a>
+                            </div>
+                            <div class="share">
+                                <a href="#"><i class="fa fa-share-alt"></i> Share</a>
+                            </div>
+                        </div>
+                        <h4>@post.Title</h4>
+                        <div class="author">
+                            <a href="#"><i class="fa fa-user"></i> @(post.Author?.FullName ?? "Admin")</a>
+                        </div>
+                        <p>@post.TruncatedContent</p>
+                        <a class="btn btn-dark-gray">Read More</a>
+                    </div>
+                </article>
+            </div>
+            contentIndex++;
+        }
+
+        @if (!Model.Any())
+        {
+            <div class="tab-content active" style="padding: 30px;">
+                <p>Chưa có bài viết nào để hiển thị.</p>
+            </div>
+        }
+    </div>
+</div>

@@ -12,5 +12,4 @@ public partial class Category
     public string? Description { get; set; }
 
     public virtual ICollection<Book> Books { get; set; } = new List<Book>();
-
 }

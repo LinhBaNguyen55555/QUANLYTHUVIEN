@@ -58,6 +58,43 @@ Version: 1.0.0
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
  */
 /*! normalize.css v3.0.3 | MIT License | github.com/necolas/normalize.css */
+/* --- BẮT ĐẦU: GHI ĐÈ FONT TIẾNG VIỆT --- */
+
+/* 1. Gán font NỘI DUNG (Nunito Sans) cho toàn bộ trang */
+body,
+button,
+input,
+select,
+textarea,
+p,
+.form-control,
+.lead,
+code,
+kbd,
+pre,
+samp,
+.btn {
+    font-family: 'Nunito Sans', sans-serif !important;
+}
+
+/* 2. Gán font TIÊU ĐỀ (Nunito Sans - In đậm) cho các tiêu đề */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6,
+.section-title,
+.navbar-nav li a,
+.footer-widget-title,
+.site-footer .sub-footer ul li a {
+    font-family: 'Nunito Sans', sans-serif !important;
+    font-weight: 700 !important; /* Dùng độ đậm 700 */
+}
+
+/* --- KẾT THÚC: GHI ĐÈ FONT TIẾNG VIỆT --- */
+
+
+/*
+Template Name: LIBRARIA
+... (Phần còn lại của file style.css của bạn bắt đầu từ đây) ...
+*/
 html {
   font-family: sans-serif;
   -ms-text-size-adjust: 100%;
@@ -19219,23 +19256,4 @@ a:focus {
 }
 .bx-wrapper .bx-pager.bx-default-pager a.active {
   background: #ff7236;
-}
-/* === SỬA LỖI CỠ CHỮ NHỎ === */
-body, p, .lead, article, nav, section, h2, h3 {
-    font-size: 14px !important;
-}
-
-/* Sửa chữ ở menu */
-.navbar-nav li a {
-    font-size: 14px !important;
-}
-
-/* Sửa chữ "DISCOVER YOUR ROOTS" */
-.carousel-caption h2 {
-    font-size: 60px !important; /* Bạn có thể điều chỉnh số này */
-}
-
-/* Sửa chữ "Online Learning Anytime, Anywhere!" */
-.carousel-caption h3 {
-    font-size: 30px !important; /* Bạn có thể điều chỉnh số này */
 }

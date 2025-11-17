@@ -16,13 +16,13 @@ namespace QUANLYTHUVIEN.ViewComponents
         public async Task<IViewComponentResult> InvokeAsync()
         {
             var books = await _context.Books
-                .Include(b => b.Category)
-                .Include(b => b.Publisher)
-                .Include(b => b.Language)
-                .Include(b => b.Authors)
-                .OrderByDescending(b => b.BookId)
-                .Take(8)
-                .ToListAsync();
+              .Include(b => b.Category)
+              .Include(b => b.Publisher)
+              .Include(b => b.Language)
+              .Include(b => b.Authors)
+              .OrderByDescending(b => b.BookId)
+            //.Take(9)
+              .ToListAsync();
 
             return View(books);
         }

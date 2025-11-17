@@ -1,0 +1,49 @@
+﻿@model IEnumerable<QUANLYTHUVIEN.Models.Author>
+
+<div class="owl-carousel">
+
+    @foreach (var item in Model)
+    {
+        <div class="single-testimonial-box">
+            <div class="top-portion">
+
+                <img src="@Url.Content(item.AvatarUrl)" alt="@item.AuthorName" />
+
+                <div class="user-comment">
+                    <div class="arrow-left"></div>
+
+                    <blockquote cite="#">
+                        @item.TruncatedBiography
+                    </blockquote>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <div class="bottom-portion">
+
+                <a href="#" class="author">
+                    @item.AuthorName <small>(Tác giả)</small>
+                </a>
+
+                <div class="social-share-links">
+                    <ul>
+                        <li><a href="#"><i class="fa fa-linkedin" aria-hidden="true"></i></a></li>
+                        <li><a href="#"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
+                        <li><a href="#"><i class="fa fa-twitter" aria-hidden="true"></i></a></li>
+                        <li><a href="#"><i class="fa fa-skype" aria-hidden="true"></i></a></li>
+                        <li><a href="#"><i class="fa fa-google-plus" aria-hidden="true"></i></a></li>
+                    </ul>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="single-testimonial-box">
+            <p style="padding: 20px;">Chưa có trích dẫn nào của tác giả.</p>
+        </div>
+    }
+
+</div>

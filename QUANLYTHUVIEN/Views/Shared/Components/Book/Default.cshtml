@@ -4,11 +4,7 @@
     <ul class="category-list">
         @foreach (var item in Model)
         {
-            // --- BẮT ĐẦU PHẦN SỬA QUAN TRỌNG ---
-
-            // 1. Tạo "slug" (tag) cho danh mục
-            // Logic này PHẢI GIỐNG HỆT logic ở Bước 5 (CategoryFilter)
-            string categoryTag = "unknown"; // Mặc định nếu sách không có category
+            string categoryTag = "unknown";
             if (item.Category != null && !string.IsNullOrEmpty(item.Category.CategoryName))
             {
                 categoryTag = item.Category.CategoryName.ToLower()
@@ -16,41 +12,25 @@
                 .Replace(" ", "-");
             }
 
-            // 2. Thêm tag này vào class của 'li'
-            // (Ví dụ: <li class="category-item books kids-teens">)
             <li class="category-item books @categoryTag">
-
-                // --- KẾT THÚC PHẦN SỬA QUAN TRỌNG ---
-
                 <figure>
                     <img src="@Url.Content(item.CoverImageUrl)" alt="@item.Title" />
-
                     <figcaption class="bg-orange">
                         <div class="info-block">
                             <h4>@item.Title</h4>
-
                             <span class="author">
                                 <strong>Author:</strong>
                                 @item.AuthorNames
                             </span>
-
                             <span class="author">
                                 <strong>ISBN:</strong>
                                 @item.DisplayIsbn
                             </span>
-
                             <div class="rating">
                                 <span>☆</span><span>☆</span><span>☆</span><span>☆</span><span>☆</span>
                             </div>
-
-                            <p>
-                                @item.TruncatedDescription
-                            </p>
-
-                            <a href="#">
-                                Read More <i class="fa fa-long-arrow-right"></i>
-                            </a>
-
+                            <p>@item.TruncatedDescription</p>
+                            <a href="#">Đọc thêm <i class="fa fa-long-arrow-right"></i></a>
                             <ol>
                                 <li><a href="#"><i class="fa fa-shopping-cart"></i></a></li>
                                 <li><a href="#"><i class="fa fa-heart"></i></a></li>
@@ -58,7 +38,6 @@
                                 <li><a href="#"><i class="fa fa-share-alt"></i></a></li>
                                 <li><a href="#"><i class="fa fa-search"></i></a></li>
                             </ol>
-
                         </div>
                     </figcaption>
                 </figure>
@@ -67,8 +46,9 @@
     </ul>
 
     <div class="center-content">
-        <a href="#" class="btn btn-primary">View More</a>
-    </div>
 
+        <a href="#" id="btn-xem-them" class="btn btn-primary">Xem thêm</a>
+
+    </div>
     <div class="clearfix"></div>
 </div>
