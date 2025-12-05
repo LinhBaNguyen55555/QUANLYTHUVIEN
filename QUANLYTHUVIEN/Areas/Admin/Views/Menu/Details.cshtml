@@ -1,0 +1,139 @@
+@model QUANLYTHUVIEN.Models.TbMenu
+
+@{
+    ViewData["Title"] = "Chi tiết Menu";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Chi tiết Menu: @Model.Title</h6>
+        <div>
+            <a href="@Url.Action("Edit", "Menu", new { id = Model.MenuId })" class="btn btn-warning btn-sm">
+                <i class="fas fa-edit"></i> Chỉnh sửa
+            </a>
+            <a href="@Url.Action("Index", "Menu")" class="btn btn-secondary btn-sm">
+                <i class="fas fa-list"></i> Danh sách
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">@Model.MenuId</dd>
+
+            <dt class="col-sm-3">Tiêu đề</dt>
+            <dd class="col-sm-9">
+                <strong>@Model.Title</strong>
+                @if (Model.IsActive)
+                {
+                    <span class="badge badge-success ml-2">Hoạt động</span>
+                }
+                else
+                {
+                    <span class="badge badge-danger ml-2">Không hoạt động</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Alias</dt>
+            <dd class="col-sm-9">@(Model.Alias ?? "Không có")</dd>
+
+            <dt class="col-sm-3">URL</dt>
+            <dd class="col-sm-9">
+                @if (!string.IsNullOrEmpty(Model.Url))
+                {
+                    <a href="@Model.Url" target="_blank" class="text-primary">
+                        @Model.Url <i class="fas fa-external-link-alt"></i>
+                    </a>
+                }
+                else
+                {
+                    <span class="text-muted">Không có URL</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Mô tả</dt>
+            <dd class="col-sm-9">@(Model.Description ?? "Không có mô tả")</dd>
+
+            <dt class="col-sm-3">Cấp menu</dt>
+            <dd class="col-sm-9">
+                <span class="badge badge-info">Cấp @Model.Levels</span>
+            </dd>
+
+            <dt class="col-sm-3">Menu cha</dt>
+            <dd class="col-sm-9">
+                @(Model.Parent != null ? Model.Parent.Title :
+                  Model.ParentId.HasValue ? "Menu cha đã xóa" : "Không có")
+            </dd>
+
+            <dt class="col-sm-3">Vị trí</dt>
+            <dd class="col-sm-9">@Model.Position</dd>
+
+            <dt class="col-sm-3">Ngày tạo</dt>
+            <dd class="col-sm-9">
+                @Model.CreatedDate?.ToString("dd/MM/yyyy HH:mm")
+                @(Model.CreatedBy != null ? $" (bởi {Model.CreatedBy})" : "")
+            </dd>
+
+            @if (Model.ModifiedDate.HasValue)
+            {
+                <dt class="col-sm-3">Cập nhật cuối</dt>
+                <dd class="col-sm-9">
+                    @Model.ModifiedDate.Value.ToString("dd/MM/yyyy HH:mm")
+                    @(Model.ModifiedBy != null ? $" (bởi {Model.ModifiedBy})" : "")
+                </dd>
+            }
+        </dl>
+
+        <!-- Hiển thị menu con nếu có -->
+        @if (Model.InverseParent != null && Model.InverseParent.Any())
+        {
+            <hr />
+            <h5>Menu con (@Model.InverseParent.Count)</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tiêu đề</th>
+                            <th>Cấp</th>
+                            <th>Vị trí</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var childMenu in Model.InverseParent.OrderBy(m => m.Position))
+                        {
+                            <tr>
+                                <td>@childMenu.MenuId</td>
+                                <td>@childMenu.Title</td>
+                                <td><span class="badge badge-secondary">Cấp @childMenu.Levels</span></td>
+                                <td>@childMenu.Position</td>
+                                <td>
+                                    @if (childMenu.IsActive)
+                                    {
+                                        <span class="badge badge-success">Hoạt động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-danger">Không hoạt động</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("Details", "Menu", new { id = childMenu.MenuId })"
+                                       class="btn btn-info btn-sm">Chi tiết</a>
+                                    <a href="@Url.Action("Edit", "Menu", new { id = childMenu.MenuId })"
+                                       class="btn btn-warning btn-sm">Sửa</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+
+
+

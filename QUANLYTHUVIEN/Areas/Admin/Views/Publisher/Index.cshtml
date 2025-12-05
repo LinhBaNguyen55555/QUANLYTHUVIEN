@@ -1,0 +1,63 @@
+@model IEnumerable<QUANLYTHUVIEN.Models.Publisher>
+
+@{
+    ViewData["Title"] = "Quản lý Nhà xuất bản";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Danh sách Nhà xuất bản</h6>
+        <a href="@Url.Action("Create", "Publisher")" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus"></i> Thêm nhà xuất bản
+        </a>
+    </div>
+    <div class="card-body">
+        @if (!Model.Any())
+        {
+            <div class="alert alert-info">Chưa có nhà xuất bản nào.</div>
+        }
+        else
+        {
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên nhà xuất bản</th>
+                        <th>Địa chỉ</th>
+                        <th>Liên hệ</th>
+                        <th>Số sách</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.PublisherId</td>
+                            <td>@item.PublisherName</td>
+                            <td>@(item.Address ?? "Chưa cập nhật")</td>
+                            <td>
+                                @(item.Phone ?? "")<br />
+                                <small>@(item.Email ?? "")</small>
+                            </td>
+                            <td>@item.Books.Count</td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="@Url.Action("Details", "Publisher", new { id = item.PublisherId })" class="btn btn-info btn-sm" title="Chi tiết">
+                                        <i class="fas fa-info-circle"></i>
+                                    </a>
+                                    <a href="@Url.Action("Edit", "Publisher", new { id = item.PublisherId })" class="btn btn-warning btn-sm" title="Chỉnh sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="@Url.Action("Delete", "Publisher", new { id = item.PublisherId })" class="btn btn-danger btn-sm" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

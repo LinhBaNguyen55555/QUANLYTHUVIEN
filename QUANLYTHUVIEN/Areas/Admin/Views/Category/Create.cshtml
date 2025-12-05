@@ -1,0 +1,31 @@
+@model QUANLYTHUVIEN.Models.Category
+
+@{
+    ViewData["Title"] = "Thêm Thể loại";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Thêm Thể loại mới</h6>
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div class="form-group">
+                <label asp-for="CategoryName" class="control-label"></label>
+                <input asp-for="CategoryName" class="form-control" />
+                <span asp-validation-for="CategoryName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Tạo</button>
+            <a href="@Url.Action("Index", "Category")" class="btn btn-secondary">Quay lại</a>
+        </form>
+    </div>
+</div>
+
+
+
+

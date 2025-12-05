@@ -1,0 +1,147 @@
+@model QUANLYTHUVIEN.Models.TbMenu
+
+@{
+    ViewData["Title"] = "Thêm Menu mới";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Thêm Menu mới</h6>
+    </div>
+    <div class="card-body">
+        @if (ViewData.ModelState.ErrorCount > 0 && !ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <strong>Có lỗi xảy ra:</strong>
+                <ul class="mb-0">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Title" class="control-label font-weight-bold">
+                            Tiêu đề <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Title" class="form-control" placeholder="Nhập tiêu đề menu" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Alias" class="control-label font-weight-bold">
+                            Alias (URL thân thiện)
+                        </label>
+                        <input asp-for="Alias" class="form-control" placeholder="Ví dụ: trang-chu, gioi-thieu" />
+                        <small class="form-text text-muted">Để trống sẽ tự động tạo từ tiêu đề</small>
+                        <span asp-validation-for="Alias" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Url" class="control-label font-weight-bold">URL đích</label>
+                        <input asp-for="Url" class="form-control" placeholder="Ví dụ: /, /Home/About, /Books" />
+                        <small class="form-text text-muted">Để trống nếu không có liên kết</small>
+                        <span asp-validation-for="Url" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Description" class="control-label">Mô tả</label>
+                        <textarea asp-for="Description" class="form-control" rows="3"
+                                  placeholder="Mô tả ngắn gọn về menu này"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Levels" class="control-label font-weight-bold">
+                            Cấp menu <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="Levels" class="form-control">
+                            <option value="">Chọn cấp menu</option>
+                            <option value="1">Cấp 1 (Menu chính)</option>
+                            <option value="2">Cấp 2 (Menu con)</option>
+                            <option value="3">Cấp 3 (Menu cháu)</option>
+                        </select>
+                        <span asp-validation-for="Levels" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="ParentId" class="control-label">Menu cha</label>
+                        <select asp-for="ParentId" class="form-control">
+                            <option value="">Không có menu cha</option>
+                            @if (ViewBag.ParentMenus != null)
+                            {
+                                foreach (var parentMenu in (IEnumerable<QUANLYTHUVIEN.Models.TbMenu>)ViewBag.ParentMenus)
+                                {
+                                    <option value="@parentMenu.MenuId">@parentMenu.Title</option>
+                                }
+                            }
+                        </select>
+                        <small class="form-text text-muted">Chỉ chọn menu cha nếu đây là menu con</small>
+                        <span asp-validation-for="ParentId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Position" class="control-label font-weight-bold">
+                            Vị trí sắp xếp <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Position" type="number" class="form-control" placeholder="Ví dụ: 1, 2, 3..." />
+                        <small class="form-text text-muted">Số nhỏ hơn sẽ hiển thị trước</small>
+                        <span asp-validation-for="Position" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input asp-for="IsActive" class="form-check-input" checked="checked" value="true" />
+                            <input type="hidden" asp-for="IsActive" value="false" />
+                            <label asp-for="IsActive" class="form-check-label font-weight-bold">
+                                Kích hoạt menu
+                            </label>
+                        </div>
+                        <small class="form-text text-muted">Menu sẽ hiển thị trên website nếu được kích hoạt</small>
+                        <span asp-validation-for="IsActive" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Tạo menu
+                </button>
+                <a href="@Url.Action("Index", "Menu")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại danh sách
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Tự động tạo alias từ title
+        document.getElementById('Title').addEventListener('input', function() {
+            const title = this.value;
+            const aliasField = document.getElementById('Alias');
+
+            if (!aliasField.value) { // Chỉ tạo alias nếu chưa có
+                const alias = title
+                    .toLowerCase()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Loại bỏ dấu tiếng Việt
+                    .replace(/[^a-z0-9\s-]/g, '') // Loại bỏ ký tự đặc biệt
+                    .trim()
+                    .replace(/\s+/g, '-') // Thay khoảng trắng bằng dấu gạch ngang
+                    .replace(/-+/g, '-'); // Loại bỏ dấu gạch ngang liên tiếp
+
+                aliasField.value = alias;
+            }
+        });
+    </script>
+}

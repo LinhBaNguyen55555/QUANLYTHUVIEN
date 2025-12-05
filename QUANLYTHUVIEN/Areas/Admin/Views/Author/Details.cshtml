@@ -1,0 +1,72 @@
+@model QUANLYTHUVIEN.Models.Author
+
+@{
+    ViewData["Title"] = "Chi tiết Tác giả";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Chi tiết Tác giả: @Model.AuthorName</h6>
+        <div>
+            <a href="@Url.Action("Edit", "Author", new { id = Model.AuthorId })" class="btn btn-warning btn-sm">
+                <i class="fas fa-edit"></i> Chỉnh sửa
+            </a>
+            <a href="@Url.Action("Index", "Author")" class="btn btn-secondary btn-sm">
+                <i class="fas fa-list"></i> Danh sách
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">@Model.AuthorId</dd>
+
+            <dt class="col-sm-3">Tên tác giả</dt>
+            <dd class="col-sm-9"><strong>@Model.AuthorName</strong></dd>
+
+            <dt class="col-sm-3">Tiểu sử</dt>
+            <dd class="col-sm-9">@(Model.Biography ?? "Không có tiểu sử")</dd>
+
+            <dt class="col-sm-3">Ảnh đại diện</dt>
+            <dd class="col-sm-9">@(Model.Image ?? "Không có ảnh")</dd>
+
+            <dt class="col-sm-3">Số sách</dt>
+            <dd class="col-sm-9">@Model.Books.Count sách</dd>
+        </dl>
+
+        @if (Model.Books.Any())
+        {
+            <hr />
+            <h5>Danh sách sách (@Model.Books.Count)</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tiêu đề</th>
+                            <th>Thể loại</th>
+                            <th>Năm xuất bản</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var book in Model.Books.OrderBy(b => b.Title))
+                        {
+                            <tr>
+                                <td>@book.BookId</td>
+                                <td>@book.Title</td>
+                                <td>@(book.Category?.CategoryName ?? "Chưa phân loại")</td>
+                                <td>@(book.PublishedYear?.ToString() ?? "Chưa cập nhật")</td>
+                                <td>
+                                    <a href="@Url.Action("Details", "Book", new { id = book.BookId })" class="btn btn-info btn-sm">Chi tiết</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+

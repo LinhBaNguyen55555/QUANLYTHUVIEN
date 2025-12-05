@@ -1,0 +1,59 @@
+@model QUANLYTHUVIEN.Models.Publisher
+
+@{
+    ViewData["Title"] = "Xóa Nhà xuất bản";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-danger">Xác nhận xóa Nhà xuất bản</h6>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Cảnh báo!</strong> Hành động này không thể hoàn tác.
+        </div>
+
+        <h5>Bạn có chắc chắn muốn xóa nhà xuất bản này?</h5>
+
+        <div class="card border-left-danger">
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Tên nhà xuất bản:</dt>
+                    <dd class="col-sm-9"><strong>@Model.PublisherName</strong></dd>
+
+                    <dt class="col-sm-3">Địa chỉ:</dt>
+                    <dd class="col-sm-9">@(Model.Address ?? "Chưa cập nhật")</dd>
+
+                    <dt class="col-sm-3">Số điện thoại:</dt>
+                    <dd class="col-sm-9">@(Model.Phone ?? "Chưa cập nhật")</dd>
+
+                    <dt class="col-sm-3">Email:</dt>
+                    <dd class="col-sm-9">@(Model.Email ?? "Chưa cập nhật")</dd>
+
+                    <dt class="col-sm-3">Số sách:</dt>
+                    <dd class="col-sm-9">@Model.Books.Count sách</dd>
+                </dl>
+
+                @if (Model.Books.Any())
+                {
+                    <div class="alert alert-danger mt-3">
+                        <strong>Lưu ý:</strong> Nhà xuất bản này có @Model.Books.Count sách. Nếu xóa nhà xuất bản này, các sách sẽ mất thông tin nhà xuất bản.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <form asp-action="Delete">
+            <input type="hidden" asp-for="PublisherId" />
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Xóa nhà xuất bản
+            </button>
+            <a href="@Url.Action("Index", "Publisher")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại danh sách
+            </a>
+        </form>
+    </div>
+</div>
+
+

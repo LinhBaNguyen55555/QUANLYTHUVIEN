@@ -1,0 +1,69 @@
+@model QUANLYTHUVIEN.Models.Category
+
+@{
+    ViewData["Title"] = "Chi tiết Thể loại";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Chi tiết Thể loại: @Model.CategoryName</h6>
+        <div>
+            <a href="@Url.Action("Edit", "Category", new { id = Model.CategoryId })" class="btn btn-warning btn-sm">
+                <i class="fas fa-edit"></i> Chỉnh sửa
+            </a>
+            <a href="@Url.Action("Index", "Category")" class="btn btn-secondary btn-sm">
+                <i class="fas fa-list"></i> Danh sách
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">@Model.CategoryId</dd>
+
+            <dt class="col-sm-3">Tên thể loại</dt>
+            <dd class="col-sm-9"><strong>@Model.CategoryName</strong></dd>
+
+            <dt class="col-sm-3">Mô tả</dt>
+            <dd class="col-sm-9">@(Model.Description ?? "Không có mô tả")</dd>
+
+            <dt class="col-sm-3">Số sách</dt>
+            <dd class="col-sm-9">@Model.Books.Count sách</dd>
+        </dl>
+
+        @if (Model.Books.Any())
+        {
+            <hr />
+            <h5>Danh sách sách (@Model.Books.Count)</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tiêu đề</th>
+                            <th>Tác giả</th>
+                            <th>ISBN</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var book in Model.Books.OrderBy(b => b.Title))
+                        {
+                            <tr>
+                                <td>@book.BookId</td>
+                                <td>@book.Title</td>
+                                <td>@book.AuthorNames</td>
+                                <td>@book.DisplayIsbn</td>
+                                <td>
+                                    <a href="@Url.Action("Details", "Book", new { id = book.BookId })" class="btn btn-info btn-sm">Chi tiết</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+

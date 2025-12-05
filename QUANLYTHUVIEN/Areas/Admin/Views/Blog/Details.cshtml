@@ -1,0 +1,73 @@
+@model QUANLYTHUVIEN.Models.TbBlog
+
+@{
+    ViewData["Title"] = "Chi tiết Bài viết";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Chi tiết Bài viết: @Model.Title</h6>
+        <div>
+            <a href="@Url.Action("Edit", "Blog", new { id = Model.BlogId })" class="btn btn-warning btn-sm">
+                <i class="fas fa-edit"></i> Chỉnh sửa
+            </a>
+            <a href="@Url.Action("Index", "Blog")" class="btn btn-secondary btn-sm">
+                <i class="fas fa-list"></i> Danh sách
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">@Model.BlogId</dd>
+
+            <dt class="col-sm-3">Tiêu đề</dt>
+            <dd class="col-sm-9"><strong>@Model.Title</strong></dd>
+
+            <dt class="col-sm-3">Alias</dt>
+            <dd class="col-sm-9">@(Model.Alias ?? "Không có")</dd>
+
+            <dt class="col-sm-3">Tác giả</dt>
+            <dd class="col-sm-9">@(Model.Author?.Username ?? "Chưa xác định")</dd>
+
+            <dt class="col-sm-3">Ngày tạo</dt>
+            <dd class="col-sm-9">@Model.CreatedDate?.ToString("dd/MM/yyyy HH:mm")</dd>
+
+            <dt class="col-sm-3">Ngày cập nhật</dt>
+            <dd class="col-sm-9">@Model.ModifiedDate?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa cập nhật"</dd>
+
+            <dt class="col-sm-3">Trạng thái</dt>
+            <dd class="col-sm-9">
+                @if (Model.IsPublished)
+                {
+                    <span class="badge badge-success">Đã xuất bản</span>
+                }
+                else
+                {
+                    <span class="badge badge-warning">Chưa xuất bản</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Lượt xem</dt>
+            <dd class="col-sm-9">@(Model.Views ?? 0)</dd>
+
+            <dt class="col-sm-3">Ảnh đại diện</dt>
+            <dd class="col-sm-9">@(Model.Image ?? "Không có ảnh")</dd>
+        </dl>
+
+        <hr />
+        <h5>Nội dung bài viết</h5>
+        <div class="border p-3 bg-light">
+            @if (!string.IsNullOrEmpty(Model.Content))
+            {
+                @Html.Raw(Model.TruncatedContent.Replace("\n", "<br />"))
+            }
+            else
+            {
+                <em>Không có nội dung</em>
+            }
+        </div>
+    </div>
+</div>
+
+

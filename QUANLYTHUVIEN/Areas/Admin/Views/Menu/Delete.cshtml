@@ -1,0 +1,65 @@
+@model QUANLYTHUVIEN.Models.TbMenu
+
+@{
+    ViewData["Title"] = "Xóa Menu";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-danger">Xác nhận xóa Menu</h6>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Cảnh báo!</strong> Hành động này không thể hoàn tác.
+        </div>
+
+        <h5>Bạn có chắc chắn muốn xóa menu này?</h5>
+
+        <div class="card border-left-danger">
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Tiêu đề:</dt>
+                    <dd class="col-sm-9"><strong>@Model.Title</strong></dd>
+
+                    <dt class="col-sm-3">Alias:</dt>
+                    <dd class="col-sm-9">@(Model.Alias ?? "Không có")</dd>
+
+                    <dt class="col-sm-3">URL:</dt>
+                    <dd class="col-sm-9">@(Model.Url ?? "Không có")</dd>
+
+                    <dt class="col-sm-3">Cấp:</dt>
+                    <dd class="col-sm-9">Cấp @Model.Levels</dd>
+
+                    <dt class="col-sm-3">Vị trí:</dt>
+                    <dd class="col-sm-9">@Model.Position</dd>
+                </dl>
+
+                @if (Model.InverseParent != null && Model.InverseParent.Any())
+                {
+                    <div class="alert alert-danger mt-3">
+                        <strong>Lưu ý:</strong> Menu này có @Model.InverseParent.Count menu con.
+                        Nếu xóa menu này, các menu con sẽ không còn menu cha.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <form asp-action="Delete">
+            <input type="hidden" asp-for="MenuId" />
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Xóa menu
+            </button>
+            <a href="@Url.Action("Index", "Menu")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại danh sách
+            </a>
+            <a href="@Url.Action("Details", "Menu", new { id = Model.MenuId })" class="btn btn-info">
+                <i class="fas fa-info-circle"></i> Xem chi tiết
+            </a>
+        </form>
+    </div>
+</div>
+
+
+
+

@@ -53,6 +53,70 @@
 
             <!-- Heading -->
             <div class="sidebar-heading">
+                Quản lý nội dung
+            </div>
+
+            <!-- Nav Item - Menu Management -->
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("Index", "Menu", new { area = "Admin" })">
+                    <i class="fas fa-fw fa-bars"></i>
+                    <span>Quản lý Menu</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Book Management -->
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("Index", "Book", new { area = "Admin" })">
+                    <i class="fas fa-fw fa-book"></i>
+                    <span>Quản lý Sách</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Category Management -->
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("Index", "Category", new { area = "Admin" })">
+                    <i class="fas fa-fw fa-tags"></i>
+                    <span>Quản lý Thể loại</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Author Management -->
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("Index", "Author", new { area = "Admin" })">
+                    <i class="fas fa-fw fa-user"></i>
+                    <span>Quản lý Tác giả</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Publisher Management -->
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("Index", "Publisher", new { area = "Admin" })">
+                    <i class="fas fa-fw fa-building"></i>
+                    <span>Quản lý Nhà xuất bản</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Language Management -->
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("Index", "Language", new { area = "Admin" })">
+                    <i class="fas fa-fw fa-language"></i>
+                    <span>Quản lý Ngôn ngữ</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Blog Management -->
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("Index", "Blog", new { area = "Admin" })">
+                    <i class="fas fa-fw fa-blog"></i>
+                    <span>Quản lý Bài viết</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
                 Interface
             </div>
 
@@ -214,6 +278,10 @@
     <script src="~/admin/js/demo/chart-area-demo.js"></script>
     <script src="~/admin/js/demo/chart-pie-demo.js"></script>
 
+    @RenderSection("Scripts", required: false)
+    
+    <!-- Image Browser Modal -->
+    @await Html.PartialAsync("_ImageBrowserModal")
 </body>
 
 </html>

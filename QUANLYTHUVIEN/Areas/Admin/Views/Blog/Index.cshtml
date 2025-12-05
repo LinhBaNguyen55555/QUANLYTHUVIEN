@@ -1,0 +1,69 @@
+@model IEnumerable<QUANLYTHUVIEN.Models.TbBlog>
+
+@{
+    ViewData["Title"] = "Quản lý Bài viết";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Danh sách Bài viết</h6>
+        <a href="@Url.Action("Create", "Blog")" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus"></i> Thêm bài viết
+        </a>
+    </div>
+    <div class="card-body">
+        @if (!Model.Any())
+        {
+            <div class="alert alert-info">Chưa có bài viết nào.</div>
+        }
+        else
+        {
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ảnh</th>
+                        <th>Tiêu đề</th>
+                        <th>Tác giả</th>
+                        <th>Ngày tạo</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.BlogId</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.Image))
+                                {
+                                    <img src="~/images/blog/@item.Image" alt="@item.Title" style="width: 60px; height: 60px; object-fit: cover;" class="img-thumbnail" />
+                                }
+                                else
+                                {
+                                    <img src="~/images/blog/blog-10.jpg" alt="No image" style="width: 60px; height: 60px; object-fit: cover;" class="img-thumbnail" />
+                                }
+                            </td>
+                            <td>@item.Title</td>
+                            <td>@(item.Author?.Username ?? "Chưa xác định")</td>
+                            <td>@item.CreatedDate?.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="@Url.Action("Details", "Blog", new { id = item.BlogId })" class="btn btn-info btn-sm" title="Chi tiết">
+                                        <i class="fas fa-info-circle"></i>
+                                    </a>
+                                    <a href="@Url.Action("Edit", "Blog", new { id = item.BlogId })" class="btn btn-warning btn-sm" title="Chỉnh sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="@Url.Action("Delete", "Blog", new { id = item.BlogId })" class="btn btn-danger btn-sm" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
