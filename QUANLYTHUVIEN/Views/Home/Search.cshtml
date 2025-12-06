@@ -1,0 +1,287 @@
+@model IEnumerable<QUANLYTHUVIEN.Models.Book>
+@using QUANLYTHUVIEN.Utilities
+
+@{
+    ViewData["Title"] = "Tìm kiếm sách";
+    var availableQuantities = ViewBag.AvailableQuantities as Dictionary<int, int> ?? new Dictionary<int, int>();
+}
+
+<!-- Start: Page Banner -->
+<section class="page-banner services-banner">
+    <div class="container">
+        <div class="banner-header">
+            <h2>Kết quả tìm kiếm</h2>
+            <span class="underline center"></span>
+            @if (ViewBag.TotalBooks > 0)
+            {
+                <p class="lead">Tìm thấy @ViewBag.TotalBooks kết quả</p>
+            }
+            else
+            {
+                <p class="lead">Không tìm thấy kết quả nào phù hợp</p>
+            }
+        </div>
+        <div class="breadcrumb">
+            <ul>
+                <li><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                <li>Tìm kiếm</li>
+            </ul>
+        </div>
+    </div>
+</section>
+<!-- End: Page Banner -->
+
+<!-- Start: Products Section -->
+<div id="content" class="site-content">
+    <div id="primary" class="content-area">
+        <main id="main" class="site-main">
+            <div class="booksmedia-detail-main">
+                <div class="container">
+                    <!-- Start: Search Section -->
+                    <section class="search-filters">
+                        <div class="container">
+                            <div class="filter-box">
+                                <h3>Bạn đang tìm kiếm gì tại thư viện?</h3>
+                                <form action="@Url.Action("Search", "Home")" method="get">
+                                    <div class="col-md-4 col-sm-6">
+                                        <div class="form-group">
+                                            <label class="sr-only" for="keywords">Tìm kiếm theo từ khóa</label>
+                                            <input class="form-control" placeholder="Tìm kiếm theo từ khóa" id="keywords" name="keywords" type="text" value="@ViewBag.Keywords">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="form-group">
+                                            <select name="catalog" id="catalog" class="form-control">
+                                                <option>Tìm kiếm theo tác giả</option>
+                                                @if (ViewBag.Authors != null)
+                                                {
+                                                    foreach (var author in ViewBag.Authors)
+                                                    {
+                                                        <option value="@author.AuthorName" selected="@(ViewBag.Catalog == author.AuthorName)">@author.AuthorName</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="form-group">
+                                            <select name="category" id="category" class="form-control">
+                                                <option>Tất cả thể loại</option>
+                                                @if (ViewBag.Categories != null)
+                                                {
+                                                    foreach (var cat in ViewBag.Categories)
+                                                    {
+                                                        <option value="@cat.CategoryName" selected="@(ViewBag.Category == cat.CategoryName)">@cat.CategoryName</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-6">
+                                        <div class="form-group">
+                                            <input class="form-control" type="submit" value="Tìm kiếm">
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- End: Search Section -->
+
+                    <div class="booksmedia-detail-box">
+                        @if (Model.Any())
+                        {
+                            <!-- Kết quả tìm kiếm -->
+                            <div class="row">
+                                @foreach (var item in Model)
+                                {
+                                    var availableQty = availableQuantities.ContainsKey(item.BookId) ? availableQuantities[item.BookId] : 0;
+                                    var currentPrice = item.RentalPrices.OrderByDescending(rp => rp.EffectiveDate).FirstOrDefault();
+
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="book-item">
+                                            <div class="book-thumbnail">
+                                                <img src="@Url.Content(item.CoverImageUrl)" alt="@item.Title" />
+                                                @if (availableQty > 0)
+                                                {
+                                                    <div class="book-status available">Có sẵn</div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="book-status unavailable">Đã thuê</div>
+                                                }
+                                            </div>
+                                            <div class="book-info">
+                                                <h4><a href="@Url.Action("Detail", "Book", new { id = item.BookId, alias = Function.TitleSlugGenerationAlias(item.Title) })">@item.Title</a></h4>
+                                                <p class="author"><strong>Tác giả:</strong> @item.AuthorNames</p>
+                                                <p class="isbn"><strong>ISBN:</strong> @item.DisplayIsbn</p>
+                                                @if (currentPrice != null)
+                                                {
+                                                    <p class="price">
+                                                        <strong>Giá thuê:</strong>
+                                                        <span class="badge badge-success">@currentPrice.DailyRate.ToString("N0") đ/ngày</span>
+                                                    </p>
+                                                }
+                                                <div class="book-actions">
+                                                    <a href="@Url.Action("Detail", "Book", new { id = item.BookId, alias = Function.TitleSlugGenerationAlias(item.Title) })" class="btn btn-sm btn-primary">Xem chi tiết</a>
+                                                    @if (availableQty > 0)
+                                                    {
+                                                        <a href="@Url.Action("Create", "Rental", new { area = "Admin" })" class="btn btn-sm btn-success">Đặt thuê</a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button class="btn btn-sm btn-secondary" disabled>Đã hết</button>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Phân trang -->
+                            @if (ViewBag.TotalPages > 1)
+                            {
+                                <div class="pagination-wrapper">
+                                    <nav aria-label="Page navigation">
+                                        <ul class="pagination">
+                                            @if (ViewBag.CurrentPage > 1)
+                                            {
+                                                <li class="page-item">
+                                                    <a class="page-link" href="@Url.Action("Search", "Home", new { keywords = ViewBag.Keywords, catalog = ViewBag.Catalog, category = ViewBag.Category, page = ViewBag.CurrentPage - 1 })">Trước</a>
+                                                </li>
+                                            }
+
+                                            @for (int i = Math.Max(1, ViewBag.CurrentPage - 2); i <= Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2); i++)
+                                            {
+                                                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                                    <a class="page-link" href="@Url.Action("Search", "Home", new { keywords = ViewBag.Keywords, catalog = ViewBag.Catalog, category = ViewBag.Category, page = i })">@i</a>
+                                                </li>
+                                            }
+
+                                            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                                            {
+                                                <li class="page-item">
+                                                    <a class="page-link" href="@Url.Action("Search", "Home", new { keywords = ViewBag.Keywords, catalog = ViewBag.Catalog, category = ViewBag.Category, page = ViewBag.CurrentPage + 1 })">Sau</a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </nav>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <!-- Không tìm thấy kết quả -->
+                            <div class="no-results">
+                                <div class="text-center">
+                                    <i class="fa fa-search fa-4x text-muted"></i>
+                                    <h3>Không tìm thấy kết quả</h3>
+                                    <p>Hãy thử tìm kiếm với từ khóa khác hoặc kiểm tra lại bộ lọc.</p>
+                                    <a href="@Url.Action("Search", "Home")" class="btn btn-primary">Tìm kiếm mới</a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<!-- End: Products Section -->
+
+<style>
+.book-item {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    transition: box-shadow 0.3s ease;
+}
+
+.book-item:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.book-thumbnail {
+    position: relative;
+    height: 250px;
+    overflow: hidden;
+}
+
+.book-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.book-status {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.book-status.available {
+    background-color: #28a745;
+}
+
+.book-status.unavailable {
+    background-color: #dc3545;
+}
+
+.book-info {
+    padding: 15px;
+}
+
+.book-info h4 {
+    margin-bottom: 10px;
+    font-size: 16px;
+    line-height: 1.3;
+}
+
+.book-info h4 a {
+    color: #333;
+    text-decoration: none;
+}
+
+.book-info h4 a:hover {
+    color: #007bff;
+}
+
+.book-info .author,
+.book-info .isbn,
+.book-info .price {
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #666;
+}
+
+.book-actions {
+    margin-top: 15px;
+}
+
+.book-actions .btn {
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+.pagination-wrapper {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.no-results {
+    padding: 50px 20px;
+    text-align: center;
+}
+
+.no-results i {
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+</style>
