@@ -1,0 +1,167 @@
+@model QUANLYTHUVIEN.Models.Order
+
+@{
+    ViewData["Title"] = "Tạo Đơn hàng nhập";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Tạo Đơn hàng nhập mới</h6>
+    </div>
+    <div class="card-body">
+        @if (ViewData.ModelState.ErrorCount > 0 && !ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <strong>Có lỗi xảy ra:</strong>
+                <ul class="mb-0">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <form asp-action="Create" method="post">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="SupplierId" class="control-label font-weight-bold">
+                            Nhà cung cấp <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="SupplierId" class="form-control" id="supplierSelect">
+                            <option value="">Chọn nhà cung cấp</option>
+                            @if (ViewBag.Suppliers != null)
+                            {
+                                foreach (var supplier in ViewBag.Suppliers as IEnumerable<QUANLYTHUVIEN.Models.Supplier>)
+                                {
+                                    <option value="@supplier.SupplierId">@supplier.SupplierName (@(supplier.Phone ?? "No phone"))</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="SupplierId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="UserId" class="control-label font-weight-bold">
+                            Nhân viên xử lý <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="UserId" class="form-control">
+                            <option value="">Chọn nhân viên</option>
+                            @if (ViewBag.Users != null)
+                            {
+                                foreach (var user in ViewBag.Users as IEnumerable<QUANLYTHUVIEN.Models.User>)
+                                {
+                                    <option value="@user.UserId">@user.FullName (@user.Username)</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="UserId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="control-label font-weight-bold">Chọn sách nhập <span class="text-danger">*</span></label>
+                        <div class="border p-3" style="max-height: 300px; overflow-y: auto;">
+                            <div id="bookSelectionContainer">
+                                <!-- Books will be added here dynamically -->
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addBookSelection()">
+                                <i class="fas fa-plus"></i> Thêm sách
+                            </button>
+                        </div>
+                        <small class="form-text text-muted">Chọn sách và nhập số lượng, đơn giá</small>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6><strong>Tổng cộng:</strong> <span id="totalAmount">0</span> VNĐ</h6>
+                                <small class="text-muted">Tự động tính khi nhập thông tin</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Tạo đơn hàng
+                </button>
+                <a href="@Url.Action("Index", "Order")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại danh sách
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var bookIndex = 0;
+        var availableBooks = @Html.Raw(Json.Serialize(ViewBag.Books));
+
+        function addBookSelection() {
+            var container = $('#bookSelectionContainer');
+            var bookSelectHtml = `
+                <div class="book-selection-item mb-3 p-2 border rounded" data-index="${bookIndex}">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label>Sách:</label>
+                            <select name="selectedBooks" class="form-control form-control-sm book-select" required>
+                                <option value="">Chọn sách</option>
+                                ${availableBooks.map(book => `<option value="${book.bookId}">${book.title}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Số lượng:</label>
+                            <input type="number" name="quantities" class="form-control form-control-sm quantity-input"
+                                   min="1" max="1000" value="1" required />
+                        </div>
+                        <div class="col-md-3">
+                            <label>Đơn giá:</label>
+                            <input type="number" name="unitPrices" class="form-control form-control-sm unit-price-input"
+                                   min="1000" step="1000" value="50000" required />
+                        </div>
+                        <div class="col-md-2">
+                            <label>&nbsp;</label>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="removeBookSelection(this)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.append(bookSelectHtml);
+            bookIndex++;
+            updateTotalAmount();
+        }
+
+        function removeBookSelection(button) {
+            $(button).closest('.book-selection-item').remove();
+            updateTotalAmount();
+        }
+
+        function updateTotalAmount() {
+            var total = 0;
+            $('.book-selection-item').each(function() {
+                var quantity = $(this).find('.quantity-input').val() || 0;
+                var unitPrice = $(this).find('.unit-price-input').val() || 0;
+                total += quantity * unitPrice;
+            });
+            $('#totalAmount').text(total.toLocaleString('vi-VN'));
+        }
+
+        // Add first book selection on page load
+        $(document).ready(function () {
+            addBookSelection();
+
+            // Update total when inputs change
+            $(document).on('input', '.quantity-input, .unit-price-input', function() {
+                updateTotalAmount();
+            });
+        });
+    </script>
+}
+

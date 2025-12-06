@@ -20,12 +20,38 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         }
 
         // GET: Admin/Menu
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString, string status)
         {
-            var menus = await _context.TbMenus
+            var menusQuery = _context.TbMenus
                 .Include(m => m.Parent)
+                .AsQueryable();
+
+            // Tìm kiếm theo tên menu
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                menusQuery = menusQuery.Where(m => m.Title.Contains(searchString));
+            }
+
+            // Lọc theo trạng thái
+            if (!string.IsNullOrEmpty(status))
+            {
+                if (status == "Active")
+                {
+                    menusQuery = menusQuery.Where(m => m.IsActive);
+                }
+                else if (status == "Inactive")
+                {
+                    menusQuery = menusQuery.Where(m => !m.IsActive);
+                }
+            }
+
+            var menus = await menusQuery
                 .OrderBy(m => m.MenuId)
                 .ToListAsync();
+
+            ViewBag.SearchString = searchString;
+            ViewBag.SelectedStatus = status;
+
             return View(menus);
         }
 

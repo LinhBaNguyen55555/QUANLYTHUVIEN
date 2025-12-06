@@ -20,12 +20,23 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         }
 
         // GET: Admin/Publisher
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
-            var publishers = await _context.Publishers
+            var publishersQuery = _context.Publishers
                 .Include(p => p.Books)
-                .OrderBy(p => p.PublisherId)
+                .AsQueryable();
+
+            // Tìm kiếm theo tên nhà xuất bản
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                publishersQuery = publishersQuery.Where(p => p.PublisherName.Contains(searchString));
+            }
+
+            var publishers = await publishersQuery
+                .OrderBy(p => p.PublisherName)
                 .ToListAsync();
+
+            ViewBag.SearchString = searchString;
             return View(publishers);
         }
 

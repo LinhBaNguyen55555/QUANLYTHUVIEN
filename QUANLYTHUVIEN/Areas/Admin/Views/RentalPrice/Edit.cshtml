@@ -1,0 +1,92 @@
+@model QUANLYTHUVIEN.Models.RentalPrice
+
+@{
+    ViewData["Title"] = "Chỉnh sửa Bảng giá";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Chỉnh sửa Bảng giá cho thuê sách</h6>
+    </div>
+    <div class="card-body">
+        @if (ViewData.ModelState.ErrorCount > 0 && !ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <strong>Có lỗi xảy ra:</strong>
+                <ul class="mb-0">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="PriceId" />
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="BookId" class="control-label font-weight-bold">
+                            Sách <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="BookId" class="form-control" required>
+                            <option value="">-- Chọn sách --</option>
+                            @foreach (var book in ViewBag.Books as List<QUANLYTHUVIEN.Models.Book>)
+                            {
+                                <option value="@book.BookId" selected="@(book.BookId == Model.BookId)">@book.Title</option>
+                            }
+                        </select>
+                        <span asp-validation-for="BookId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="DailyRate" class="control-label font-weight-bold">
+                            Giá theo ngày (VNĐ) <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="DailyRate" type="number" step="1000" min="0" class="form-control" placeholder="Nhập giá theo ngày" required />
+                        <small class="form-text text-muted">Giá cho thuê sách theo ngày (bắt buộc)</small>
+                        <span asp-validation-for="DailyRate" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="WeeklyRate" class="control-label">Giá theo tuần (VNĐ)</label>
+                        <input asp-for="WeeklyRate" type="number" step="1000" min="0" class="form-control" placeholder="Nhập giá theo tuần" />
+                        <small class="form-text text-muted">Giá cho thuê sách theo tuần (tùy chọn)</small>
+                        <span asp-validation-for="WeeklyRate" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="MonthlyRate" class="control-label">Giá theo tháng (VNĐ)</label>
+                        <input asp-for="MonthlyRate" type="number" step="1000" min="0" class="form-control" placeholder="Nhập giá theo tháng" />
+                        <small class="form-text text-muted">Giá cho thuê sách theo tháng (tùy chọn)</small>
+                        <span asp-validation-for="MonthlyRate" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="EffectiveDate" class="control-label">Ngày hiệu lực</label>
+                        <input asp-for="EffectiveDate" type="date" class="form-control" />
+                        <small class="form-text text-muted">Ngày bắt đầu áp dụng bảng giá</small>
+                        <span asp-validation-for="EffectiveDate" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Cập nhật bảng giá
+                </button>
+                <a href="@Url.Action("Index", "RentalPrice")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại danh sách
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

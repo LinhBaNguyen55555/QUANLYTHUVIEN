@@ -1,0 +1,143 @@
+@model QUANLYTHUVIEN.Models.Customer
+
+@{
+    ViewData["Title"] = "Chi tiết Khách hàng";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Chi tiết Khách hàng: @Model.FullName</h6>
+        <div>
+            <a href="@Url.Action("Edit", "Customer", new { id = Model.CustomerId })" class="btn btn-warning btn-sm">
+                <i class="fas fa-edit"></i> Chỉnh sửa
+            </a>
+            <a href="@Url.Action("Index", "Customer")" class="btn btn-secondary btn-sm">
+                <i class="fas fa-list"></i> Danh sách
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <dl class="row">
+                    <dt class="col-sm-3">ID</dt>
+                    <dd class="col-sm-9">@Model.CustomerId</dd>
+
+                    <dt class="col-sm-3">Họ và tên</dt>
+                    <dd class="col-sm-9"><strong>@Model.FullName</strong></dd>
+
+                    <dt class="col-sm-3">Email</dt>
+                    <dd class="col-sm-9">@(Model.Email ?? "Chưa cập nhật")</dd>
+
+                    <dt class="col-sm-3">Số điện thoại</dt>
+                    <dd class="col-sm-9">@(Model.Phone ?? "Chưa cập nhật")</dd>
+
+                    <dt class="col-sm-3">Địa chỉ</dt>
+                    <dd class="col-sm-9">@(Model.Address ?? "Chưa cập nhật")</dd>
+
+                    <dt class="col-sm-3">Ngày tạo</dt>
+                    <dd class="col-sm-9">@Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</dd>
+                </dl>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <i class="fas fa-chart-bar"></i> Thống kê hoạt động
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h4 class="text-primary">@Model.Rentals.Count</h4>
+                                <small>Phiếu thuê</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-success">@Model.TbBlogComments.Count</h4>
+                                <small>Bình luận</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.Rentals.Any())
+        {
+            <hr />
+            <h5>Lịch sử thuê sách (@Model.Rentals.Count)</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Ngày thuê</th>
+                            <th>Ngày trả</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var rental in Model.Rentals.OrderByDescending(r => r.RentalDate))
+                        {
+                            <tr>
+                                <td>@rental.RentalId</td>
+                                <td>@rental.RentalDate?.ToString("dd/MM/yyyy")</td>
+                                <td>@(rental.ReturnDate?.ToString("dd/MM/yyyy") ?? "Chưa trả")</td>
+                                <td>@rental.TotalAmount?.ToString("N0") VNĐ</td>
+                                <td>
+                                    <span class="badge @(rental.Status == "Returned" ? "badge-success" : rental.Status == "Overdue" ? "badge-danger" : "badge-warning")">
+                                        @(rental.Status ?? "Đang thuê")
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="btn btn-info btn-sm">Chi tiết</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (Model.TbBlogComments.Any())
+        {
+            <hr />
+            <h5>Bình luận (@Model.TbBlogComments.Count)</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Blog</th>
+                            <th>Nội dung</th>
+                            <th>Ngày tạo</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var comment in Model.TbBlogComments.OrderByDescending(c => c.CreatedDate))
+                        {
+                            <tr>
+                                <td>@comment.CommentId</td>
+                                <td>@comment.Blog?.Title</td>
+                                <td>@(comment.CommentText.Length > 50 ? comment.CommentText.Substring(0, 50) + "..." : comment.CommentText)</td>
+                                <td>@comment.CreatedDate?.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <span class="badge @(comment.IsApproved ? "badge-success" : "badge-warning")">
+                                        @(comment.IsApproved ? "Đã duyệt" : "Chờ duyệt")
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="btn btn-info btn-sm">Chi tiết</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+

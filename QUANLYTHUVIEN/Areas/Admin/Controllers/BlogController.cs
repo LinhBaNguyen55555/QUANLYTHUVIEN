@@ -20,12 +20,38 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         }
 
         // GET: Admin/Blog
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString, string status)
         {
-            var blogs = await _context.TbBlogs
+            var blogsQuery = _context.TbBlogs
                 .Include(b => b.Author)
-                .OrderBy(b => b.BlogId)
+                .AsQueryable();
+
+            // Tìm kiếm theo tiêu đề
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                blogsQuery = blogsQuery.Where(b => b.Title.Contains(searchString));
+            }
+
+            // Lọc theo trạng thái xuất bản
+            if (!string.IsNullOrEmpty(status))
+            {
+                if (status == "Published")
+                {
+                    blogsQuery = blogsQuery.Where(b => b.IsPublished);
+                }
+                else if (status == "Draft")
+                {
+                    blogsQuery = blogsQuery.Where(b => !b.IsPublished);
+                }
+            }
+
+            var blogs = await blogsQuery
+                .OrderByDescending(b => b.CreatedDate)
                 .ToListAsync();
+
+            ViewBag.SearchString = searchString;
+            ViewBag.SelectedStatus = status;
+
             return View(blogs);
         }
 

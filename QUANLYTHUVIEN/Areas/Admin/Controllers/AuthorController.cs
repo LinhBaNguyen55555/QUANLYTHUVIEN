@@ -20,12 +20,23 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         }
 
         // GET: Admin/Author
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
-            var authors = await _context.Authors
+            var authorsQuery = _context.Authors
                 .Include(a => a.Books)
-                .OrderBy(a => a.AuthorId)
+                .AsQueryable();
+
+            // Tìm kiếm theo tên tác giả
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                authorsQuery = authorsQuery.Where(a => a.AuthorName.Contains(searchString));
+            }
+
+            var authors = await authorsQuery
+                .OrderBy(a => a.AuthorName)
                 .ToListAsync();
+
+            ViewBag.SearchString = searchString;
             return View(authors);
         }
 

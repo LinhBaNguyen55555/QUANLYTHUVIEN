@@ -1,0 +1,246 @@
+@model QUANLYTHUVIEN.Areas.Admin.Controllers.RevenueReportViewModel
+
+@{
+    ViewData["Title"] = "Báo cáo doanh thu";
+}
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Báo cáo doanh thu năm @Model.SelectedYear</h1>
+    <div>
+        <div class="btn-group" role="group">
+            @for (int year = DateTime.Now.Year - 2; year <= DateTime.Now.Year; year++)
+            {
+                <a href="@Url.Action("Revenue", "Report", new { year = year })"
+                   class="btn btn-sm @(year == Model.SelectedYear ? "btn-primary" : "btn-outline-primary")">
+                    @year
+                </a>
+            }
+        </div>
+        <a href="@Url.Action("Dashboard", "Report")" class="btn btn-secondary btn-sm ml-2">
+            <i class="fas fa-arrow-left"></i> Quay lại Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Thống kê tổng quan -->
+<div class="row mb-4">
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Tổng doanh thu năm @Model.SelectedYear</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalRevenue.ToString("N0") VNĐ</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Tháng cao nhất</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            @Model.MonthlyRevenue.OrderByDescending(m => m.Revenue).FirstOrDefault()?.MonthName
+                        </div>
+                        <div class="text-xs text-muted">
+                            @Model.MonthlyRevenue.OrderByDescending(m => m.Revenue).FirstOrDefault()?.Revenue.ToString("N0") VNĐ
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Trung bình tháng</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            @(Model.MonthlyRevenue.Count > 0 ? (Model.TotalRevenue / Model.MonthlyRevenue.Count).ToString("N0") : "0") VNĐ
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Biểu đồ doanh thu -->
+<div class="row">
+    <div class="col-xl-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Doanh thu theo tháng - Năm @Model.SelectedYear</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="yearlyRevenueChart" style="height: 400px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bảng chi tiết -->
+<div class="row">
+    <div class="col-xl-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Chi tiết doanh thu theo tháng</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Tháng</th>
+                                <th>Doanh thu</th>
+                                <th>Phần trăm</th>
+                                <th>So với tháng trước</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.MonthlyRevenue.Count; i++)
+                            {
+                                var current = Model.MonthlyRevenue[i];
+                                var previous = i > 0 ? Model.MonthlyRevenue[i - 1].Revenue : 0;
+                                var change = previous > 0 ? ((current.Revenue - previous) / previous * 100) : 0;
+                                var percentage = Model.TotalRevenue > 0 ? (current.Revenue / Model.TotalRevenue * 100) : 0;
+
+                                <tr>
+                                    <td>@current.MonthName</td>
+                                    <td class="font-weight-bold">@current.Revenue.ToString("N0") VNĐ</td>
+                                    <td>@percentage.ToString("F1")%</td>
+                                    <td>
+                                        @if (change > 0)
+                                        {
+                                            <span class="text-success">
+                                                <i class="fas fa-arrow-up"></i> +@change.ToString("F1")%
+                                            </span>
+                                        }
+                                        else if (change < 0)
+                                        {
+                                            <span class="text-danger">
+                                                <i class="fas fa-arrow-down"></i> @change.ToString("F1")%
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr class="font-weight-bold">
+                                <td>Tổng cộng</td>
+                                <td>@Model.TotalRevenue.ToString("N0") VNĐ</td>
+                                <td>100%</td>
+                                <td>-</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Biểu đồ doanh thu theo tháng
+        var ctx = document.getElementById("yearlyRevenueChart");
+        var yearlyRevenueChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.MonthlyRevenue.Select(m => m.MonthName))),
+                datasets: [{
+                    label: "Doanh thu (VNĐ)",
+                    backgroundColor: "rgba(78, 115, 223, 0.8)",
+                    borderColor: "rgba(78, 115, 223, 1)",
+                    borderWidth: 1,
+                    data: @Html.Raw(Json.Serialize(Model.MonthlyRevenue.Select(m => m.Revenue))),
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 25,
+                        top: 25,
+                        bottom: 0
+                    }
+                },
+                scales: {
+                    xAxes: [{
+                        gridLines: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            maxTicksLimit: 12
+                        }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            maxTicksLimit: 10,
+                            padding: 10,
+                            callback: function(value, index, values) {
+                                return value.toLocaleString('vi-VN') + ' VNĐ';
+                            }
+                        },
+                        gridLines: {
+                            color: "rgb(234, 236, 244)",
+                            zeroLineColor: "rgb(234, 236, 244)",
+                            drawBorder: false,
+                            borderDash: [2],
+                            zeroLineBorderDash: [2]
+                        }
+                    }],
+                },
+                legend: {
+                    display: false
+                },
+                tooltips: {
+                    titleMarginBottom: 10,
+                    titleFontColor: '#6c757d',
+                    titleFontSize: 14,
+                    backgroundColor: "rgb(255,255,255)",
+                    bodyFontColor: "#858796",
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    xPadding: 15,
+                    yPadding: 15,
+                    displayColors: false,
+                    caretPadding: 10,
+                    callbacks: {
+                        label: function(tooltipItem, chart) {
+                            var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+                            return datasetLabel + ': ' + tooltipItem.yLabel.toLocaleString('vi-VN') + ' VNĐ';
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

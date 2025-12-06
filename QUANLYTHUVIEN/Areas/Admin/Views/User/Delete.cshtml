@@ -1,0 +1,83 @@
+@model QUANLYTHUVIEN.Models.User
+
+@{
+    ViewData["Title"] = "Xóa Người dùng";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-danger">Xác nhận xóa Người dùng</h6>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <h5><i class="fas fa-exclamation-triangle"></i> Cảnh báo!</h5>
+            <p>Bạn có chắc chắn muốn xóa người dùng này? Hành động này không thể hoàn tác.</p>
+        </div>
+
+        <div class="card border-danger">
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">ID</dt>
+                    <dd class="col-sm-9">@Model.UserId</dd>
+
+                    <dt class="col-sm-3">Tên đăng nhập</dt>
+                    <dd class="col-sm-9"><strong>@Model.Username</strong></dd>
+
+                    <dt class="col-sm-3">Họ và tên</dt>
+                    <dd class="col-sm-9">@Model.FullName</dd>
+
+                    <dt class="col-sm-3">Email</dt>
+                    <dd class="col-sm-9">@(Model.Email ?? "Chưa cập nhật")</dd>
+
+                    <dt class="col-sm-3">Vai trò</dt>
+                    <dd class="col-sm-9">@(Model.RoleNavigation?.RoleName ?? "Chưa phân vai trò")</dd>
+                </dl>
+            </div>
+        </div>
+
+        @if (Model.Orders.Any() || Model.Rentals.Any() || Model.TbBlogs.Any())
+        {
+            <div class="alert alert-danger">
+                <h6><i class="fas fa-times-circle"></i> Không thể xóa người dùng này</h6>
+                <p>Người dùng này có dữ liệu liên quan và không thể xóa:</p>
+                <ul>
+                    @if (Model.Orders.Any())
+                    {
+                        <li>@Model.Orders.Count đơn hàng</li>
+                    }
+                    @if (Model.Rentals.Any())
+                    {
+                        <li>@Model.Rentals.Count phiếu thuê sách</li>
+                    }
+                    @if (Model.TbBlogs.Any())
+                    {
+                        <li>@Model.TbBlogs.Count bài viết</li>
+                    }
+                </ul>
+                <p>Vui lòng xóa hoặc chuyển dữ liệu liên quan trước khi xóa người dùng.</p>
+            </div>
+
+            <div class="form-group">
+                <a href="@Url.Action("Index", "User")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại danh sách
+                </a>
+            </div>
+        }
+        else
+        {
+            <form asp-action="Delete" method="post">
+                <input type="hidden" asp-for="UserId" />
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Xác nhận xóa
+                    </button>
+                    <a href="@Url.Action("Index", "User")" class="btn btn-secondary ml-2">
+                        <i class="fas fa-arrow-left"></i> Hủy bỏ
+                    </a>
+                </div>
+            </form>
+        }
+    </div>
+</div>
+

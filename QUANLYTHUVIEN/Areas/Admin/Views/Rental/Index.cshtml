@@ -1,0 +1,158 @@
+@model IEnumerable<QUANLYTHUVIEN.Models.Rental>
+
+@{
+    ViewData["Title"] = "Quản lý Phiếu thuê sách";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h6 class="m-0 font-weight-bold text-primary">Danh sách Phiếu thuê sách</h6>
+            </div>
+            <div class="col-md-6 text-right">
+                <a href="@Url.Action("Create", "Rental")" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Tạo phiếu thuê mới
+                </a>
+            </div>
+        </div>
+
+        <!-- Search and Filter Form -->
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <form method="get" class="form-inline">
+                    <div class="form-group mr-3">
+                        <input type="text" name="searchString" class="form-control form-control-sm"
+                               placeholder="Tìm kiếm theo tên khách hàng, nhân viên..."
+                               value="@ViewBag.SearchString" style="min-width: 250px;" />
+                    </div>
+                    <div class="form-group mr-3">
+                        <select name="status" class="form-control form-control-sm">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="Active" selected="@(ViewBag.SelectedStatus == "Active" ? "selected" : null)">Đang thuê</option>
+                            <option value="Returned" selected="@(ViewBag.SelectedStatus == "Returned" ? "selected" : null)">Đã trả</option>
+                            <option value="Overdue" selected="@(ViewBag.SelectedStatus == "Overdue" ? "selected" : null)">Quá hạn</option>
+                        </select>
+                    </div>
+                    <div class="form-group mr-3">
+                        <select name="customerId" class="form-control form-control-sm">
+                            <option value="">Tất cả khách hàng</option>
+                            @if (ViewBag.Customers != null)
+                            {
+                                foreach (var customer in ViewBag.Customers)
+                                {
+                                    <option value="@customer.CustomerId"
+                                            selected="@(ViewBag.SelectedCustomerId == customer.CustomerId ? "selected" : null)">
+                                        @customer.FullName
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-secondary btn-sm mr-2">
+                        <i class="fas fa-search"></i> Tìm kiếm
+                    </button>
+                    <a href="@Url.Action("Index", "Rental")" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-times"></i> Xóa bộ lọc
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (!Model.Any())
+        {
+            <div class="alert alert-info">
+                Chưa có phiếu thuê nào. <a href="@Url.Action("Create", "Rental")">Tạo phiếu thuê đầu tiên</a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Khách hàng</th>
+                            <th>Nhân viên</th>
+                            <th>Ngày thuê</th>
+                            <th>Ngày trả</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.RentalId</td>
+                                <td><strong>@item.Customer?.FullName</strong></td>
+                                <td>@(item.User?.FullName ?? "Chưa xác định")</td>
+                                <td>@item.RentalDate?.ToString("dd/MM/yyyy")</td>
+                                <td>@(item.ReturnDate?.ToString("dd/MM/yyyy") ?? "Chưa trả")</td>
+                                <td>@item.TotalAmount?.ToString("N0") VNĐ</td>
+                                <td>
+                                    <span class="badge @(item.Status == "Returned" ? "badge-success" : item.Status == "Overdue" ? "badge-danger" : "badge-warning")">
+                                        @(item.Status == "Active" ? "Đang thuê" :
+                                          item.Status == "Returned" ? "Đã trả" :
+                                          item.Status == "Overdue" ? "Quá hạn" : item.Status)
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="@Url.Action("Details", "Rental", new { id = item.RentalId })"
+                                           class="btn btn-info btn-sm" title="Chi tiết">
+                                            <i class="fas fa-info-circle"></i>
+                                        </a>
+                                        <a href="@Url.Action("Edit", "Rental", new { id = item.RentalId })"
+                                           class="btn btn-warning btn-sm" title="Chỉnh sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        @if (item.Status != "Returned")
+                                        {
+                                            <button type="button" class="btn btn-success btn-sm" title="Trả sách"
+                                                    onclick="returnBook(@item.RentalId)">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                        }
+                                        <a href="@Url.Action("Delete", "Rental", new { id = item.RentalId })"
+                                           class="btn btn-danger btn-sm" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function returnBook(rentalId) {
+            if (confirm('Bạn có chắc chắn muốn trả sách cho phiếu thuê này?')) {
+                $.ajax({
+                    url: '@Url.Action("ReturnBook", "Rental", new { area = "Admin" })',
+                    type: 'POST',
+                    data: { id: rentalId },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Lỗi: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('Có lỗi xảy ra khi trả sách!');
+                    }
+                });
+            }
+        }
+    </script>
+}
+

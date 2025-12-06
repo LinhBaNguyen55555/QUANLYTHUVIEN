@@ -1,0 +1,69 @@
+@model QUANLYTHUVIEN.Models.RentalPrice
+
+@{
+    ViewData["Title"] = "Chi tiết Bảng giá";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Chi tiết Bảng giá cho thuê sách</h6>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID Bảng giá:</dt>
+            <dd class="col-sm-9">@Model.PriceId</dd>
+
+            <dt class="col-sm-3">Tên sách:</dt>
+            <dd class="col-sm-9"><strong>@Model.Book?.Title</strong></dd>
+
+            <dt class="col-sm-3">Giá theo ngày:</dt>
+            <dd class="col-sm-9">
+                <span class="badge badge-success badge-lg">@Model.DailyRate.ToString("N0") đ/ngày</span>
+            </dd>
+
+            <dt class="col-sm-3">Giá theo tuần:</dt>
+            <dd class="col-sm-9">
+                @if (Model.WeeklyRate.HasValue)
+                {
+                    <span class="badge badge-info badge-lg">@Model.WeeklyRate.Value.ToString("N0") đ/tuần</span>
+                }
+                else
+                {
+                    <span class="text-muted">Chưa cập nhật</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Giá theo tháng:</dt>
+            <dd class="col-sm-9">
+                @if (Model.MonthlyRate.HasValue)
+                {
+                    <span class="badge badge-primary badge-lg">@Model.MonthlyRate.Value.ToString("N0") đ/tháng</span>
+                }
+                else
+                {
+                    <span class="text-muted">Chưa cập nhật</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Ngày hiệu lực:</dt>
+            <dd class="col-sm-9">@(Model.EffectiveDate?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")</dd>
+        </dl>
+
+        <div class="mt-4">
+            <a href="@Url.Action("Edit", "RentalPrice", new { id = Model.PriceId })" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Chỉnh sửa
+            </a>
+            <a href="@Url.Action("Index", "RentalPrice")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại danh sách
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .badge-lg {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+    }
+</style>
+

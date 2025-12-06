@@ -42,19 +42,62 @@
 
             <!-- Nav Item - Dashboard -->
             <li class="nav-item active">
-                <a class="nav-link" href="index.html">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
+                <a class="nav-link" href="@Url.Action("Dashboard", "Report", new { area = "Admin" })">
+                    <i class="fas fa-fw fa-chart-bar"></i>
+                    <span>Báo cáo tổng quan</span>
                 </a>
             </li>
 
             <!-- Divider -->
             <hr class="sidebar-divider">
 
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Quản lý nội dung
-            </div>
+            <!-- Nav Item - User Management -->
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("Index", "User", new { area = "Admin" })">
+                    <i class="fas fa-fw fa-users"></i>
+                    <span>Quản lý Người dùng</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Customer Management -->
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("Index", "Customer", new { area = "Admin" })">
+                    <i class="fas fa-fw fa-user-friends"></i>
+                    <span>Quản lý Khách hàng</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Supplier Management -->
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("Index", "Supplier", new { area = "Admin" })">
+                    <i class="fas fa-fw fa-truck"></i>
+                    <span>Quản lý Nhà cung cấp</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Order Management -->
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("Index", "Order", new { area = "Admin" })">
+                    <i class="fas fa-fw fa-shopping-cart"></i>
+                    <span>Quản lý Đơn hàng</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Rental Management -->
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("Index", "Rental", new { area = "Admin" })">
+                    <i class="fas fa-fw fa-handshake"></i>
+                    <span>Quản lý Phiếu thuê</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Rental Price Management -->
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("Index", "RentalPrice", new { area = "Admin" })">
+                    <i class="fas fa-fw fa-money-bill-wave"></i>
+                    <span>Quản lý Bảng giá</span>
+                </a>
+            </li>
 
             <!-- Nav Item - Menu Management -->
             <li class="nav-item">
@@ -109,6 +152,25 @@
                 <a class="nav-link" href="@Url.Action("Index", "Blog", new { area = "Admin" })">
                     <i class="fas fa-fw fa-blog"></i>
                     <span>Quản lý Bài viết</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Nav Item - Revenue Report -->
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("Revenue", "Report", new { area = "Admin" })">
+                    <i class="fas fa-fw fa-dollar-sign"></i>
+                    <span>Báo cáo Doanh thu</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Books Report -->
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("Books", "Report", new { area = "Admin" })">
+                    <i class="fas fa-fw fa-book-reader"></i>
+                    <span>Báo cáo Sách</span>
                 </a>
             </li>
 

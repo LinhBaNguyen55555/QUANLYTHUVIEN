@@ -19,12 +19,23 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
-            var languages = await _context.Languages
+            var languagesQuery = _context.Languages
                 .Include(l => l.Books)
+                .AsQueryable();
+
+            // Tìm kiếm theo tên ngôn ngữ
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                languagesQuery = languagesQuery.Where(l => l.LanguageName.Contains(searchString));
+            }
+
+            var languages = await languagesQuery
                 .OrderBy(l => l.LanguageName)
                 .ToListAsync();
+
+            ViewBag.SearchString = searchString;
             return View(languages);
         }
 

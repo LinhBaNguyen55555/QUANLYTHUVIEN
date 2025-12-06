@@ -1,0 +1,67 @@
+@model QUANLYTHUVIEN.Models.Order
+
+@{
+    ViewData["Title"] = "Xóa Đơn hàng nhập";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-danger">Xác nhận xóa Đơn hàng nhập</h6>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <h5><i class="fas fa-exclamation-triangle"></i> Cảnh báo!</h5>
+            <p>Bạn có chắc chắn muốn xóa đơn hàng nhập này? Hành động này không thể hoàn tác và sẽ xóa tất cả thông tin chi tiết đơn hàng.</p>
+        </div>
+
+        <div class="card border-danger">
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">ID đơn hàng</dt>
+                    <dd class="col-sm-9">@Model.OrderId</dd>
+
+                    <dt class="col-sm-3">Nhà cung cấp</dt>
+                    <dd class="col-sm-9"><strong>@Model.Supplier?.SupplierName</strong></dd>
+
+                    <dt class="col-sm-3">Nhân viên xử lý</dt>
+                    <dd class="col-sm-9">@(Model.User?.FullName ?? "Chưa xác định")</dd>
+
+                    <dt class="col-sm-3">Ngày đặt hàng</dt>
+                    <dd class="col-sm-9">@Model.OrderDate?.ToString("dd/MM/yyyy")</dd>
+
+                    <dt class="col-sm-3">Tổng tiền</dt>
+                    <dd class="col-sm-9">@Model.TotalAmount?.ToString("N0") VNĐ</dd>
+                </dl>
+            </div>
+        </div>
+
+        @if (Model.OrderDetails.Any())
+        {
+            <div class="alert alert-info">
+                <h6><i class="fas fa-info-circle"></i> Thông tin sách sẽ bị xóa</h6>
+                <p>Đơn hàng này chứa @Model.OrderDetails.Count loại sách:</p>
+                <ul>
+                    @foreach (var detail in Model.OrderDetails)
+                    {
+                        <li>@detail.Book?.Title (@detail.Quantity cuốn)</li>
+                    }
+                </ul>
+                <p>Tổng giá trị: @Model.TotalAmount?.ToString("N0") VNĐ</p>
+            </div>
+        }
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="OrderId" />
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Xác nhận xóa đơn hàng
+                </button>
+                <a href="@Url.Action("Index", "Order")" class="btn btn-secondary ml-2">
+                    <i class="fas fa-arrow-left"></i> Hủy bỏ
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+

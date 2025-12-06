@@ -1,0 +1,219 @@
+@model QUANLYTHUVIEN.Areas.Admin.Controllers.BooksReportViewModel
+
+@{
+    ViewData["Title"] = "Báo cáo sách";
+}
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Báo cáo sách</h1>
+    <a href="@Url.Action("Dashboard", "Report")" class="btn btn-secondary btn-sm">
+        <i class="fas fa-arrow-left"></i> Quay lại Dashboard
+    </a>
+</div>
+
+<!-- Content Row -->
+<div class="row">
+    <!-- Sách theo thể loại -->
+    <div class="col-xl-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Sách theo thể loại</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-pie">
+                    <canvas id="categoryChart" style="height: 250px;"></canvas>
+                </div>
+                <hr>
+                <div style="max-height: 200px; overflow-y: auto;">
+                    @foreach (var category in Model.BooksByCategory.Where(c => c.BookCount > 0))
+                    {
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-xs">@category.CategoryName</span>
+                            <span class="text-xs font-weight-bold">@category.BookCount</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sách theo ngôn ngữ -->
+    <div class="col-xl-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Sách theo ngôn ngữ</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-pie">
+                    <canvas id="languageChart" style="height: 250px;"></canvas>
+                </div>
+                <hr>
+                <div style="max-height: 200px; overflow-y: auto;">
+                    @foreach (var language in Model.BooksByLanguage.Where(l => l.BookCount > 0))
+                    {
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-xs">@language.LanguageName</span>
+                            <span class="text-xs font-weight-bold">@language.BookCount</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top sách được thuê -->
+    <div class="col-xl-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Sách được thuê nhiều nhất</h6>
+            </div>
+            <div class="card-body">
+                <div style="max-height: 350px; overflow-y: auto;">
+                    @if (Model.TopRentedBooks.Any(b => b.RentalCount > 0))
+                    {
+                        @foreach (var book in Model.TopRentedBooks.Where(b => b.RentalCount > 0).Take(10))
+                        {
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="flex-grow-1">
+                                    <div class="text-xs font-weight-bold">@book.BookTitle</div>
+                                    <div class="text-xs text-muted">@book.AuthorName</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs font-weight-bold text-primary">@book.RentalCount lượt</div>
+                                    <div class="text-xs text-success">@book.TotalRevenue.ToString("N0") VNĐ</div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center">Chưa có dữ liệu thuê sách</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Row -->
+<div class="row">
+    <!-- Sách theo nhà xuất bản -->
+    <div class="col-xl-12 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Sách theo nhà xuất bản (Top 20)</h6>
+            </div>
+            <div class="card-body">
+                @if (Model.BooksByPublisher.Any(p => p.BookCount > 0))
+                {
+                    foreach (var publisher in Model.BooksByPublisher.Where(p => p.BookCount > 0))
+                    {
+                        var totalBooks = Model.BooksByPublisher.Sum(p => p.BookCount);
+                        var percentage = totalBooks > 0 ? (double)publisher.BookCount / totalBooks * 100 : 0;
+
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="mr-3" style="min-width: 150px;">
+                                <span class="text-xs font-weight-bold">@publisher.PublisherName</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="progress" style="height: 12px;">
+                                    <div class="progress-bar bg-success" role="progressbar"
+                                         style="width: @percentage%"></div>
+                                </div>
+                            </div>
+                            <div class="ml-3 text-right" style="min-width: 80px;">
+                                <span class="text-xs font-weight-bold">@publisher.BookCount cuốn</span>
+                                <br>
+                                <span class="text-xs text-muted">@percentage.ToString("F1")%</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted text-center">Chưa có dữ liệu</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Biểu đồ sách theo thể loại
+        var categoryCtx = document.getElementById("categoryChart");
+        var categoryChart = new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.BooksByCategory.Where(c => c.BookCount > 0).Take(10).Select(c => c.CategoryName))),
+                datasets: [{
+                    data: @Html.Raw(Json.Serialize(Model.BooksByCategory.Where(c => c.BookCount > 0).Take(10).Select(c => c.BookCount))),
+                    backgroundColor: [
+                        '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
+                        '#6f42c1', '#e83e8c', '#fd7e14', '#20c997', '#17a2b8'
+                    ],
+                    hoverBackgroundColor: [
+                        '#2e59d9', '#17a673', '#2c9faf', '#f4b619', '#be2617',
+                        '#563d7c', '#d63384', '#fd7e14', '#17a2b8', '#138496'
+                    ],
+                    hoverBorderColor: "rgba(234, 236, 244, 1)",
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                tooltips: {
+                    backgroundColor: "rgb(255,255,255)",
+                    bodyFontColor: "#858796",
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    xPadding: 15,
+                    yPadding: 15,
+                    displayColors: false,
+                    caretPadding: 10,
+                },
+                legend: {
+                    display: false
+                },
+                cutoutPercentage: 80,
+            },
+        });
+
+        // Biểu đồ sách theo ngôn ngữ
+        var languageCtx = document.getElementById("languageChart");
+        var languageChart = new Chart(languageCtx, {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.BooksByLanguage.Where(l => l.BookCount > 0).Take(10).Select(l => l.LanguageName))),
+                datasets: [{
+                    data: @Html.Raw(Json.Serialize(Model.BooksByLanguage.Where(l => l.BookCount > 0).Take(10).Select(l => l.BookCount))),
+                    backgroundColor: [
+                        '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
+                        '#6f42c1', '#e83e8c', '#fd7e14', '#20c997', '#17a2b8'
+                    ],
+                    hoverBackgroundColor: [
+                        '#2e59d9', '#17a673', '#2c9faf', '#f4b619', '#be2617',
+                        '#563d7c', '#d63384', '#fd7e14', '#17a2b8', '#138496'
+                    ],
+                    hoverBorderColor: "rgba(234, 236, 244, 1)",
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                tooltips: {
+                    backgroundColor: "rgb(255,255,255)",
+                    bodyFontColor: "#858796",
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    xPadding: 15,
+                    yPadding: 15,
+                    displayColors: false,
+                    caretPadding: 10,
+                },
+                legend: {
+                    display: false
+                },
+                cutoutPercentage: 80,
+            },
+        });
+    </script>
+}
