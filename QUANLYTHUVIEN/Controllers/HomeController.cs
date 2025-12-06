@@ -103,6 +103,24 @@ namespace QUANLYTHUVIEN.Controllers
             return View(books);
         }
 
+        [Route("ve-chung-toi")]
+        [Route("about")]
+        public async Task<IActionResult> About()
+        {
+            // Load thống kê cho trang About
+            var totalBooks = await _context.Books.CountAsync();
+            var totalAuthors = await _context.Authors.CountAsync();
+            var totalCategories = await _context.Categories.CountAsync();
+            var totalCustomers = await _context.Customers.CountAsync();
+
+            ViewBag.TotalBooks = totalBooks;
+            ViewBag.TotalAuthors = totalAuthors;
+            ViewBag.TotalCategories = totalCategories;
+            ViewBag.TotalCustomers = totalCustomers;
+
+            return View();
+        }
+
         public IActionResult Privacy()
         {
             return View();

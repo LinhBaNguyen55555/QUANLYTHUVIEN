@@ -1,0 +1,238 @@
+@{
+    ViewData["Title"] = "Về Chúng Tôi";
+}
+
+<!-- Start: Page Banner -->
+<section class="page-banner services-banner" style="background-image: url('@Url.Content("~/images/page-banners/about-banner.jpg")'); background-attachment: fixed; background-position: center top; background-repeat: no-repeat; background-size: cover; min-height: 500px; position: relative;">
+    <div class="container" style="position: relative; z-index: 2;">
+        <div class="banner-header">
+            <h2 style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">Về Chúng Tôi</h2>
+            <span class="underline center" style="border-color: white;"></span>
+            <p class="lead" style="color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">Khám phá câu chuyện và sứ mệnh của thư viện chúng tôi</p>
+        </div>
+    </div>
+    <div class="breadcrumb" style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); z-index: 10; background-color: white; padding: 20px 30px; border-radius: 0;">
+        <ul>
+            <li><a href="@Url.Action("Index", "Home")" style="color: #282828; text-decoration: none;">Trang chủ</a></li>
+            <li style="color: #ff7236;">Về chúng tôi</li>
+        </ul>
+    </div>
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1;"></div>
+</section>
+<!-- End: Page Banner -->
+
+<!-- Start: About Section -->
+<section class="welcome-section section-padding">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="welcome-wrap">
+                    <div class="welcome-text">
+                        <h2 class="section-title">Chào mừng đến với Thư viện</h2>
+                        <span class="underline left"></span>
+                        <p class="lead">Hệ thống được xây dựng cuối năm 2025 với tinh thần không bỏ cuộc và sứ mệnh mang tri thức đến cho mọi người.</p>
+                        <p>
+                            Thư viện của chúng tôi là một không gian tri thức hiện đại, được thiết kế để phục vụ nhu cầu học tập, nghiên cứu và giải trí của cộng đồng. Với kho tàng sách phong phú và đa dạng, chúng tôi tự hào là điểm đến lý tưởng cho những người yêu thích đọc sách và khám phá tri thức.
+                        </p>
+                        <p>
+                            Chúng tôi không chỉ là nơi lưu trữ sách, mà còn là nơi kết nối mọi người với tri thức, khơi dậy niềm đam mê đọc sách và tạo ra một cộng đồng học tập tích cực. Mỗi cuốn sách trong thư viện đều được chọn lọc kỹ lưỡng để đảm bảo chất lượng và giá trị cho người đọc.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="welcome-img">
+                    <img src="@Url.Content("~/images/welcome-img-home-v1.jpg")" alt="Về chúng tôi" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End: About Section -->
+
+<!-- Start: Statistics Section -->
+<section class="section-padding" style="background: #f8f9fa;">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="section-title text-center">Thống Kê Thư Viện</h2>
+                <span class="underline center"></span>
+                <p class="lead text-center">Những con số ấn tượng về kho tàng tri thức của chúng tôi</p>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 50px;">
+            <div class="col-md-3 col-sm-6">
+                <div class="text-center" style="padding: 30px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px; transition: transform 0.3s;">
+                    <div style="font-size: 48px; color: #007bff; margin-bottom: 15px;">
+                        <i class="fa fa-book"></i>
+                    </div>
+                    <h3 style="font-size: 36px; color: #333; margin-bottom: 10px; font-weight: bold;">@ViewBag.TotalBooks</h3>
+                    <p style="font-size: 16px; color: #666; margin: 0;">Đầu Sách</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="text-center" style="padding: 30px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px; transition: transform 0.3s;">
+                    <div style="font-size: 48px; color: #28a745; margin-bottom: 15px;">
+                        <i class="fa fa-users"></i>
+                    </div>
+                    <h3 style="font-size: 36px; color: #333; margin-bottom: 10px; font-weight: bold;">@ViewBag.TotalAuthors</h3>
+                    <p style="font-size: 16px; color: #666; margin: 0;">Tác Giả</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="text-center" style="padding: 30px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px; transition: transform 0.3s;">
+                    <div style="font-size: 48px; color: #ffc107; margin-bottom: 15px;">
+                        <i class="fa fa-folder-open"></i>
+                    </div>
+                    <h3 style="font-size: 36px; color: #333; margin-bottom: 10px; font-weight: bold;">@ViewBag.TotalCategories</h3>
+                    <p style="font-size: 16px; color: #666; margin: 0;">Thể Loại</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="text-center" style="padding: 30px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px; transition: transform 0.3s;">
+                    <div style="font-size: 48px; color: #dc3545; margin-bottom: 15px;">
+                        <i class="fa fa-users"></i>
+                    </div>
+                    <h3 style="font-size: 36px; color: #333; margin-bottom: 10px; font-weight: bold;">@ViewBag.TotalCustomers</h3>
+                    <p style="font-size: 16px; color: #666; margin: 0;">Thành Viên</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End: Statistics Section -->
+
+<!-- Start: Mission & Vision Section -->
+<section class="section-padding">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6" style="margin-bottom: 30px;">
+                <div style="padding: 40px; background: #f8f9fa; border-radius: 8px; height: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div class="text-center" style="margin-bottom: 20px;">
+                        <i class="fa fa-bullseye" style="font-size: 64px; color: #007bff;"></i>
+                    </div>
+                    <h3 class="section-title text-center" style="margin-bottom: 20px;">Sứ Mệnh</h3>
+                    <span class="underline center"></span>
+                    <p style="font-size: 16px; line-height: 1.8; color: #555; text-align: center; margin-top: 20px;">
+                        Sứ mệnh của chúng tôi là mang tri thức đến gần hơn với mọi người, tạo ra một môi trường học tập tích cực và khuyến khích văn hóa đọc sách trong cộng đồng. Chúng tôi cam kết cung cấp nguồn tài liệu chất lượng cao, đa dạng và phong phú để phục vụ nhu cầu học tập, nghiên cứu và giải trí của tất cả mọi người.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6" style="margin-bottom: 30px;">
+                <div style="padding: 40px; background: #f8f9fa; border-radius: 8px; height: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div class="text-center" style="margin-bottom: 20px;">
+                        <i class="fa fa-eye" style="font-size: 64px; color: #28a745;"></i>
+                    </div>
+                    <h3 class="section-title text-center" style="margin-bottom: 20px;">Tầm Nhìn</h3>
+                    <span class="underline center"></span>
+                    <p style="font-size: 16px; line-height: 1.8; color: #555; text-align: center; margin-top: 20px;">
+                        Chúng tôi hướng tới việc trở thành thư viện hàng đầu trong khu vực, nơi mọi người có thể dễ dàng tiếp cận với tri thức và phát triển bản thân. Chúng tôi mong muốn xây dựng một cộng đồng học tập mạnh mẽ, nơi mọi người chia sẻ niềm đam mê đọc sách và cùng nhau phát triển tri thức.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End: Mission & Vision Section -->
+
+<!-- Start: Values Section -->
+<section class="section-padding" style="background: #f8f9fa;">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="section-title text-center">Giá Trị Cốt Lõi</h2>
+                <span class="underline center"></span>
+                <p class="lead text-center">Những giá trị mà chúng tôi luôn theo đuổi</p>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 50px;">
+            <div class="col-md-4 col-sm-6" style="margin-bottom: 30px;">
+                <div class="text-center" style="padding: 30px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); height: 100%;">
+                    <div style="font-size: 48px; color: #007bff; margin-bottom: 20px;">
+                        <i class="fa fa-heart"></i>
+                    </div>
+                    <h4 style="font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #333;">Đam Mê</h4>
+                    <p style="font-size: 15px; line-height: 1.6; color: #666;">
+                        Chúng tôi đam mê việc mang tri thức đến với mọi người và tạo ra những trải nghiệm đọc sách tuyệt vời.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6" style="margin-bottom: 30px;">
+                <div class="text-center" style="padding: 30px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); height: 100%;">
+                    <div style="font-size: 48px; color: #28a745; margin-bottom: 20px;">
+                        <i class="fa fa-star"></i>
+                    </div>
+                    <h4 style="font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #333;">Chất Lượng</h4>
+                    <p style="font-size: 15px; line-height: 1.6; color: #666;">
+                        Chúng tôi cam kết cung cấp những cuốn sách chất lượng cao và dịch vụ tốt nhất cho độc giả.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6" style="margin-bottom: 30px;">
+                <div class="text-center" style="padding: 30px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); height: 100%;">
+                    <div style="font-size: 48px; color: #ffc107; margin-bottom: 20px;">
+                        <i class="fa fa-cog"></i>
+                    </div>
+                    <h4 style="font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #333;">Phục Vụ</h4>
+                    <p style="font-size: 15px; line-height: 1.6; color: #666;">
+                        Đội ngũ của chúng tôi luôn sẵn sàng hỗ trợ và phục vụ bạn với tinh thần nhiệt tình và chuyên nghiệp.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End: Values Section -->
+
+<!-- Start: History Section -->
+<section class="section-padding">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="section-title text-center">Lịch Sử Phát Triển</h2>
+                <span class="underline center"></span>
+                <p class="lead text-center">Hành trình xây dựng và phát triển của chúng tôi</p>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 50px;">
+            <div class="col-md-12">
+                <div style="padding: 40px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div class="row">
+                        <div class="col-md-6" style="margin-bottom: 20px;">
+                            <div style="text-align: center; margin-bottom: 20px;">
+                                <i class="fa fa-calendar-check-o" style="font-size: 48px; color: #007bff;"></i>
+                            </div>
+                            <h3 style="font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #333; text-align: center;">Khởi Đầu</h3>
+                            <p style="font-size: 16px; line-height: 1.8; color: #555; text-align: center;">
+                                Thư viện được thành lập vào cuối năm 2025 với mục tiêu ban đầu là tạo ra một không gian tri thức cho cộng đồng. Từ những ngày đầu với bộ sưu tập sách khiêm tốn, chúng tôi đã không ngừng phát triển và mở rộng.
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <div style="text-align: center; margin-bottom: 20px;">
+                                <i class="fa fa-rocket" style="font-size: 48px; color: #28a745;"></i>
+                            </div>
+                            <h3 style="font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #333; text-align: center;">Hiện Tại</h3>
+                            <p style="font-size: 16px; line-height: 1.8; color: #555; text-align: center;">
+                                Ngày nay, thư viện của chúng tôi đã trở thành một điểm đến quen thuộc với hàng ngàn đầu sách đa dạng, phục vụ hàng trăm thành viên mỗi tháng. Chúng tôi tiếp tục đầu tư vào công nghệ và dịch vụ để mang đến trải nghiệm tốt nhất cho độc giả.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End: History Section -->
+
+<style type="text/css">
+    .text-center:hover {
+        transform: translateY(-5px);
+        transition: transform 0.3s ease;
+    }
+    @@media (max-width: 768px) {
+        .page-banner {
+            min-height: 300px !important;
+            background-attachment: scroll !important;
+        }
+    }
+</style>
