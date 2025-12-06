@@ -1,0 +1,34 @@
+[33mcommit 74b5995fdf670278ef0de0933eaea61ffd927028[m
+Author: LinhBaNguyen55555 <linhgatannien@gmail.com>
+Date:   Tue Nov 18 01:52:14 2025 +0700
+
+    xong Home
+
+QUANLYTHUVIEN/Models/Author.cs
+QUANLYTHUVIEN/Models/Book.cs
+QUANLYTHUVIEN/Models/Category.cs
+QUANLYTHUVIEN/Models/QlthuvienContext.cs
+QUANLYTHUVIEN/Models/TbBlog.cs
+QUANLYTHUVIEN/QUANLYTHUVIEN.csproj
+QUANLYTHUVIEN/ViewComponents/AuthorTestimonialViewComponent.cs
+QUANLYTHUVIEN/ViewComponents/BookViewComponent.cs
+QUANLYTHUVIEN/ViewComponents/LatestBlogViewComponent.cs
+QUANLYTHUVIEN/Views/Home/Index.cshtml
+QUANLYTHUVIEN/Views/Shared/Components/AuthorTestimonial/Default.cshtml
+QUANLYTHUVIEN/Views/Shared/Components/Book/Default.cshtml
+QUANLYTHUVIEN/Views/Shared/Components/CategoryFilter/Default.cshtml
+QUANLYTHUVIEN/Views/Shared/Components/LatestBlog/Default.cshtml
+QUANLYTHUVIEN/Views/Shared/_Layout.cshtml
+QUANLYTHUVIEN/wwwroot/images/Authors/500px-Paulo_Coelho_30102007.jpg
+QUANLYTHUVIEN/wwwroot/images/Authors/CassandraAusten-JaneAusten(c.1810)_hires.jpg
+QUANLYTHUVIEN/wwwroot/images/Authors/Dan_Brown_November_2015.jpg
+QUANLYTHUVIEN/wwwroot/images/Authors/F._Scott_Fitzgerald_(1921_portrait_-_crop).jpg
+QUANLYTHUVIEN/wwwroot/images/Authors/George-orwell-BBC.jpg
+QUANLYTHUVIEN/wwwroot/images/Authors/J._D._Salinger_(Catcher_in_the_Rye_portrait).jpg
+QUANLYTHUVIEN/wwwroot/images/Authors/J._R._R._Tolkien,_ca._1925.jpg
+QUANLYTHUVIEN/wwwroot/images/Authors/Photo_portrait_of_Harper_Lee_(To_Kill_a_Mockingbird_dust_jacket,_1960).jpg
+"QUANLYTHUVIEN/wwwroot/images/Authors/Portrait_of_writer_Ng\303\264_T\341\272\245t_T\341\273\221_(cropped).jpg"
+QUANLYTHUVIEN/wwwroot/images/blog/blog-10.jpg
+QUANLYTHUVIEN/wwwroot/images/blog/blog-11.jpg
+QUANLYTHUVIEN/wwwroot/js/main.js
+QUANLYTHUVIEN/wwwroot/style.css

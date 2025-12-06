@@ -1,18 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace QUANLYTHUVIEN.Models;
 
 public partial class Author
 {
+    [Key]
     public int AuthorId { get; set; }
 
+    [Required(ErrorMessage = "Tên tác giả là bắt buộc")]
+    [StringLength(100, ErrorMessage = "Tên tác giả không được vượt quá 100 ký tự")]
+    [Display(Name = "Tên tác giả")]
     public string AuthorName { get; set; } = null!;
 
+    [StringLength(2000, ErrorMessage = "Tiểu sử không được vượt quá 2000 ký tự")]
+    [Display(Name = "Tiểu sử")]
     public string? Biography { get; set; }
 
+    [Display(Name = "Ảnh đại diện")]
     public string? Image { get; set; }
 
+    [Display(Name = "Sách")]
     public virtual ICollection<Book> Books { get; set; } = new List<Book>();
 
     // --- BẮT ĐẦU THÊM MỚI ---

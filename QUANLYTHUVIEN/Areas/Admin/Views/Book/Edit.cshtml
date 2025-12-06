@@ -1,0 +1,216 @@
+@model QUANLYTHUVIEN.Models.Book
+
+@{
+    ViewData["Title"] = "Chỉnh sửa Sách";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Chỉnh sửa Sách: @Model.Title</h6>
+    </div>
+    <div class="card-body">
+        @if (ViewData.ModelState.ErrorCount > 0 && !ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <strong>Có lỗi xảy ra:</strong>
+                <ul class="mb-0">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="BookId" />
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="form-group">
+                        <label asp-for="Title" class="control-label font-weight-bold">
+                            Tiêu đề sách <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Title" class="form-control" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Isbn" class="control-label">ISBN</label>
+                        <input asp-for="Isbn" class="form-control" />
+                        <small class="form-text text-muted">Để trống nếu không có</small>
+                        <span asp-validation-for="Isbn" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Description" class="control-label">Mô tả</label>
+                        <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label font-weight-bold">Tác giả <span class="text-danger">*</span></label>
+                        <div class="border p-3" style="max-height: 200px; overflow-y: auto;">
+                            @if (ViewBag.Authors != null)
+                            {
+                                foreach (var author in ViewBag.Authors as IEnumerable<QUANLYTHUVIEN.Models.Author>)
+                                {
+                                    var isSelected = ViewBag.SelectedAuthors != null &&
+                                                    ((int[])ViewBag.SelectedAuthors).Contains(author.AuthorId);
+                                    <div class="form-check">
+                                        <input type="checkbox" name="selectedAuthors" value="@author.AuthorId"
+                                               class="form-check-input" id="author_@author.AuthorId"
+                                               @(isSelected ? "checked" : "") />
+                                        <label class="form-check-label" for="author_@author.AuthorId">
+                                            @author.AuthorName
+                                        </label>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        <small class="form-text text-muted">Chọn một hoặc nhiều tác giả</small>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label asp-for="CategoryId" class="control-label font-weight-bold">
+                            Thể loại <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="CategoryId" class="form-control">
+                            <option value="">Chọn thể loại</option>
+                            @if (ViewBag.Categories != null)
+                            {
+                                foreach (var category in ViewBag.Categories as IEnumerable<QUANLYTHUVIEN.Models.Category>)
+                                {
+                                    <option value="@category.CategoryId" selected="@(category.CategoryId == Model.CategoryId ? "selected" : null)">
+                                        @category.CategoryName
+                                    </option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="CategoryId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="PublisherId" class="control-label">Nhà xuất bản</label>
+                        <select asp-for="PublisherId" class="form-control">
+                            <option value="">Chọn nhà xuất bản</option>
+                            @if (ViewBag.Publishers != null)
+                            {
+                                foreach (var publisher in ViewBag.Publishers as IEnumerable<QUANLYTHUVIEN.Models.Publisher>)
+                                {
+                                    <option value="@publisher.PublisherId" selected="@(publisher.PublisherId == Model.PublisherId ? "selected" : null)">
+                                        @publisher.PublisherName
+                                    </option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="PublisherId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="LanguageId" class="control-label">Ngôn ngữ</label>
+                        <select asp-for="LanguageId" class="form-control">
+                            <option value="">Chọn ngôn ngữ</option>
+                            @if (ViewBag.Languages != null)
+                            {
+                                foreach (var language in ViewBag.Languages as IEnumerable<QUANLYTHUVIEN.Models.Language>)
+                                {
+                                    <option value="@language.LanguageId" selected="@(language.LanguageId == Model.LanguageId ? "selected" : null)">
+                                        @language.LanguageName
+                                    </option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="LanguageId" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="PublishedYear" class="control-label">Năm xuất bản</label>
+                                <input asp-for="PublishedYear" type="number" class="form-control"
+                                       min="1000" max="2100" />
+                                <span asp-validation-for="PublishedYear" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="Quantity" class="control-label font-weight-bold">
+                                    Số lượng <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Quantity" type="number" class="form-control" min="0" />
+                                <span asp-validation-for="Quantity" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="CoverImage" class="control-label">Ảnh bìa</label>
+                        <div class="input-group">
+                            <input asp-for="CoverImage" id="CoverImage" class="form-control" placeholder="Tên file ảnh (ví dụ: book-media-grid-01.jpg)" />
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-outline-secondary" onclick="openImageBrowser('CoverImage', 'images/books-media/gird-view')">
+                                    <i class="fas fa-folder-open"></i> Chọn ảnh
+                                </button>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">Nhập tên file ảnh hoặc click "Chọn ảnh" để chọn từ thư viện</small>
+                        <span asp-validation-for="CoverImage" class="text-danger"></span>
+                        <div class="mt-2">
+                            @if (!string.IsNullOrEmpty(Model.CoverImage))
+                            {
+                                <img id="CoverImagePreview" src="@Url.Content(Model.CoverImageUrl)" alt="Preview" style="max-width: 200px; max-height: 200px;" class="img-thumbnail" />
+                            }
+                            else
+                            {
+                                <img id="CoverImagePreview" src="" alt="Preview" style="max-width: 200px; max-height: 200px; display: none;" class="img-thumbnail" />
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Cập nhật sách
+                </button>
+                <a href="@Url.Action("Index", "Book")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại danh sách
+                </a>
+                <a href="@Url.Action("Delete", "Book", new { id = Model.BookId })"
+                   class="btn btn-danger float-right"
+                   onclick="return confirm('Bạn có chắc chắn muốn xóa sách này?')">
+                    <i class="fas fa-trash"></i> Xóa sách
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#CoverImage').on('input', function () {
+                var imageValue = $(this).val();
+                var preview = $('#CoverImagePreview');
+                if (imageValue) {
+                    // Kiểm tra xem có đường dẫn đầy đủ không
+                    if (imageValue.startsWith('books-media/')) {
+                        preview.attr('src', '/images/' + imageValue);
+                    } else if (imageValue.startsWith('gird-view/') || imageValue.startsWith('list-view/') || imageValue.startsWith('detail-page/')) {
+                        preview.attr('src', '/images/books-media/' + imageValue);
+                    } else {
+                        // Chỉ có tên file, dùng thư mục mặc định
+                        preview.attr('src', '/images/books-media/gird-view/' + imageValue);
+                    }
+                    preview.show();
+                } else {
+                    preview.hide();
+                }
+            });
+        });
+    </script>
+}
+
+

@@ -1,0 +1,110 @@
+@model QUANLYTHUVIEN.Models.Order
+
+@{
+    ViewData["Title"] = "Chi tiết Đơn hàng nhập";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Chi tiết Đơn hàng nhập: #@Model.OrderId</h6>
+        <div>
+            <a href="@Url.Action("Edit", "Order", new { id = Model.OrderId })" class="btn btn-warning btn-sm">
+                <i class="fas fa-edit"></i> Chỉnh sửa
+            </a>
+            <a href="@Url.Action("Index", "Order")" class="btn btn-secondary btn-sm">
+                <i class="fas fa-list"></i> Danh sách
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <dl class="row">
+                    <dt class="col-sm-4">ID đơn hàng</dt>
+                    <dd class="col-sm-8">@Model.OrderId</dd>
+
+                    <dt class="col-sm-4">Nhà cung cấp</dt>
+                    <dd class="col-sm-8"><strong>@Model.Supplier?.SupplierName</strong></dd>
+
+                    <dt class="col-sm-4">Số điện thoại NCC</dt>
+                    <dd class="col-sm-8">@(Model.Supplier?.Phone ?? "Chưa cập nhật")</dd>
+
+                    <dt class="col-sm-4">Nhân viên xử lý</dt>
+                    <dd class="col-sm-8">@(Model.User?.FullName ?? "Chưa xác định")</dd>
+
+                    <dt class="col-sm-4">Ngày đặt hàng</dt>
+                    <dd class="col-sm-8">@Model.OrderDate?.ToString("dd/MM/yyyy HH:mm")</dd>
+                </dl>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card border-success">
+                    <div class="card-header bg-success text-white">
+                        <i class="fas fa-shopping-cart"></i> Thông tin đơn hàng
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <h4 class="text-primary">@Model.OrderDetails.Count</h4>
+                                <small>Loại sách</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-success">@Model.TotalAmount?.ToString("N0")</h4>
+                                <small>Tổng tiền</small>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="row">
+                            <div class="col-12">
+                                <h5 class="text-info">@Model.OrderDetails.Sum(od => od.Quantity)</h5>
+                                <small>Tổng số cuốn</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr />
+        <h5>Chi tiết sách nhập (@Model.OrderDetails.Count loại)</h5>
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên sách</th>
+                        <th>Tác giả</th>
+                        <th>Số lượng</th>
+                        <th>Đơn giá</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var stt = 1;
+                        foreach (var detail in Model.OrderDetails)
+                        {
+                            <tr>
+                                <td>@stt</td>
+                                <td>@detail.Book?.Title</td>
+                                <td>@detail.Book?.AuthorNames</td>
+                                <td>@detail.Quantity</td>
+                                <td>@detail.UnitPrice.ToString("N0") VNĐ</td>
+                                <td>@((detail.Quantity * detail.UnitPrice)).ToString("N0") VNĐ</td>
+                            </tr>
+                            stt++;
+                        }
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="font-weight-bold">
+                        <td colspan="5" class="text-right">Tổng cộng:</td>
+                        <td>@Model.TotalAmount?.ToString("N0") VNĐ</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+

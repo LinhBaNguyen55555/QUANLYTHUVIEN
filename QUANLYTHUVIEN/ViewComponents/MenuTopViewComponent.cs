@@ -1,7 +1,8 @@
 ﻿using QUANLYTHUVIEN.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
-namespace Harmic.ViewComponents
+namespace QUANLYTHUVIEN.ViewComponents
 {
     public class MenuTopViewComponent : ViewComponent
     {
@@ -14,9 +15,12 @@ namespace Harmic.ViewComponents
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            var items = _context.TbMenus.Where(m => (bool)m.IsActive)
-                .OrderBy(m => m.Position).ToList();
-            return await Task.FromResult<IViewComponentResult>(View(items));
+            var items = await _context.TbMenus
+                .Where(m => m.IsActive == true)
+                .Include(m => m.InverseParent.OrderBy(c => c.Position))  // Load menu con
+                .OrderBy(m => m.Position)
+                .ToListAsync();
+            return View(items);
         }
     }
 }

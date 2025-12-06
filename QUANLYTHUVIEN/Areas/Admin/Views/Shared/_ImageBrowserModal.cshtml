@@ -1,0 +1,263 @@
+<!-- Image Browser Modal -->
+<div class="modal fade" id="imageBrowserModal" tabindex="-1" role="dialog" aria-labelledby="imageBrowserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageBrowserModalLabel">Chọn ảnh</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label>Thư mục:</label>
+                        <select id="folderSelect" class="form-control">
+                            <option value="images">Tất cả ảnh</option>
+                            <option value="images/blog">Blog</option>
+                            <option value="images/Authors">Tác giả</option>
+                            <option value="images/books-media/gird-view">Sách (Grid View)</option>
+                            <option value="images/books-media/list-view">Sách (List View)</option>
+                            <option value="images/books-media/detail-page">Sách (Detail Page)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Tìm kiếm:</label>
+                        <input type="text" id="imageSearch" class="form-control" placeholder="Tìm kiếm ảnh...">
+                    </div>
+                </div>
+                <div id="imageGallery" class="row" style="max-height: 500px; overflow-y: auto;">
+                    <div class="col-12 text-center py-5">
+                        <div class="spinner-border text-primary" role="status" id="loadingSpinner">
+                            <span class="sr-only">Đang tải...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Đang tải danh sách ảnh...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentImageInputId = '';
+    let defaultFolder = 'images';
+
+    function openImageBrowser(inputId, folder = 'images') {
+        console.log('Opening image browser for input:', inputId, 'with folder:', folder);
+        currentImageInputId = inputId;
+        defaultFolder = folder;
+        
+        // Đảm bảo modal đã được render
+        if ($('#imageBrowserModal').length === 0) {
+            console.error('Image browser modal not found!');
+            alert('Lỗi: Không tìm thấy modal chọn ảnh. Vui lòng tải lại trang.');
+            return;
+        }
+        
+        // Set folder và clear search
+        $('#folderSelect').val(folder);
+        $('#imageSearch').val('');
+        
+        // Show modal và load images
+        $('#imageBrowserModal').modal('show');
+        
+        // Đợi một chút để modal hiển thị hoàn toàn trước khi load
+        setTimeout(function() {
+            loadImages(folder);
+        }, 300);
+    }
+
+    function loadImages(folderPath) {
+        // Hiển thị loading
+        $('#imageGallery').html(`
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Đang tải...</span>
+                </div>
+                <p class="mt-2 text-muted">Đang tải danh sách ảnh...</p>
+            </div>
+        `);
+
+        // Tạo URL động
+        var url = '/Admin/FileBrowser/GetImagesByFolder';
+        console.log('Loading images from:', url);
+        console.log('Folder path:', folderPath);
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            data: { folderPath: folderPath },
+            dataType: 'json',
+            success: function (response) {
+                console.log('Response received:', response);
+                
+                // Kiểm tra nếu có lỗi
+                if (response && response.error) {
+                    $('#imageGallery').html(`
+                        <div class="col-12">
+                            <div class="alert alert-warning">
+                                <strong>Thông báo:</strong> ${response.error}
+                            </div>
+                        </div>
+                    `);
+                    return;
+                }
+                
+                // Kiểm tra nếu response là array
+                var images = Array.isArray(response) ? response : [];
+                console.log('Images array:', images);
+                
+                if (images && images.length > 0) {
+                    displayImages(images);
+                } else {
+                    $('#imageGallery').html('<div class="col-12"><p class="text-muted">Không có ảnh nào trong thư mục này.</p></div>');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error loading images:', error);
+                console.error('Status:', status);
+                console.error('Response:', xhr.responseText);
+                console.error('Status Code:', xhr.status);
+                $('#imageGallery').html(`
+                    <div class="col-12">
+                        <div class="alert alert-danger">
+                            <strong>Lỗi:</strong> Không thể tải danh sách ảnh.
+                            <br><small>Chi tiết: ${error}</small>
+                            <br><small>Status Code: ${xhr.status}</small>
+                            <br><small>URL: ${url}</small>
+                            <br><small>Folder: ${folderPath}</small>
+                            <br><small>Response: ${xhr.responseText}</small>
+                        </div>
+                    </div>
+                `);
+            }
+        });
+    }
+
+    function displayImages(images) {
+        var gallery = $('#imageGallery');
+        gallery.empty();
+
+        if (images.length === 0) {
+            gallery.html('<div class="col-12"><p class="text-muted">Không có ảnh nào trong thư mục này.</p></div>');
+            return;
+        }
+
+        images.forEach(function (image) {
+            // Escape các ký tự đặc biệt trong đường dẫn và tên file
+            var escapedPath = (image.relativePath || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            var escapedName = (image.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            var escapedDisplayPath = (image.path || '').replace(/"/g, '&quot;');
+            
+            var imageCard = $('<div>')
+                .addClass('col-md-3 mb-3 image-item')
+                .attr('data-name', (image.name || '').toLowerCase())
+                .html(`
+                    <div class="card h-100 image-card" style="cursor: pointer;">
+                        <img src="${escapedDisplayPath}" class="card-img-top" alt="${escapedName}" 
+                             style="height: 150px; object-fit: cover;" 
+                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'150\' height=\'150\'%3E%3Crect fill=\'%23ddd\' width=\'150\' height=\'150\'/%3E%3Ctext fill=\'%23999\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\'%3ENo Image%3C/text%3E%3C/svg%3E'">
+                        <div class="card-body p-2">
+                            <small class="card-text text-truncate d-block" title="${escapedName}">${escapedName}</small>
+                        </div>
+                    </div>
+                `);
+            
+            // Thêm event click
+            imageCard.find('.image-card').on('click', function() {
+                selectImage(image.relativePath || image.path, image.name || '');
+            });
+            
+            gallery.append(imageCard);
+        });
+    }
+
+    function selectImage(imagePath, imageName) {
+        // Xử lý đường dẫn để chỉ lấy phần sau thư mục images
+        var relativePath = imagePath;
+        
+        // Loại bỏ phần đầu /images/ hoặc images/
+        if (relativePath.startsWith('/images/')) {
+            relativePath = relativePath.substring('/images/'.length);
+        } else if (relativePath.startsWith('images/')) {
+            relativePath = relativePath.substring('images/'.length);
+        }
+        
+        // Xác định thư mục hiện tại để cập nhật preview đúng
+        var currentFolder = $('#folderSelect').val();
+        var previewPath = '';
+        var finalPath = relativePath; // Đường dẫn sẽ lưu vào input
+        
+        if (currentFolder === 'images/blog' || relativePath.startsWith('blog/')) {
+            // Nếu từ thư mục blog, chỉ lấy tên file
+            if (relativePath.startsWith('blog/')) {
+                finalPath = relativePath.substring('blog/'.length);
+            }
+            previewPath = '/images/blog/' + finalPath;
+        } else if (currentFolder === 'images/Authors' || relativePath.startsWith('Authors/')) {
+            // Nếu từ thư mục Authors, chỉ lấy tên file
+            if (relativePath.startsWith('Authors/')) {
+                finalPath = relativePath.substring('Authors/'.length);
+            }
+            previewPath = '/images/Authors/' + finalPath;
+        } else if (currentFolder.startsWith('images/books-media/') || relativePath.startsWith('books-media/')) {
+            // Nếu từ thư mục sách
+            if (relativePath.startsWith('books-media/')) {
+                // Giữ nguyên đường dẫn đầy đủ từ books-media/
+                finalPath = relativePath;
+                previewPath = '/images/' + relativePath;
+            } else {
+                // Chỉ có tên file, thêm đường dẫn thư mục hiện tại
+                var bookFolder = currentFolder.replace('images/', '');
+                finalPath = bookFolder + '/' + relativePath;
+                previewPath = '/images/' + finalPath;
+            }
+        } else {
+            // Giữ nguyên đường dẫn đầy đủ
+            finalPath = relativePath;
+            previewPath = '/images/' + relativePath;
+        }
+
+        $('#' + currentImageInputId).val(finalPath);
+        
+        // Cập nhật preview nếu có
+        var previewId = currentImageInputId + 'Preview';
+        var previewElement = $('#' + previewId);
+        if (previewElement.length) {
+            previewElement.attr('src', previewPath);
+            previewElement.show();
+        }
+
+        $('#imageBrowserModal').modal('hide');
+    }
+
+    $(document).ready(function () {
+        $('#folderSelect').on('change', function () {
+            loadImages($(this).val());
+        });
+
+        $('#imageSearch').on('keyup', function () {
+            var searchTerm = $(this).val().toLowerCase();
+            $('.image-item').each(function () {
+                var imageName = $(this).data('name');
+                if (imageName.includes(searchTerm)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    .image-card:hover {
+        border-color: #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+</style>
+

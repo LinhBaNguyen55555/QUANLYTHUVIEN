@@ -1,0 +1,96 @@
+@model QUANLYTHUVIEN.Models.Supplier
+
+@{
+    ViewData["Title"] = "Chi tiết Nhà cung cấp";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Chi tiết Nhà cung cấp: @Model.SupplierName</h6>
+        <div>
+            <a href="@Url.Action("Edit", "Supplier", new { id = Model.SupplierId })" class="btn btn-warning btn-sm">
+                <i class="fas fa-edit"></i> Chỉnh sửa
+            </a>
+            <a href="@Url.Action("Index", "Supplier")" class="btn btn-secondary btn-sm">
+                <i class="fas fa-list"></i> Danh sách
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <dl class="row">
+                    <dt class="col-sm-3">ID</dt>
+                    <dd class="col-sm-9">@Model.SupplierId</dd>
+
+                    <dt class="col-sm-3">Tên nhà cung cấp</dt>
+                    <dd class="col-sm-9"><strong>@Model.SupplierName</strong></dd>
+
+                    <dt class="col-sm-3">Email</dt>
+                    <dd class="col-sm-9">@(Model.Email ?? "Chưa cập nhật")</dd>
+
+                    <dt class="col-sm-3">Số điện thoại</dt>
+                    <dd class="col-sm-9">@(Model.Phone ?? "Chưa cập nhật")</dd>
+
+                    <dt class="col-sm-3">Địa chỉ</dt>
+                    <dd class="col-sm-9">@(Model.Address ?? "Chưa cập nhật")</dd>
+                </dl>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <i class="fas fa-chart-bar"></i> Thống kê hoạt động
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h4 class="text-primary">@Model.Orders.Count</h4>
+                                <small>Đơn hàng</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-success">@Model.Orders.Sum(o => o.TotalAmount)?.ToString("N0")</h4>
+                                <small>Tổng giá trị</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.Orders.Any())
+        {
+            <hr />
+            <h5>Lịch sử đơn hàng (@Model.Orders.Count)</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Ngày đặt</th>
+                            <th>Người xử lý</th>
+                            <th>Tổng tiền</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.Orders.OrderByDescending(o => o.OrderDate))
+                        {
+                            <tr>
+                                <td>@order.OrderId</td>
+                                <td>@order.OrderDate?.ToString("dd/MM/yyyy")</td>
+                                <td>@(order.User?.FullName ?? "Chưa xác định")</td>
+                                <td>@order.TotalAmount?.ToString("N0") VNĐ</td>
+                                <td>
+                                    <a href="#" class="btn btn-info btn-sm">Chi tiết</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+

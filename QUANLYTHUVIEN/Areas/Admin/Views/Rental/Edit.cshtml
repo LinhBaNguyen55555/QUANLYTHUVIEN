@@ -1,0 +1,150 @@
+@model QUANLYTHUVIEN.Models.Rental
+
+@{
+    ViewData["Title"] = "Chỉnh sửa Phiếu thuê sách";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Chỉnh sửa Phiếu thuê sách #@Model.RentalId</h6>
+    </div>
+    <div class="card-body">
+        @if (ViewData.ModelState.ErrorCount > 0 && !ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <strong>Có lỗi xảy ra:</strong>
+                <ul class="mb-0">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="RentalId" />
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="CustomerId" class="control-label font-weight-bold">
+                            Khách hàng <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="CustomerId" class="form-control">
+                            <option value="">Chọn khách hàng</option>
+                            @if (ViewBag.Customers != null)
+                            {
+                                foreach (var customer in ViewBag.Customers as IEnumerable<QUANLYTHUVIEN.Models.Customer>)
+                                {
+                                    <option value="@customer.CustomerId" selected="@(customer.CustomerId == Model.CustomerId ? "selected" : null)">
+                                        @customer.FullName (@(customer.Phone ?? "No phone"))
+                                    </option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="CustomerId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="UserId" class="control-label font-weight-bold">
+                            Nhân viên xử lý <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="UserId" class="form-control">
+                            <option value="">Chọn nhân viên</option>
+                            @if (ViewBag.Users != null)
+                            {
+                                foreach (var user in ViewBag.Users as IEnumerable<QUANLYTHUVIEN.Models.User>)
+                                {
+                                    <option value="@user.UserId" selected="@(user.UserId == Model.UserId ? "selected" : null)">
+                                        @user.FullName (@user.Username)
+                                    </option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="UserId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Status" class="control-label font-weight-bold">
+                            Trạng thái <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="Status" class="form-control">
+                            <option value="Active" selected="@(Model.Status == "Active" ? "selected" : null)">Đang thuê</option>
+                            <option value="Returned" selected="@(Model.Status == "Returned" ? "selected" : null)">Đã trả</option>
+                            <option value="Overdue" selected="@(Model.Status == "Overdue" ? "selected" : null)">Quá hạn</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="control-label">Thông tin phiếu thuê</label>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <small>
+                                    <strong>Ngày tạo:</strong> @Model.RentalDate?.ToString("dd/MM/yyyy HH:mm")<br />
+                                    <strong>Số sách thuê:</strong> @Model.RentalDetails.Count<br />
+                                    <strong>Tổng tiền:</strong> @Model.TotalAmount?.ToString("N0") VNĐ<br />
+                                    <strong>Ngày trả:</strong> @(Model.ReturnDate?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa trả")
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model.Status != "Returned")
+                    {
+                        <div class="form-group">
+                            <label class="control-label">Thao tác nhanh</label>
+                            <button type="button" class="btn btn-success btn-block" onclick="returnBook(@Model.RentalId)">
+                                <i class="fas fa-undo"></i> Đánh dấu đã trả sách
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="form-group mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Cập nhật
+                </button>
+                <a href="@Url.Action("Index", "Rental")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại danh sách
+                </a>
+                <a href="@Url.Action("Delete", "Rental", new { id = Model.RentalId })"
+                   class="btn btn-danger float-right"
+                   onclick="return confirm('Bạn có chắc chắn muốn xóa phiếu thuê này?')">
+                    <i class="fas fa-trash"></i> Xóa phiếu thuê
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function returnBook(rentalId) {
+            if (confirm('Bạn có chắc chắn muốn đánh dấu phiếu thuê này đã trả sách?')) {
+                $.ajax({
+                    url: '@Url.Action("ReturnBook", "Rental", new { area = "Admin" })',
+                    type: 'POST',
+                    data: { id: rentalId },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Lỗi: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('Có lỗi xảy ra khi cập nhật trạng thái!');
+                    }
+                });
+            }
+        }
+    </script>
+}
+
+

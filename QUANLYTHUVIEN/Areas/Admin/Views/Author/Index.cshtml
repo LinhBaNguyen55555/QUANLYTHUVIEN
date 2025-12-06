@@ -1,0 +1,96 @@
+@model IEnumerable<QUANLYTHUVIEN.Models.Author>
+
+@{
+    ViewData["Title"] = "Quản lý Tác giả";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h6 class="m-0 font-weight-bold text-primary">Danh sách Tác giả</h6>
+            </div>
+            <div class="col-md-6 text-right">
+                <a href="@Url.Action("Create", "Author")" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Thêm tác giả
+                </a>
+            </div>
+        </div>
+
+        <!-- Search Form -->
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <form method="get" class="form-inline">
+                    <div class="form-group mr-3">
+                        <input type="text" name="searchString" class="form-control form-control-sm"
+                               placeholder="Tìm kiếm theo tên tác giả..."
+                               value="@ViewBag.SearchString" style="min-width: 300px;" />
+                    </div>
+                    <button type="submit" class="btn btn-secondary btn-sm mr-2">
+                        <i class="fas fa-search"></i> Tìm kiếm
+                    </button>
+                    <a href="@Url.Action("Index", "Author")" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-times"></i> Xóa bộ lọc
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (!Model.Any())
+        {
+            <div class="alert alert-info">Chưa có tác giả nào.</div>
+        }
+        else
+        {
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ảnh</th>
+                        <th>Tên tác giả</th>
+                        <th>Tiểu sử</th>
+                        <th>Số sách</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.AuthorId</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.Image))
+                                {
+                                    <img src="~/images/Authors/@item.Image" alt="@item.AuthorName" style="width: 60px; height: 60px; object-fit: cover;" class="img-thumbnail" />
+                                }
+                                else
+                                {
+                                    <img src="~/images/Authors/default-avatar.jpg" alt="No image" style="width: 60px; height: 60px; object-fit: cover;" class="img-thumbnail" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'60\' height=\'60\'%3E%3Crect fill=\'%23ddd\' width=\'60\' height=\'60\'/%3E%3Ctext fill=\'%23999\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\'%3ENo Image%3C/text%3E%3C/svg%3E'" />
+                                }
+                            </td>
+                            <td>@item.AuthorName</td>
+                            <td>@(item.Biography?.Length > 50 ? item.Biography.Substring(0, 50) + "..." : item.Biography ?? "Không có tiểu sử")</td>
+                            <td>@item.Books.Count</td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="@Url.Action("Details", "Author", new { id = item.AuthorId })" class="btn btn-info btn-sm" title="Chi tiết">
+                                        <i class="fas fa-info-circle"></i>
+                                    </a>
+                                    <a href="@Url.Action("Edit", "Author", new { id = item.AuthorId })" class="btn btn-warning btn-sm" title="Chỉnh sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="@Url.Action("Delete", "Author", new { id = item.AuthorId })" class="btn btn-danger btn-sm" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+

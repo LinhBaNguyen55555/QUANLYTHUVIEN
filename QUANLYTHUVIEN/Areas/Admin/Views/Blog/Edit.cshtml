@@ -1,0 +1,109 @@
+@model QUANLYTHUVIEN.Models.TbBlog
+
+@{
+    ViewData["Title"] = "Chỉnh sửa Bài viết";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Chỉnh sửa Bài viết</h6>
+    </div>
+    <div class="card-body">
+        @if (ViewData.ModelState.ErrorCount > 0 && !ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <strong>Có lỗi xảy ra:</strong>
+                <ul class="mb-0">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <form asp-action="Edit" asp-area="Admin" asp-controller="Blog" method="post">
+            <input type="hidden" asp-for="BlogId" />
+            <input type="hidden" asp-for="CreatedDate" />
+            <div class="form-group">
+                <label asp-for="Title" class="control-label"></label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Alias" class="control-label"></label>
+                <input asp-for="Alias" class="form-control" />
+                <span asp-validation-for="Alias" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Content" class="control-label"></label>
+                <textarea asp-for="Content" class="form-control" rows="10"></textarea>
+                <span asp-validation-for="Content" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AuthorId" class="control-label"></label>
+                <select asp-for="AuthorId" class="form-control">
+                    <option value="">Chọn tác giả</option>
+                    @if (ViewBag.Authors != null)
+                    {
+                        foreach (var author in ViewBag.Authors as IEnumerable<QUANLYTHUVIEN.Models.User>)
+                        {
+                            <option value="@author.UserId" selected="@(author.UserId == Model.AuthorId)">
+                                @author.Username (@author.FullName)
+                            </option>
+                        }
+                    }
+                </select>
+                <span asp-validation-for="AuthorId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Image" class="control-label"></label>
+                <div class="input-group">
+                    <input asp-for="Image" id="Image" class="form-control" placeholder="Tên file ảnh (ví dụ: blog-01.jpg)" />
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-secondary" onclick="openImageBrowser('Image', 'images/blog')">
+                            <i class="fas fa-folder-open"></i> Chọn ảnh
+                        </button>
+                    </div>
+                </div>
+                <span asp-validation-for="Image" class="text-danger"></span>
+                <small class="form-text text-muted">Nhập tên file ảnh hoặc click "Chọn ảnh" để chọn từ thư viện</small>
+                <div class="mt-2">
+                    @if (!string.IsNullOrEmpty(Model.Image))
+                    {
+                        <img id="ImagePreview" src="~/images/blog/@Model.Image" alt="Preview" style="max-width: 200px; max-height: 200px;" class="img-thumbnail" />
+                    }
+                    else
+                    {
+                        <img id="ImagePreview" src="" alt="Preview" style="max-width: 200px; max-height: 200px; display: none;" class="img-thumbnail" />
+                    }
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="form-check">
+                    <input asp-for="IsPublished" class="form-check-input" />
+                    <label asp-for="IsPublished" class="form-check-label">Xuất bản</label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Cập nhật</button>
+            <a href="@Url.Action("Index", "Blog")" class="btn btn-secondary">Quay lại</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#Image').on('input', function () {
+                var imageValue = $(this).val();
+                var preview = $('#ImagePreview');
+                if (imageValue) {
+                    preview.attr('src', '/images/blog/' + imageValue);
+                    preview.show();
+                } else {
+                    preview.hide();
+                }
+            });
+        });
+    </script>
+}

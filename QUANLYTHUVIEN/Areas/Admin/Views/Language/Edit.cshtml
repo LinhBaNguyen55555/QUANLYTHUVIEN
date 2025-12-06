@@ -1,0 +1,25 @@
+@model QUANLYTHUVIEN.Models.Language
+
+@{
+    ViewData["Title"] = "Chỉnh sửa Ngôn ngữ";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Chỉnh sửa Ngôn ngữ</h6>
+    </div>
+    <div class="card-body">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="LanguageId" />
+            <div class="form-group">
+                <label asp-for="LanguageName" class="control-label"></label>
+                <input asp-for="LanguageName" class="form-control" />
+                <span asp-validation-for="LanguageName" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Cập nhật</button>
+            <a href="@Url.Action("Index", "Language")" class="btn btn-secondary">Quay lại</a>
+        </form>
+    </div>
+</div>
+
+

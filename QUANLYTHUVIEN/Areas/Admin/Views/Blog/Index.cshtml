@@ -1,0 +1,101 @@
+@model IEnumerable<QUANLYTHUVIEN.Models.TbBlog>
+
+@{
+    ViewData["Title"] = "Quản lý Bài viết";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h6 class="m-0 font-weight-bold text-primary">Danh sách Bài viết</h6>
+            </div>
+            <div class="col-md-6 text-right">
+                <a href="@Url.Action("Create", "Blog")" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Thêm bài viết
+                </a>
+            </div>
+        </div>
+
+        <!-- Search and Filter Form -->
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <form method="get" class="form-inline">
+                    <div class="form-group mr-3">
+                        <input type="text" name="searchString" class="form-control form-control-sm"
+                               placeholder="Tìm kiếm theo tiêu đề..."
+                               value="@ViewBag.SearchString" style="min-width: 250px;" />
+                    </div>
+                    <div class="form-group mr-3">
+                        <select name="status" class="form-control form-control-sm">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="Published" selected="@(ViewBag.SelectedStatus == "Published" ? "selected" : null)">Đã xuất bản</option>
+                            <option value="Draft" selected="@(ViewBag.SelectedStatus == "Draft" ? "selected" : null)">Chưa xuất bản</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-secondary btn-sm mr-2">
+                        <i class="fas fa-search"></i> Tìm kiếm
+                    </button>
+                    <a href="@Url.Action("Index", "Blog")" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-times"></i> Xóa bộ lọc
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (!Model.Any())
+        {
+            <div class="alert alert-info">Chưa có bài viết nào.</div>
+        }
+        else
+        {
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ảnh</th>
+                        <th>Tiêu đề</th>
+                        <th>Tác giả</th>
+                        <th>Ngày tạo</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.BlogId</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.Image))
+                                {
+                                    <img src="~/images/blog/@item.Image" alt="@item.Title" style="width: 60px; height: 60px; object-fit: cover;" class="img-thumbnail" />
+                                }
+                                else
+                                {
+                                    <img src="~/images/blog/blog-10.jpg" alt="No image" style="width: 60px; height: 60px; object-fit: cover;" class="img-thumbnail" />
+                                }
+                            </td>
+                            <td>@item.Title</td>
+                            <td>@(item.Author?.Username ?? "Chưa xác định")</td>
+                            <td>@item.CreatedDate?.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="@Url.Action("Details", "Blog", new { id = item.BlogId })" class="btn btn-info btn-sm" title="Chi tiết">
+                                        <i class="fas fa-info-circle"></i>
+                                    </a>
+                                    <a href="@Url.Action("Edit", "Blog", new { id = item.BlogId })" class="btn btn-warning btn-sm" title="Chỉnh sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="@Url.Action("Delete", "Blog", new { id = item.BlogId })" class="btn btn-danger btn-sm" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

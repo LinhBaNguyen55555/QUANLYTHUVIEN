@@ -1,0 +1,116 @@
+@model QUANLYTHUVIEN.Models.Rental
+
+@{
+    ViewData["Title"] = "Chi tiết Phiếu thuê sách";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Chi tiết Phiếu thuê sách: #@Model.RentalId</h6>
+        <div>
+            <a href="@Url.Action("Edit", "Rental", new { id = Model.RentalId })" class="btn btn-warning btn-sm">
+                <i class="fas fa-edit"></i> Chỉnh sửa
+            </a>
+            <a href="@Url.Action("Index", "Rental")" class="btn btn-secondary btn-sm">
+                <i class="fas fa-list"></i> Danh sách
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <dl class="row">
+                    <dt class="col-sm-4">ID</dt>
+                    <dd class="col-sm-8">@Model.RentalId</dd>
+
+                    <dt class="col-sm-4">Khách hàng</dt>
+                    <dd class="col-sm-8"><strong>@Model.Customer?.FullName</strong></dd>
+
+                    <dt class="col-sm-4">Số điện thoại</dt>
+                    <dd class="col-sm-8">@(Model.Customer?.Phone ?? "Chưa cập nhật")</dd>
+
+                    <dt class="col-sm-4">Nhân viên</dt>
+                    <dd class="col-sm-8">@(Model.User?.FullName ?? "Chưa xác định")</dd>
+
+                    <dt class="col-sm-4">Ngày thuê</dt>
+                    <dd class="col-sm-8">@Model.RentalDate?.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                    <dt class="col-sm-4">Ngày trả</dt>
+                    <dd class="col-sm-8">@(Model.ReturnDate?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa trả")</dd>
+                </dl>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <i class="fas fa-info-circle"></i> Thông tin phiếu thuê
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <h5 class="text-primary">@Model.RentalDetails.Count</h5>
+                                <small>Cuốn sách</small>
+                            </div>
+                            <div class="col-6">
+                                <h5 class="text-success">@Model.TotalAmount?.ToString("N0") VNĐ</h5>
+                                <small>Tổng tiền</small>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="row">
+                            <div class="col-12">
+                                <span class="badge @(Model.Status == "Returned" ? "badge-success" : Model.Status == "Overdue" ? "badge-danger" : "badge-warning") badge-lg">
+                                    @(Model.Status == "Active" ? "Đang thuê" :
+                                      Model.Status == "Returned" ? "Đã trả" :
+                                      Model.Status == "Overdue" ? "Quá hạn" : Model.Status)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr />
+        <h5>Chi tiết sách thuê (@Model.RentalDetails.Count cuốn)</h5>
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên sách</th>
+                        <th>Tác giả</th>
+                        <th>Số lượng</th>
+                        <th>Giá/ngày</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var stt = 1;
+                        foreach (var detail in Model.RentalDetails)
+                        {
+                            <tr>
+                                <td>@stt</td>
+                                <td>@detail.Book?.Title</td>
+                                <td>@detail.Book?.AuthorNames</td>
+                                <td>@detail.Quantity</td>
+                                <td>@detail.PricePerDay?.ToString("N0") VNĐ</td>
+                                <td>@((detail.PricePerDay ?? 0) * (detail.Quantity ?? 0) * 7).ToString("N0") VNĐ</td>
+                            </tr>
+                            stt++;
+                        }
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="font-weight-bold">
+                        <td colspan="5" class="text-right">Tổng cộng:</td>
+                        <td>@Model.TotalAmount?.ToString("N0") VNĐ</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+

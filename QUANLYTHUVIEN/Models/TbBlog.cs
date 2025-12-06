@@ -1,20 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace QUANLYTHUVIEN.Models;
 
 public partial class TbBlog
 {
+    [Key]
     public int BlogId { get; set; }
 
+    [Required(ErrorMessage = "Tiêu đề bài viết là bắt buộc")]
+    [StringLength(200, ErrorMessage = "Tiêu đề không được vượt quá 200 ký tự")]
+    [Display(Name = "Tiêu đề")]
     public string Title { get; set; } = null!;
 
+    [StringLength(200, ErrorMessage = "Alias không được vượt quá 200 ký tự")]
+    [Display(Name = "Alias")]
     public string? Alias { get; set; }
 
+    [Required(ErrorMessage = "Nội dung bài viết là bắt buộc")]
+    [Display(Name = "Nội dung")]
     public string? Content { get; set; }
 
+    [Display(Name = "Ảnh đại diện")]
     public string? Image { get; set; }
 
+    [Display(Name = "Tác giả")]
     public int? AuthorId { get; set; }
 
     public DateTime? CreatedDate { get; set; }

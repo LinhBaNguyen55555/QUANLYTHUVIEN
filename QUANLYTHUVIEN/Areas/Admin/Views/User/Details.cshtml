@@ -1,0 +1,189 @@
+@model QUANLYTHUVIEN.Models.User
+
+@{
+    ViewData["Title"] = "Chi tiết Người dùng";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Chi tiết Người dùng: @Model.Username</h6>
+        <div>
+            <a href="@Url.Action("Edit", "User", new { id = Model.UserId })" class="btn btn-warning btn-sm">
+                <i class="fas fa-edit"></i> Chỉnh sửa
+            </a>
+            <a href="@Url.Action("Index", "User")" class="btn btn-secondary btn-sm">
+                <i class="fas fa-list"></i> Danh sách
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <dl class="row">
+                    <dt class="col-sm-4">ID</dt>
+                    <dd class="col-sm-8">@Model.UserId</dd>
+
+                    <dt class="col-sm-4">Tên đăng nhập</dt>
+                    <dd class="col-sm-8"><strong>@Model.Username</strong></dd>
+
+                    <dt class="col-sm-4">Họ và tên</dt>
+                    <dd class="col-sm-8">@Model.FullName</dd>
+
+                    <dt class="col-sm-4">Email</dt>
+                    <dd class="col-sm-8">@(Model.Email ?? "Chưa cập nhật")</dd>
+
+                    <dt class="col-sm-4">Số điện thoại</dt>
+                    <dd class="col-sm-8">@(Model.Phone ?? "Chưa cập nhật")</dd>
+
+                    <dt class="col-sm-4">Vai trò</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge badge-info">
+                            @(Model.RoleNavigation?.RoleName ?? "Chưa phân vai trò")
+                        </span>
+                    </dd>
+
+                    <dt class="col-sm-4">Ngày tạo</dt>
+                    <dd class="col-sm-8">@Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</dd>
+                </dl>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <i class="fas fa-chart-bar"></i> Thống kê hoạt động
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h4 class="text-primary">@Model.Orders.Count</h4>
+                                <small>Đơn hàng</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-success">@Model.Rentals.Count</h4>
+                                <small>Phiếu thuê</small>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="row text-center">
+                            <div class="col-12">
+                                <h4 class="text-info">@Model.TbBlogs.Count</h4>
+                                <small>Bài viết</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.Orders.Any())
+        {
+            <hr />
+            <h5>Đơn hàng (@Model.Orders.Count)</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nhà cung cấp</th>
+                            <th>Ngày đặt</th>
+                            <th>Tổng tiền</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.Orders.OrderByDescending(o => o.OrderDate))
+                        {
+                            <tr>
+                                <td>@order.OrderId</td>
+                                <td>@order.Supplier?.SupplierName</td>
+                                <td>@order.OrderDate?.ToString("dd/MM/yyyy")</td>
+                                <td>@order.TotalAmount?.ToString("N0") VNĐ</td>
+                                <td>
+                                    <a href="#" class="btn btn-info btn-sm">Chi tiết</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (Model.Rentals.Any())
+        {
+            <hr />
+            <h5>Phiếu thuê (@Model.Rentals.Count)</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Khách hàng</th>
+                            <th>Ngày thuê</th>
+                            <th>Ngày trả</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var rental in Model.Rentals.OrderByDescending(r => r.RentalDate))
+                        {
+                            <tr>
+                                <td>@rental.RentalId</td>
+                                <td>@rental.Customer?.FullName</td>
+                                <td>@rental.RentalDate?.ToString("dd/MM/yyyy")</td>
+                                <td>@(rental.ReturnDate?.ToString("dd/MM/yyyy") ?? "Chưa trả")</td>
+                                <td>
+                                    <span class="badge @(rental.Status == "Returned" ? "badge-success" : rental.Status == "Overdue" ? "badge-danger" : "badge-warning")">
+                                        @(rental.Status ?? "Đang thuê")
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="btn btn-info btn-sm">Chi tiết</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (Model.TbBlogs.Any())
+        {
+            <hr />
+            <h5>Bài viết (@Model.TbBlogs.Count)</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tiêu đề</th>
+                            <th>Ngày tạo</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var blog in Model.TbBlogs.OrderByDescending(b => b.CreatedDate))
+                        {
+                            <tr>
+                                <td>@blog.BlogId</td>
+                                <td>@blog.Title</td>
+                                <td>@blog.CreatedDate?.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <span class="badge @(blog.IsPublished ? "badge-success" : "badge-secondary")">
+                                        @(blog.IsPublished ? "Đã xuất bản" : "Chưa xuất bản")
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("Details", "Blog", new { id = blog.BlogId })" class="btn btn-info btn-sm">Chi tiết</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+

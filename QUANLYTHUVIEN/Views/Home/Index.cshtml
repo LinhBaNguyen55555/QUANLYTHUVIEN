@@ -11,8 +11,8 @@
                     <h2>Chạm vào sách – chạm vào thế giới</h2>
                     <p>Một không gian được tạo ra để gìn giữ tri thức và khơi dậy niềm đam mê đọc sách. Chúng tôi mang đến nguồn tài liệu phong phú, đáng tin cậy và luôn sẵn sàng hỗ trợ bạn trong hành trình khám phá của mình.</p>
                     <div class="slide-buttons hidden-sm hidden-xs">
-                        <a href="#" class="btn btn-primary">Đọc Thêm</a>
-                        <a href="#" class="btn btn-default">Mượn sách</a>
+                        <a href="@Url.Action("Search", "Home")" class="btn btn-primary">Tìm kiếm sách</a>
+                        <a href="@Url.Action("Index", "Book")" class="btn btn-default">Đọc Thêm</a>
                     </div>
                 </div>
             </div>
@@ -26,8 +26,8 @@
                     <h2>Chạm vào sách – chạm vào thế giới</h2>
                     <p>Một không gian được tạo ra để gìn giữ tri thức và khơi dậy niềm đam mê đọc sách. Chúng tôi mang đến nguồn tài liệu phong phú, đáng tin cậy và luôn sẵn sàng hỗ trợ bạn trong hành trình khám phá của mình.</p>
                     <div class="slide-buttons hidden-sm hidden-xs">
-                        <a href="#" class="btn btn-primary">Đọc Thêm</a>
-                        <a href="#" class="btn btn-default">Mượn sách</a>
+                        <a href="@Url.Action("Search", "Home")" class="btn btn-primary">Tìm kiếm sách</a>
+                        <a href="@Url.Action("Index", "Book")" class="btn btn-default">Đọc Thêm</a>
                     </div>
                 </div>
             </div>
@@ -41,8 +41,8 @@
                     <h2>Chạm vào sách – chạm vào thế giới</h2>
                     <p>Một không gian được tạo ra để gìn giữ tri thức và khơi dậy niềm đam mê đọc sách. Chúng tôi mang đến nguồn tài liệu phong phú, đáng tin cậy và luôn sẵn sàng hỗ trợ bạn trong hành trình khám phá của mình.</p>
                     <div class="slide-buttons hidden-sm hidden-xs">
-                        <a href="#" class="btn btn-primary">Đọc Thêm</a>
-                        <a href="#" class="btn btn-default">Mượn sách</a>
+                        <a href="@Url.Action("Search", "Home")" class="btn btn-primary">Tìm kiếm sách</a>
+                        <a href="@Url.Action("Index", "Book")" class="btn btn-default">Đọc Thêm</a>
                     </div>
                 </div>
             </div>
@@ -58,11 +58,11 @@
 <section class="search-filters">
     <div class="container">
         <div class="filter-box">
-            <h3>Bạn đang tìm gì ở thư viện?</h3>
-            <form action="http://libraria.demo.presstigers.com/index.html" method="get">
+            <h3>Bạn đang tìm kiếm gì tại thư viện?</h3>
+            <form action="@Url.Action("Search", "Home")" method="get">
                 <div class="col-md-4 col-sm-6">
                     <div class="form-group">
-                        <label class="sr-only" for="keywords">Search by Keyword</label>
+                        <label class="sr-only" for="keywords">Tìm kiếm theo từ khóa</label>
                         <input class="form-control" placeholder="Tìm kiếm theo từ khóa" id="keywords" name="keywords" type="text">
                     </div>
                 </div>
@@ -70,11 +70,13 @@
                     <div class="form-group">
                         <select name="catalog" id="catalog" class="form-control">
                             <option>Tìm kiếm theo tác giả</option>
-                            <option>Catalog 01</option>
-                            <option>Catalog 02</option>
-                            <option>Catalog 03</option>
-                            <option>Catalog 04</option>
-                            <option>Catalog 05</option>
+                            @if (ViewBag.Authors != null)
+                            {
+                                foreach (var author in ViewBag.Authors)
+                                {
+                                    <option value="@author.AuthorName">@author.AuthorName</option>
+                                }
+                            }
                         </select>
                     </div>
                 </div>
@@ -82,17 +84,19 @@
                     <div class="form-group">
                         <select name="category" id="category" class="form-control">
                             <option>Tất cả thể loại</option>
-                            <option>Category 01</option>
-                            <option>Category 02</option>
-                            <option>Category 03</option>
-                            <option>Category 04</option>
-                            <option>Category 05</option>
+                            @if (ViewBag.Categories != null)
+                            {
+                                foreach (var cat in ViewBag.Categories)
+                                {
+                                    <option value="@cat.CategoryName">@cat.CategoryName</option>
+                                }
+                            }
                         </select>
                     </div>
                 </div>
                 <div class="col-md-2 col-sm-6">
                     <div class="form-group">
-                        <input class="form-control" type="submit" value="Tìm Kiếm">
+                        <input class="form-control" type="submit" value="Tìm kiếm">
                     </div>
                 </div>
             </form>
@@ -115,7 +119,7 @@
 
                             Hãy bắt đầu chuyến hành trình tri thức của bạn ngay hôm nay — mỗi cuốn sách luôn chờ đón bạn mở ra một thế giới mới.
                         </p>
-                        <a class="btn btn-primary" href="#">Đọc thêm</a>
+                        <a class="btn btn-primary" href="@Url.Action("About", "Home")">Đọc thêm</a>
                     </div>
                 </div>
             </div>

@@ -1,0 +1,53 @@
+@model QUANLYTHUVIEN.Models.Category
+
+@{
+    ViewData["Title"] = "Xóa Thể loại";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-danger">Xác nhận xóa Thể loại</h6>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Cảnh báo!</strong> Hành động này không thể hoàn tác.
+        </div>
+
+        <h5>Bạn có chắc chắn muốn xóa thể loại này?</h5>
+
+        <div class="card border-left-danger">
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Tên thể loại:</dt>
+                    <dd class="col-sm-9"><strong>@Model.CategoryName</strong></dd>
+
+                    <dt class="col-sm-3">Mô tả:</dt>
+                    <dd class="col-sm-9">@(Model.Description ?? "Không có mô tả")</dd>
+
+                    <dt class="col-sm-3">Số sách:</dt>
+                    <dd class="col-sm-9">@Model.Books.Count sách</dd>
+                </dl>
+
+                @if (Model.Books.Any())
+                {
+                    <div class="alert alert-danger mt-3">
+                        <strong>Lưu ý:</strong> Thể loại này có @Model.Books.Count sách. Nếu xóa thể loại này, các sách sẽ không còn phân loại.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <form asp-action="Delete">
+            <input type="hidden" asp-for="CategoryId" />
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Xóa thể loại
+            </button>
+            <a href="@Url.Action("Index", "Category")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại danh sách
+            </a>
+        </form>
+    </div>
+</div>
+
+

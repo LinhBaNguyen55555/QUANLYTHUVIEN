@@ -1,0 +1,68 @@
+@model QUANLYTHUVIEN.Models.RentalPrice
+
+@{
+    ViewData["Title"] = "Xóa Bảng giá";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 bg-danger text-white">
+        <h6 class="m-0 font-weight-bold">Xác nhận xóa Bảng giá</h6>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> <strong>Bạn có chắc chắn muốn xóa bảng giá này?</strong>
+        </div>
+
+        <dl class="row">
+            <dt class="col-sm-3">ID Bảng giá:</dt>
+            <dd class="col-sm-9">@Model.PriceId</dd>
+
+            <dt class="col-sm-3">Tên sách:</dt>
+            <dd class="col-sm-9"><strong>@Model.Book?.Title</strong></dd>
+
+            <dt class="col-sm-3">Giá theo ngày:</dt>
+            <dd class="col-sm-9">
+                <span class="badge badge-success">@Model.DailyRate.ToString("N0") đ/ngày</span>
+            </dd>
+
+            <dt class="col-sm-3">Giá theo tuần:</dt>
+            <dd class="col-sm-9">
+                @if (Model.WeeklyRate.HasValue)
+                {
+                    <span class="badge badge-info">@Model.WeeklyRate.Value.ToString("N0") đ/tuần</span>
+                }
+                else
+                {
+                    <span class="text-muted">Chưa cập nhật</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Giá theo tháng:</dt>
+            <dd class="col-sm-9">
+                @if (Model.MonthlyRate.HasValue)
+                {
+                    <span class="badge badge-primary">@Model.MonthlyRate.Value.ToString("N0") đ/tháng</span>
+                }
+                else
+                {
+                    <span class="text-muted">Chưa cập nhật</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Ngày hiệu lực:</dt>
+            <dd class="col-sm-9">@(Model.EffectiveDate?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")</dd>
+        </dl>
+
+        <form asp-action="Delete" method="post" class="mt-4">
+            <input type="hidden" asp-for="PriceId" />
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Xác nhận xóa
+            </button>
+            <a href="@Url.Action("Index", "RentalPrice")" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Hủy bỏ
+            </a>
+        </form>
+    </div>
+</div>
+
+

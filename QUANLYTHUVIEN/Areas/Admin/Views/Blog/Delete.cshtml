@@ -1,0 +1,49 @@
+@model QUANLYTHUVIEN.Models.TbBlog
+
+@{
+    ViewData["Title"] = "Xóa Bài viết";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-danger">Xác nhận xóa Bài viết</h6>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Cảnh báo!</strong> Hành động này không thể hoàn tác.
+        </div>
+
+        <h5>Bạn có chắc chắn muốn xóa bài viết này?</h5>
+
+        <div class="card border-left-danger">
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Tiêu đề:</dt>
+                    <dd class="col-sm-9"><strong>@Model.Title</strong></dd>
+
+                    <dt class="col-sm-3">Tác giả:</dt>
+                    <dd class="col-sm-9">@(Model.Author?.Username ?? "Chưa xác định")</dd>
+
+                    <dt class="col-sm-3">Ngày tạo:</dt>
+                    <dd class="col-sm-9">@Model.CreatedDate?.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                    <dt class="col-sm-3">Trạng thái:</dt>
+                    <dd class="col-sm-9">@(Model.IsPublished ? "Đã xuất bản" : "Chưa xuất bản")</dd>
+                </dl>
+            </div>
+        </div>
+
+        <form asp-action="Delete">
+            <input type="hidden" asp-for="BlogId" />
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Xóa bài viết
+            </button>
+            <a href="@Url.Action("Index", "Blog")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại danh sách
+            </a>
+        </form>
+    </div>
+</div>
+
+

@@ -1,0 +1,53 @@
+@model QUANLYTHUVIEN.Models.Author
+
+@{
+    ViewData["Title"] = "Xóa Tác giả";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-danger">Xác nhận xóa Tác giả</h6>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Cảnh báo!</strong> Hành động này không thể hoàn tác.
+        </div>
+
+        <h5>Bạn có chắc chắn muốn xóa tác giả này?</h5>
+
+        <div class="card border-left-danger">
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Tên tác giả:</dt>
+                    <dd class="col-sm-9"><strong>@Model.AuthorName</strong></dd>
+
+                    <dt class="col-sm-3">Tiểu sử:</dt>
+                    <dd class="col-sm-9">@(Model.Biography ?? "Không có tiểu sử")</dd>
+
+                    <dt class="col-sm-3">Số sách:</dt>
+                    <dd class="col-sm-9">@Model.Books.Count sách</dd>
+                </dl>
+
+                @if (Model.Books.Any())
+                {
+                    <div class="alert alert-danger mt-3">
+                        <strong>Lưu ý:</strong> Tác giả này có @Model.Books.Count sách. Nếu xóa tác giả này, các sách sẽ mất thông tin tác giả.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <form asp-action="Delete">
+            <input type="hidden" asp-for="AuthorId" />
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Xóa tác giả
+            </button>
+            <a href="@Url.Action("Index", "Author")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại danh sách
+            </a>
+        </form>
+    </div>
+</div>
+
+

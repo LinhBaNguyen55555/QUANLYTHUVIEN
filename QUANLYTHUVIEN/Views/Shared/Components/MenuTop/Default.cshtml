@@ -1,10 +1,36 @@
 ﻿@model IEnumerable<QUANLYTHUVIEN.Models.TbMenu>
 
-@foreach (var item in Model.Where(i => i.Levels == 1))
-{
-    <li class="drop-holder">
-        <a href="@item.Alias">
-            @item.Title
-        </a>
-    </li>
+@functions {
+    string BuildMenuTree(IEnumerable<TbMenu> allMenus, int? parentId = null)
+    {
+        var menus = allMenus.Where(m => m.ParentId == parentId).OrderBy(m => m.Position);
+
+        if (!menus.Any())
+            return "";
+
+        var html = "";
+        foreach (var menu in menus)
+        {
+            var hasChildren = menu.InverseParent != null && menu.InverseParent.Any();
+            var url = string.IsNullOrEmpty(menu.Url) ? "#" : menu.Url;
+
+            if (hasChildren)
+            {
+                html += $@"<li class='drop-holder'>
+                    <a href='{url}'>{menu.Title}</a>
+                    <ul class='drop-down'>";
+                html += BuildMenuTree(allMenus, menu.MenuId);
+                html += "</ul></li>";
+            }
+            else
+            {
+                html += $@"<li class='drop-holder'>
+                    <a href='{url}'>{menu.Title}</a>
+                </li>";
+            }
+        }
+        return html;
+    }
 }
+
+@Html.Raw(BuildMenuTree(Model))

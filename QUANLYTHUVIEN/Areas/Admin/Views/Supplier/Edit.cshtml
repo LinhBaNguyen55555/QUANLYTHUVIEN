@@ -1,0 +1,91 @@
+@model QUANLYTHUVIEN.Models.Supplier
+
+@{
+    ViewData["Title"] = "Chỉnh sửa Nhà cung cấp";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Chỉnh sửa Nhà cung cấp: @Model.SupplierName</h6>
+    </div>
+    <div class="card-body">
+        @if (ViewData.ModelState.ErrorCount > 0 && !ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <strong>Có lỗi xảy ra:</strong>
+                <ul class="mb-0">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="SupplierId" />
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="SupplierName" class="control-label font-weight-bold">
+                            Tên nhà cung cấp <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="SupplierName" class="form-control" />
+                        <small class="form-text text-muted">Tên nhà cung cấp không được trùng</small>
+                        <span asp-validation-for="SupplierName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Email" class="control-label">Email</label>
+                        <input asp-for="Email" type="email" class="form-control" />
+                        <small class="form-text text-muted">Email không được trùng</small>
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Phone" class="control-label">Số điện thoại</label>
+                        <input asp-for="Phone" class="form-control" />
+                        <span asp-validation-for="Phone" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Address" class="control-label">Địa chỉ</label>
+                        <textarea asp-for="Address" class="form-control" rows="5"></textarea>
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label">Thông tin bổ sung</label>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <small>
+                                    <strong>Số đơn hàng:</strong> @Model.Orders.Count<br />
+                                    <strong>Tổng giá trị:</strong> @Model.Orders.Sum(o => o.TotalAmount)?.ToString("N0") VNĐ
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Cập nhật
+                </button>
+                <a href="@Url.Action("Index", "Supplier")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại danh sách
+                </a>
+                <a href="@Url.Action("Delete", "Supplier", new { id = Model.SupplierId })"
+                   class="btn btn-danger float-right"
+                   onclick="return confirm('Bạn có chắc chắn muốn xóa nhà cung cấp này?')">
+                    <i class="fas fa-trash"></i> Xóa nhà cung cấp
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
