@@ -1,0 +1,246 @@
+@model QUANLYTHUVIEN.Models.Author
+@using QUANLYTHUVIEN.Utilities
+
+@{
+    ViewData["Title"] = Model.AuthorName;
+    var alias = Function.TitleSlugGenerationAlias(Model.AuthorName);
+    var relatedAuthors = ViewBag.RelatedAuthors as List<QUANLYTHUVIEN.Models.Author> ?? new List<QUANLYTHUVIEN.Models.Author>();
+    var imageUrl = !string.IsNullOrEmpty(Model.Image) 
+        ? Url.Content("~/images/Authors/" + Model.Image) 
+        : Url.Content("~/images/Authors/default-avatar.jpg");
+}
+
+<!-- Start: Page Banner -->
+<section class="page-banner services-banner">
+    <div class="container">
+        <div class="banner-header">
+            <h2>Chi Tiết Tác giả</h2>
+            <span class="underline center"></span>
+            <p class="lead">Thông tin chi tiết về tác giả</p>
+        </div>
+        <div class="breadcrumb">
+            <ul>
+                <li><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                <li><a href="@Url.Action("Index", "Author")">Tác giả</a></li>
+                <li>@Model.AuthorName</li>
+            </ul>
+        </div>
+    </div>
+</section>
+<!-- End: Page Banner -->
+
+<!-- Start: Author Detail Section -->
+<div id="content" class="site-content">
+    <div id="primary" class="content-area">
+        <main id="main" class="site-main">
+            <div class="booksmedia-detail-main">
+                <div class="container">
+                    <div class="row">
+                        <!-- Start: Search Section -->
+                        <section class="search-filters">
+                            <div class="container">
+                                <div class="filter-box">
+                                    <h3>Bạn đang tìm kiếm gì tại thư viện?</h3>
+                                    <form action="@Url.Action("Search", "Home")" method="get">
+                                        <div class="col-md-4 col-sm-6">
+                                            <div class="form-group">
+                                                <label class="sr-only" for="keywords">Tìm kiếm theo từ khóa</label>
+                                                <input class="form-control" placeholder="Tìm kiếm theo từ khóa" id="keywords" name="keywords" type="text">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="form-group">
+                                                <select name="catalog" id="catalog" class="form-control">
+                                                    <option>Tìm kiếm theo tác giả</option>
+                                                    @if (ViewBag.Authors != null)
+                                                    {
+                                                        foreach (var author in ViewBag.Authors)
+                                                        {
+                                                            <option value="@author.AuthorName">@author.AuthorName</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="form-group">
+                                                <select name="category" id="category" class="form-control">
+                                                    <option>Tất cả thể loại</option>
+                                                    @if (ViewBag.Categories != null)
+                                                    {
+                                                        foreach (var cat in ViewBag.Categories)
+                                                        {
+                                                            <option value="@cat.CategoryName">@cat.CategoryName</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-6">
+                                            <div class="form-group">
+                                                <input class="form-control" type="submit" value="Tìm kiếm">
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </section>
+                        <!-- End: Search Section -->
+                    </div>
+
+                    <div class="booksmedia-detail-box">
+                        <div class="detailed-box">
+                            <div class="col-xs-12 col-sm-5 col-md-3">
+                                <div class="post-thumbnail">
+                                    <img src="@imageUrl" alt="@Model.AuthorName" 
+                                         style="width: 100%; height: auto; border-radius: 8px;"
+                                         onerror="this.src='@Url.Content("~/images/Authors/default-avatar.jpg")'" />
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-7 col-md-6">
+                                <div class="post-center-content">
+                                    <h2>@Model.AuthorName</h2>
+                                    <p><strong>Số sách:</strong> @(Model.Books?.Count ?? 0) cuốn</p>
+                                    @if (!string.IsNullOrEmpty(Model.Biography))
+                                    {
+                                        <div style="margin-top: 20px;">
+                                            <h4>Tiểu sử</h4>
+                                            <p style="text-align: justify; line-height: 1.8;">@Model.Biography</p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p style="color: #999; font-style: italic;">Chưa có thông tin tiểu sử</p>
+                                    }
+                                    <div class="actions" style="margin-top: 20px;">
+                                        <ul>
+                                            <li>
+                                                <a href="#" target="_blank" data-toggle="blog-tags" data-placement="top" title="Yêu thích">
+                                                    <i class="fa fa-heart"></i>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#" target="_blank" data-toggle="blog-tags" data-placement="top" title="Gửi email">
+                                                    <i class="fa fa-envelope"></i>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#" target="_blank" data-toggle="blog-tags" data-placement="top" title="Chia sẻ">
+                                                    <i class="fa fa-share-alt"></i>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-3">
+                                <div class="post-right-content">
+                                    <h4>Thông tin</h4>
+                                    <p><strong>Tổng số sách:</strong> @(Model.Books?.Count ?? 0)</p>
+                                    <a href="@Url.Action("Index", "Book", new { catalog = Model.AuthorName })" class="btn btn-dark-gray" style="margin-top: 15px;">Xem tất cả sách</a>
+                                    <a href="@Url.Action("Index", "Author")" class="btn btn-dark-gray" style="margin-top: 10px;">Xem tác giả khác</a>
+                                </div>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="clearfix"></div>
+
+                        @if (Model.Books != null && Model.Books.Any())
+                        {
+                            <div class="related-books" style="margin-top: 40px;">
+                                <h3 style="margin-bottom: 30px; padding-bottom: 15px; border-bottom: 2px solid #ddd;">
+                                    Sách của tác giả (@Model.Books.Count)
+                                </h3>
+                                <div class="books-gird">
+                                    <ul>
+                                        @foreach (var book in Model.Books.OrderBy(b => b.Title).Take(12))
+                                        {
+                                            var bookAlias = Function.TitleSlugGenerationAlias(book.Title);
+                                            <li>
+                                                <figure>
+                                                    <img src="@Url.Content(book.CoverImageUrl)" alt="@book.Title">
+                                                    <figcaption>
+                                                        <p><strong>@book.Title</strong></p>
+                                                        <p><strong>Thể loại:</strong> @(book.Category?.CategoryName ?? "Chưa phân loại")</p>
+                                                    </figcaption>
+                                                </figure>
+                                                <div class="single-book-box">
+                                                    <div class="post-detail">
+                                                        <header class="entry-header">
+                                                            <h3 class="entry-title">
+                                                                <a href="@Url.Action("Detail", "Book", new { id = book.BookId, alias = bookAlias })">@book.Title</a>
+                                                            </h3>
+                                                            <ul>
+                                                                <li><strong>ISBN:</strong> @book.DisplayIsbn</li>
+                                                                @if (book.Publisher != null)
+                                                                {
+                                                                    <li><strong>Nhà xuất bản:</strong> @book.Publisher.PublisherName</li>
+                                                                }
+                                                                @if (book.Category != null)
+                                                                {
+                                                                    <li><strong>Thể loại:</strong> @book.Category.CategoryName</li>
+                                                                }
+                                                            </ul>
+                                                        </header>
+                                                        <div class="entry-content">
+                                                            <p>@book.TruncatedDescription</p>
+                                                        </div>
+                                                        <footer class="entry-footer">
+                                                            <a class="btn btn-primary" href="@Url.Action("Detail", "Book", new { id = book.BookId, alias = bookAlias })">Đọc thêm</a>
+                                                        </footer>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        }
+
+                        @if (relatedAuthors.Any())
+                        {
+                            <div class="related-authors" style="margin-top: 40px;">
+                                <h3 style="margin-bottom: 30px; padding-bottom: 15px; border-bottom: 2px solid #ddd;">
+                                    Tác giả liên quan
+                                </h3>
+                                <div class="authors-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+                                    @foreach (var author in relatedAuthors)
+                                    {
+                                        var authorAlias = Function.TitleSlugGenerationAlias(author.AuthorName);
+                                        var authorImageUrl = !string.IsNullOrEmpty(author.Image) 
+                                            ? Url.Content("~/images/Authors/" + author.Image) 
+                                            : Url.Content("~/images/Authors/default-avatar.jpg");
+                                        
+                                        <div class="author-card" style="background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; transition: transform 0.3s;">
+                                            <a href="@Url.Action("Details", "Author", new { id = author.AuthorId, alias = authorAlias })" style="text-decoration: none; color: inherit;">
+                                                <div class="author-image" style="width: 100%; height: 250px; overflow: hidden; background: #f5f5f5;">
+                                                    <img src="@authorImageUrl" alt="@author.AuthorName" 
+                                                         style="width: 100%; height: 100%; object-fit: cover;"
+                                                         onerror="this.src='@Url.Content("~/images/Authors/default-avatar.jpg")'" />
+                                                </div>
+                                                <div class="author-info" style="padding: 15px;">
+                                                    <h4 style="margin: 0 0 5px 0; font-size: 16px; font-weight: bold; color: #333;">@author.AuthorName</h4>
+                                                    <p style="margin: 0; color: #666; font-size: 13px;">@(author.Books?.Count ?? 0) cuốn sách</p>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<!-- End: Author Detail Section -->
+
+<style>
+    .author-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+</style>
+
+

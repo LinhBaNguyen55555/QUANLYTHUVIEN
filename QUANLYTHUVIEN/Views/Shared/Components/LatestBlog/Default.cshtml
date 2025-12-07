@@ -1,4 +1,5 @@
 ﻿@model IEnumerable<QUANLYTHUVIEN.Models.TbBlog>
+@using QUANLYTHUVIEN.Utilities
 
 @using System.Globalization @{
     // 2. TẠO MỘT BIẾN VĂN HÓA VIỆT NAM
@@ -25,6 +26,7 @@
                             <i class="@iconClass"></i>
 
                             <h3>@post.CreatedDate?.ToString("dd/MM/yyyy", culture)</h3>
+                            <p class="post-title">@post.Title</p>
 
                         </div>
                     </a>
@@ -72,7 +74,10 @@
                             <a href="#"><i class="fa fa-user"></i> @(post.Author?.FullName ?? "Admin")</a>
                         </div>
                         <p>@post.TruncatedContent</p>
-                        <a class="btn btn-dark-gray">Read More</a>
+                        @{
+                            var blogAlias = Function.TitleSlugGenerationAlias(post.Title);
+                        }
+                        <a href="@Url.Action("Details", "Blog", new { id = post.BlogId, alias = blogAlias })" class="btn btn-dark-gray">Đọc thêm</a>
                     </div>
                 </article>
             </div>

@@ -1,0 +1,412 @@
+@model QUANLYTHUVIEN.Models.TbBlog
+@using QUANLYTHUVIEN.Utilities
+@using System.Globalization
+
+@{
+    ViewData["Title"] = Model.Title;
+    var alias = Function.TitleSlugGenerationAlias(Model.Title);
+    var culture = new CultureInfo("vi-VN");
+    var createdDate = Model.CreatedDate ?? DateTime.Now;
+    var relatedBlogs = ViewBag.RelatedBlogs as List<QUANLYTHUVIEN.Models.TbBlog> ?? new List<QUANLYTHUVIEN.Models.TbBlog>();
+}
+
+<!-- Start: Page Banner -->
+<section class="page-banner services-banner">
+    <div class="container">
+        <div class="banner-header">
+            <h2>Chi tiết bài viết</h2>
+            <span class="underline center"></span>
+            <p class="lead">Thông tin chi tiết về bài viết</p>
+        </div>
+        <div class="breadcrumb">
+            <ul>
+                <li><a href="@Url.Action("Index", "Home")">Home</a></li>
+                <li><a href="@Url.Action("Index", "Blog")">Blog</a></li>
+                <li>@Model.Title</li>
+            </ul>
+        </div>
+    </div>
+</section>
+<!-- End: Page Banner -->
+
+<!-- Start: Blog Detail Section -->
+<div id="content" class="site-content">
+    <div id="primary" class="content-area">
+        <main id="main" class="site-main">
+            <div class="blog-detail-main">
+                <div class="container">
+                    <div class="row">
+                        <!-- Start: Search Section -->
+                        <section class="search-filters">
+                            <div class="container">
+                                <div class="filter-box">
+                                    <h3>Bạn đang tìm kiếm gì tại thư viện?</h3>
+                                    <form action="@Url.Action("Search", "Home")" method="get">
+                                        <div class="col-md-4 col-sm-6">
+                                            <div class="form-group">
+                                                <label class="sr-only" for="keywords">Tìm kiếm theo từ khóa</label>
+                                                <input class="form-control" placeholder="Tìm kiếm theo từ khóa" id="keywords" name="keywords" type="text">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="form-group">
+                                                <select name="catalog" id="catalog" class="form-control">
+                                                    <option>Tìm kiếm theo tác giả</option>
+                                                    @if (ViewBag.Authors != null)
+                                                    {
+                                                        foreach (var author in ViewBag.Authors)
+                                                        {
+                                                            <option value="@author.AuthorName">@author.AuthorName</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="form-group">
+                                                <select name="category" id="category" class="form-control">
+                                                    <option>Tất cả thể loại</option>
+                                                    @if (ViewBag.Categories != null)
+                                                    {
+                                                        foreach (var cat in ViewBag.Categories)
+                                                        {
+                                                            <option value="@cat.CategoryName">@cat.CategoryName</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-6">
+                                            <div class="form-group">
+                                                <input class="form-control" type="submit" value="Tìm kiếm">
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </section>
+                        <!-- End: Search Section -->
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-9">
+                            <article class="blog-detail-article">
+                                <div class="post-thumbnail">
+                                    <img src="@Url.Content(Model.BlogImageUrl)" alt="@Model.Title" style="width: 100%; height: auto; border-radius: 8px; margin-bottom: 30px;" />
+                                    <div class="post-date-box">
+                                        <div class="post-date">
+                                            <span class="date">@createdDate.ToString("dd")</span>
+                                        </div>
+                                        <div class="post-date-month">
+                                            <span class="month">@createdDate.ToString("MMM", culture)</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <header class="entry-header">
+                                    <div class="blog_meta_category">
+                                        <span class="arrow-right"></span>
+                                        <a href="@Url.Action("Index", "Blog")" rel="category tag">Bài viết</a>
+                                    </div>
+                                    <h1 class="entry-title">@Model.Title</h1>
+                                    <div class="entry-meta">
+                                        <span>
+                                            <i class="fa fa-user"></i> 
+                                            <a href="#">@(Model.Author?.FullName ?? Model.Author?.Username ?? "Admin")</a>
+                                        </span>
+                                        <span>
+                                            <i class="fa fa-calendar"></i> 
+                                            @createdDate.ToString("dd/MM/yyyy HH:mm", culture)
+                                        </span>
+                                        <span>
+                                            <i class="fa fa-eye"></i> 
+                                            @(Model.Views ?? 0) lượt xem
+                                        </span>
+                                        <span>
+                                            <i class="fa fa-comment"></i> 
+                                            <a href="#comments">@(Model.TbBlogComments?.Where(c => c.IsApproved).Count() ?? 0) bình luận</a>
+                                        </span>
+                                    </div>
+                                </header>
+
+                                <div class="post-share-bar" style="margin: 30px 0; padding: 20px; background: #f8f9fa; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                    <div class="share-buttons">
+                                        <span style="margin-right: 15px; font-weight: 600; color: #333;">Chia sẻ:</span>
+                                        @{
+                                            var blogUrl = Url.Action("Details", "Blog", new { id = Model.BlogId, alias = alias }, Context.Request.Scheme);
+                                            var encodedUrl = Uri.EscapeDataString(blogUrl ?? "");
+                                            var encodedTitle = Uri.EscapeDataString(Model.Title ?? "");
+                                        }
+                                        <a href="https://www.facebook.com/sharer/sharer.php?u=@encodedUrl" 
+                                           target="_blank" class="btn btn-sm" style="background: #3b5998; color: #fff; margin-right: 10px;">
+                                            <i class="fa fa-facebook"></i> Facebook
+                                        </a>
+                                        <a href="https://twitter.com/intent/tweet?url=@encodedUrl&text=@encodedTitle" 
+                                           target="_blank" class="btn btn-sm" style="background: #1da1f2; color: #fff; margin-right: 10px;">
+                                            <i class="fa fa-twitter"></i> Twitter
+                                        </a>
+                                        <a href="#" onclick="copyLink(); return false;" class="btn btn-sm" style="background: #6c757d; color: #fff;">
+                                            <i class="fa fa-link"></i> Sao chép link
+                                        </a>
+                                    </div>
+                                    <div class="post-actions">
+                                        <a href="#" class="btn btn-sm" style="background: #dc3545; color: #fff;">
+                                            <i class="fa fa-heart"></i> Thích
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="entry-content" style="font-size: 16px; line-height: 1.8; color: #333; margin-top: 30px;">
+                                    @Html.Raw(Model.Content)
+                                </div>
+
+                                <footer class="entry-footer" style="margin-top: 40px; padding-top: 30px; border-top: 2px solid #eee;">
+                                    <div class="post-tags" style="margin-bottom: 20px;">
+                                        <strong style="margin-right: 10px;">Tags:</strong>
+                                        <a href="@Url.Action("Index", "Blog")" class="tag">Bài viết</a>
+                                    </div>
+                                    <div class="post-navigation">
+                                        <a href="@Url.Action("Index", "Blog")" class="btn btn-default">
+                                            <i class="fa fa-arrow-left"></i> Quay lại danh sách
+                                        </a>
+                                    </div>
+                                </footer>
+                            </article>
+
+                            <!-- Comments Section -->
+                            <div id="comments" class="comments-section" style="margin-top: 50px; padding-top: 30px; border-top: 2px solid #eee;">
+                                <h3 style="margin-bottom: 30px;">
+                                    <i class="fa fa-comments"></i> Bình luận (@(Model.TbBlogComments?.Where(c => c.IsApproved).Count() ?? 0))
+                                </h3>
+                                
+                                @if (Model.TbBlogComments != null && Model.TbBlogComments.Where(c => c.IsApproved).Any())
+                                {
+                                    <div class="comments-list">
+                                        @foreach (var comment in Model.TbBlogComments.Where(c => c.IsApproved).OrderByDescending(c => c.CreatedDate))
+                                        {
+                                            <div class="comment-item" style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                                                <div class="comment-author" style="display: flex; align-items: center; margin-bottom: 15px;">
+                                                    <div class="author-avatar" style="width: 50px; height: 50px; border-radius: 50%; background: #007bff; color: #fff; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold;">
+                                                        @(comment.Customer?.FullName?.Substring(0, 1).ToUpper() ?? "K")
+                                                    </div>
+                                                    <div>
+                                                        <strong>@(comment.Customer?.FullName ?? "Khách")</strong>
+                                                        <div style="font-size: 12px; color: #666;">
+                                                            @(comment.CreatedDate?.ToString("dd/MM/yyyy HH:mm", culture) ?? "")
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="comment-content" style="color: #555; line-height: 1.6;">
+                                                    @comment.CommentText
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <p style="color: #999; font-style: italic; text-align: center; padding: 40px;">
+                                        Chưa có bình luận nào. Hãy là người đầu tiên bình luận!
+                                    </p>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Sidebar -->
+                        <div class="col-md-3">
+                            <aside class="sidebar">
+                                <!-- Related Posts -->
+                                @if (relatedBlogs.Any())
+                                {
+                                    <div class="widget" style="margin-bottom: 40px; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                        <h3 class="widget-title" style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #eee; font-size: 18px; font-weight: 600;">
+                                            Bài viết liên quan
+                                        </h3>
+                                        <ul style="list-style: none; padding: 0;">
+                                            @foreach (var relatedBlog in relatedBlogs.Take(5))
+                                            {
+                                                var relatedAlias = Function.TitleSlugGenerationAlias(relatedBlog.Title);
+                                                <li style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
+                                                    <a href="@Url.Action("Details", "Blog", new { id = relatedBlog.BlogId, alias = relatedAlias })" 
+                                                       style="text-decoration: none; color: #333; display: block;">
+                                                        <div style="display: flex; align-items: start;">
+                                                            <img src="@Url.Content(relatedBlog.BlogImageUrl)" 
+                                                                 alt="@relatedBlog.Title" 
+                                                                 style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px; margin-right: 15px;" />
+                                                            <div>
+                                                                <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 5px 0; line-height: 1.4;">
+                                                                    @relatedBlog.Title
+                                                                </h4>
+                                                                <span style="font-size: 12px; color: #666;">
+                                                                    <i class="fa fa-calendar"></i> 
+                                                                    @(relatedBlog.CreatedDate?.ToString("dd/MM/yyyy", culture) ?? "")
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                }
+
+                                <!-- Popular Posts -->
+                                <div class="widget" style="padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                    <h3 class="widget-title" style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #eee; font-size: 18px; font-weight: 600;">
+                                        <i class="fa fa-fire"></i> Bài viết nổi bật
+                                    </h3>
+                                    <ul style="list-style: none; padding: 0;">
+                                        @{
+                                            var popularBlogs = ViewBag.RelatedBlogs as List<QUANLYTHUVIEN.Models.TbBlog> ?? new List<QUANLYTHUVIEN.Models.TbBlog>();
+                                        }
+                                        @foreach (var popularBlog in popularBlogs.OrderByDescending(b => b.Views).Take(5))
+                                        {
+                                            var popularAlias = Function.TitleSlugGenerationAlias(popularBlog.Title);
+                                            <li style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+                                                <a href="@Url.Action("Details", "Blog", new { id = popularBlog.BlogId, alias = popularAlias })" 
+                                                   style="text-decoration: none; color: #333; font-size: 14px; line-height: 1.5;">
+                                                    <i class="fa fa-angle-right" style="color: #007bff; margin-right: 8px;"></i>
+                                                    @popularBlog.Title
+                                                </a>
+                                                <div style="font-size: 12px; color: #999; margin-top: 5px;">
+                                                    <i class="fa fa-eye"></i> @(popularBlog.Views ?? 0) lượt xem
+                                                </div>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            </aside>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<!-- End: Blog Detail Section -->
+
+<script>
+    function copyLink() {
+        var url = window.location.href;
+        navigator.clipboard.writeText(url).then(function() {
+            alert('Đã sao chép link bài viết!');
+        }, function() {
+            // Fallback
+            var textArea = document.createElement("textarea");
+            textArea.value = url;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Đã sao chép link bài viết!');
+        });
+    }
+</script>
+
+<style>
+    .blog-detail-article {
+        background: #fff;
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .post-date-box {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        z-index: 10;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .post-date .date {
+        display: block;
+        font-size: 28px;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .post-date-month .month {
+        display: block;
+        font-size: 14px;
+        color: #666;
+        text-transform: uppercase;
+    }
+    
+    .entry-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: #333;
+        margin: 20px 0;
+        line-height: 1.3;
+    }
+    
+    .entry-meta {
+        margin: 20px 0;
+        color: #666;
+        font-size: 14px;
+    }
+    
+    .entry-meta span {
+        margin-right: 20px;
+    }
+    
+    .entry-meta a {
+        color: #666;
+        text-decoration: none;
+    }
+    
+    .entry-meta a:hover {
+        color: #007bff;
+    }
+    
+    .entry-content {
+        font-size: 16px;
+        line-height: 1.8;
+        color: #333;
+    }
+    
+    .entry-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+    
+    .entry-content p {
+        margin-bottom: 20px;
+    }
+    
+    .entry-content h1, .entry-content h2, .entry-content h3 {
+        margin-top: 30px;
+        margin-bottom: 15px;
+        color: #333;
+    }
+    
+    .tag {
+        display: inline-block;
+        padding: 5px 12px;
+        background: #f0f0f0;
+        color: #333;
+        text-decoration: none;
+        border-radius: 20px;
+        font-size: 13px;
+        margin-right: 8px;
+        transition: background 0.3s;
+    }
+    
+    .tag:hover {
+        background: #007bff;
+        color: #fff;
+    }
+    
+    .comment-item:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+</style>
+
