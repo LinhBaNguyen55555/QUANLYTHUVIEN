@@ -21,8 +21,19 @@
                 <span asp-validation-for="Biography" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Image" class="control-label"></label>
-                <input asp-for="Image" class="form-control" placeholder="Tên file ảnh" />
+                <label asp-for="Image" class="control-label">Ảnh đại diện</label>
+                <div class="input-group">
+                    <input asp-for="Image" id="Image" class="form-control" placeholder="Tên file ảnh" />
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-secondary" onclick="openImageBrowser('Image', 'images/Authors')">
+                            <i class="fas fa-folder-open"></i> Chọn ảnh
+                        </button>
+                    </div>
+                </div>
+                <small class="form-text text-muted">Để trống để sử dụng ảnh mặc định</small>
+                <div class="mt-2">
+                    <img id="ImagePreview" src="" alt="Preview" style="max-width: 150px; max-height: 150px; display: none; border: 1px solid #ddd; border-radius: 4px;" />
+                </div>
                 <span asp-validation-for="Image" class="text-danger"></span>
             </div>
             <button type="submit" class="btn btn-primary">Tạo</button>
@@ -30,6 +41,7 @@
         </form>
     </div>
 </div>
+
 
 
 

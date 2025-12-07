@@ -14,7 +14,7 @@
             <div class="alert alert-danger">
                 <strong>Có lỗi xảy ra:</strong>
                 <ul class="mb-0">
-                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    @foreach (var error in ViewData.ModelState.Where(x => x.Key != "fromDetails").SelectMany(v => v.Value.Errors))
                     {
                         <li>@error.ErrorMessage</li>
                     }
@@ -22,8 +22,9 @@
             </div>
         }
 
-        <form asp-action="Edit" method="post">
+        <form asp-action="Edit" asp-area="Admin" asp-controller="Supplier" method="post">
             <input type="hidden" asp-for="SupplierId" />
+            <input type="hidden" name="fromDetails" value="@(ViewBag.FromDetails == true ? "true" : "false")" />
 
             <div class="row">
                 <div class="col-md-6">

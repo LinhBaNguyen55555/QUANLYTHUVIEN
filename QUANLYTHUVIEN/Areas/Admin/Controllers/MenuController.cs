@@ -116,7 +116,14 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
                     _logger.LogInformation($"Menu '{tbMenu.Title}' đã được tạo thành công bởi {tbMenu.CreatedBy} với ID {tbMenu.MenuId}");
                     TempData["Success"] = $"Menu '{tbMenu.Title}' đã được tạo thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    string referer = Request.Headers["Referer"].ToString();
+                    if (!string.IsNullOrEmpty(referer) && referer.Contains("/Details"))
+                    {
+                        return RedirectToAction(nameof(Details), new { area = "Admin", id = tbMenu.MenuId });
+                    }
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -146,7 +153,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         }
 
         // GET: Admin/Menu/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, string fromDetails)
         {
             if (id == null)
             {
@@ -163,19 +170,23 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 .Where(m => m.IsActive && m.MenuId != id)
                 .OrderBy(m => m.Position)
                 .ToList();
+            ViewBag.FromDetails = !string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true";
             return View(tbMenu);
         }
 
         // POST: Admin/Menu/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, TbMenu tbMenu)
+        public async Task<IActionResult> Edit(int id, TbMenu tbMenu, string fromDetails)
         {
             if (id != tbMenu.MenuId)
             {
                 _logger.LogWarning($"ID không khớp: {id} != {tbMenu.MenuId}");
                 return NotFound();
             }
+
+            // Xóa lỗi validation của fromDetails (không phải là trường của model)
+            ModelState.Remove("fromDetails");
 
             // Kiểm tra menu không tự tham chiếu đến chính nó
             if (tbMenu.ParentId.HasValue && tbMenu.ParentId.Value == tbMenu.MenuId)
@@ -205,7 +216,13 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
                     _logger.LogInformation($"Menu '{tbMenu.Title}' (ID: {tbMenu.MenuId}) đã được cập nhật bởi {tbMenu.ModifiedBy}");
                     TempData["Success"] = $"Menu '{tbMenu.Title}' đã được cập nhật thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
+                    {
+                        return RedirectToAction(nameof(Details), new { area = "Admin", id = tbMenu.MenuId });
+                    }
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -273,7 +290,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 {
                     _logger.LogWarning($"Không tìm thấy menu để xóa: ID {id}");
                     TempData["Error"] = "Menu không tồn tại hoặc đã bị xóa.";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
 
                 // Kiểm tra xem có menu con không
@@ -282,7 +299,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 {
                     _logger.LogWarning($"Không thể xóa menu '{tbMenu.Title}' vì có menu con");
                     TempData["Error"] = $"Không thể xóa menu '{tbMenu.Title}' vì nó có menu con. Vui lòng xóa menu con trước.";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
 
                 _context.TbMenus.Remove(tbMenu);
@@ -297,7 +314,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 TempData["Error"] = "Có lỗi xảy ra khi xóa menu. Vui lòng thử lại.";
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { area = "Admin" });
         }
 
         private bool TbMenuExists(int id)

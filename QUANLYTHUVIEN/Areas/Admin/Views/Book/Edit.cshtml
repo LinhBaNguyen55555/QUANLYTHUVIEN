@@ -9,12 +9,25 @@
         <h6 class="m-0 font-weight-bold text-primary">Chỉnh sửa Sách: @Model.Title</h6>
     </div>
     <div class="card-body">
-        @if (ViewData.ModelState.ErrorCount > 0 && !ViewData.ModelState.IsValid)
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle"></i> @TempData["Error"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+
+        @{
+            var realErrors = ViewData.ModelState.Where(x => x.Key != "fromDetails" && x.Value.Errors.Any()).SelectMany(v => v.Value.Errors).ToList();
+        }
+        @if (realErrors.Any())
         {
             <div class="alert alert-danger">
                 <strong>Có lỗi xảy ra:</strong>
                 <ul class="mb-0">
-                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    @foreach (var error in realErrors)
                     {
                         <li>@error.ErrorMessage</li>
                     }
@@ -22,8 +35,9 @@
             </div>
         }
 
-        <form asp-action="Edit" method="post" enctype="multipart/form-data">
+        <form asp-action="Edit" asp-area="Admin" asp-controller="Book" method="post" enctype="multipart/form-data">
             <input type="hidden" asp-for="BookId" />
+            <input type="hidden" name="fromDetails" value="@(ViewBag.FromDetails == true ? "true" : "false")" />
             <div class="row">
                 <div class="col-md-8">
                     <div class="form-group">
@@ -147,8 +161,27 @@
 
                     <div class="form-group">
                         <label asp-for="CoverImage" class="control-label">Ảnh bìa</label>
-                        <input asp-for="CoverImage" class="form-control" placeholder="Tên file ảnh (ví dụ: book-001.jpg)" />
+                        <div class="input-group">
+                            <input asp-for="CoverImage" id="CoverImage" class="form-control" placeholder="Tên file ảnh (ví dụ: book-001.jpg)" />
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-outline-secondary" onclick="openImageBrowser('CoverImage', 'images/books-media/gird-view')">
+                                    <i class="fas fa-folder-open"></i> Chọn ảnh
+                                </button>
+                            </div>
+                        </div>
                         <small class="form-text text-muted">Để trống để sử dụng ảnh mặc định</small>
+                        <div class="mt-2">
+                            @{
+                                var coverImageSrc = !string.IsNullOrEmpty(Model.CoverImage) 
+                                    ? (Model.CoverImage.StartsWith("/images/") || Model.CoverImage.StartsWith("images/") 
+                                        ? (Model.CoverImage.StartsWith("/") ? Model.CoverImage : "/" + Model.CoverImage)
+                                        : (Model.CoverImage.Contains("/") 
+                                            ? "/images/" + Model.CoverImage 
+                                            : "/images/books-media/gird-view/" + Model.CoverImage))
+                                    : Url.Content("~/images/books-media/gird-view/book-media-grid-01.jpg");
+                            }
+                            <img id="CoverImagePreview" src="@coverImageSrc" alt="Preview" style="max-width: 200px; max-height: 250px; border: 1px solid #ddd; border-radius: 4px; display: block;" />
+                        </div>
                         <span asp-validation-for="CoverImage" class="text-danger"></span>
                     </div>
                 </div>
@@ -158,12 +191,14 @@
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Cập nhật sách
                 </button>
-                <a href="@Url.Action("Index", "Book")" class="btn btn-secondary">
+                <a href="@Url.Action("Details", "Book", new { area = "Admin", id = Model.BookId })" class="btn btn-info">
+                    <i class="fas fa-eye"></i> Xem chi tiết
+                </a>
+                <a href="@Url.Action("Index", "Book", new { area = "Admin" })" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Quay lại danh sách
                 </a>
-                <a href="@Url.Action("Delete", "Book", new { id = Model.BookId })"
-                   class="btn btn-danger float-right"
-                   onclick="return confirm('Bạn có chắc chắn muốn xóa sách này?')">
+                <a href="@Url.Action("Delete", "Book", new { area = "Admin", id = Model.BookId })"
+                   class="btn btn-danger float-right">
                     <i class="fas fa-trash"></i> Xóa sách
                 </a>
             </div>
@@ -171,4 +206,66 @@
     </div>
 </div>
 
+<script>
+    $(document).ready(function() {
+        // Đảm bảo giá trị từ Model được set vào input
+        const initialValue = '@Html.Raw(Model.CoverImage ?? "")';
+        if (initialValue && initialValue.trim() !== '') {
+            $('#CoverImage').val(initialValue);
+        }
+        
+        // Cập nhật preview ngay sau khi set giá trị
+        setTimeout(function() {
+            updateCoverImagePreview();
+        }, 100);
+        
+        // Lắng nghe sự thay đổi của input CoverImage (khi chọn ảnh từ browser hoặc nhập tay)
+        $('#CoverImage').on('input change', function() {
+            updateCoverImagePreview();
+        });
+    });
+    
+    function updateCoverImagePreview() {
+        const imageValue = $('#CoverImage').val();
+        const preview = $('#CoverImagePreview');
+        
+        if (imageValue && imageValue.trim() !== '') {
+            // Nếu có giá trị, xử lý đường dẫn
+            let imagePath = imageValue.trim();
+            
+            // Loại bỏ các ký tự đặc biệt nếu có
+            imagePath = imagePath.replace(/^["']|["']$/g, '');
+            
+            // Xử lý các trường hợp đường dẫn khác nhau
+            if (imagePath.startsWith('/images/')) {
+                // Đã có /images/ ở đầu, giữ nguyên
+                preview.attr('src', imagePath);
+            } else if (imagePath.startsWith('images/')) {
+                // Có images/ nhưng thiếu dấu / ở đầu
+                preview.attr('src', '/' + imagePath);
+            } else if (imagePath.startsWith('/')) {
+                // Bắt đầu bằng / nhưng không có images/
+                preview.attr('src', imagePath);
+            } else if (imagePath.includes('/')) {
+                // Có đường dẫn tương đối (ví dụ: books-media/gird-view/book.jpg)
+                preview.attr('src', '/images/' + imagePath);
+            } else {
+                // Chỉ có tên file, thêm đường dẫn thư mục mặc định
+                preview.attr('src', '/images/books-media/gird-view/' + imagePath);
+            }
+            
+            preview.show();
+            
+            // Xử lý lỗi khi ảnh không tải được
+            preview.on('error', function() {
+                console.warn('Không thể tải ảnh:', preview.attr('src'));
+                preview.attr('src', '@Url.Content("~/images/books-media/gird-view/book-media-grid-01.jpg")');
+            });
+        } else {
+            // Nếu không có, hiển thị ảnh mặc định
+            preview.attr('src', '@Url.Content("~/images/books-media/gird-view/book-media-grid-01.jpg")');
+            preview.show();
+        }
+    }
+</script>
 

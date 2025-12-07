@@ -67,6 +67,24 @@
         </div>
     </div>
     <div class="card-body">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle"></i> @TempData["Success"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle"></i> @TempData["Error"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
         @if (!Model.Any())
         {
             <div class="alert alert-info">
@@ -94,8 +112,45 @@
                             <tr>
                                 <td>@item.BookId</td>
                                 <td>
-                                    <img src="@Url.Content(item.CoverImageUrl)" alt="@item.Title"
-                                         class="img-thumbnail" style="width: 60px; height: 80px; object-fit: cover;" />
+                                    @{
+                                        string coverImageUrl = "";
+                                        if (!string.IsNullOrEmpty(item.CoverImage))
+                                        {
+                                            var coverImage = item.CoverImage.Trim();
+                                            if (coverImage.StartsWith("/images/"))
+                                            {
+                                                // Đã có đường dẫn đầy đủ
+                                                coverImageUrl = coverImage;
+                                            }
+                                            else if (coverImage.StartsWith("images/"))
+                                            {
+                                                // Có images/ nhưng thiếu dấu /
+                                                coverImageUrl = "/" + coverImage;
+                                            }
+                                            else if (coverImage.StartsWith("/"))
+                                            {
+                                                // Bắt đầu bằng / nhưng không có images/
+                                                coverImageUrl = coverImage;
+                                            }
+                                            else if (coverImage.Contains("/"))
+                                            {
+                                                // Có đường dẫn tương đối (ví dụ: books-media/gird-view/book.jpg)
+                                                coverImageUrl = "/images/" + coverImage;
+                                            }
+                                            else
+                                            {
+                                                // Chỉ có tên file
+                                                coverImageUrl = "/images/books-media/gird-view/" + coverImage;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            coverImageUrl = Url.Content("~/images/books-media/gird-view/book-media-grid-01.jpg");
+                                        }
+                                    }
+                                    <img src="@coverImageUrl" alt="@item.Title"
+                                         class="img-thumbnail" style="width: 60px; height: 80px; object-fit: cover;" 
+                                         onerror="this.src='@Url.Content("~/images/books-media/gird-view/book-media-grid-01.jpg")'" />
                                 </td>
                                 <td>
                                     <strong>@item.Title</strong>
@@ -132,8 +187,7 @@
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         <a href="@Url.Action("Delete", "Book", new { id = item.BookId })"
-                                           class="btn btn-danger btn-sm" title="Xóa"
-                                           onclick="return confirm('Bạn có chắc chắn muốn xóa sách này?')">
+                                           class="btn btn-danger btn-sm" title="Xóa">
                                             <i class="fas fa-trash"></i>
                                         </a>
                                     </div>

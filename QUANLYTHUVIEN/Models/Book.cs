@@ -76,9 +76,40 @@ public partial class Book
             const string basePath = "~/images/books-media/gird-view/";
             const string defaultImage = "book-media-grid-01.jpg";
 
-            // Nếu CoverImage là null hoặc rỗng, dùng ảnh mặc định.
-            // Ngược lại, dùng ảnh của sách.
-            return basePath + (string.IsNullOrEmpty(CoverImage) ? defaultImage : CoverImage);
+            // Nếu CoverImage là null hoặc rỗng, dùng ảnh mặc định
+            if (string.IsNullOrEmpty(CoverImage))
+            {
+                return basePath + defaultImage;
+            }
+
+            var coverImage = CoverImage.Trim();
+
+            // Xử lý các trường hợp đường dẫn khác nhau
+            if (coverImage.StartsWith("/images/") || coverImage.StartsWith("~/images/"))
+            {
+                // Đã có đường dẫn đầy đủ, giữ nguyên
+                return coverImage.StartsWith("~/") ? coverImage : "~" + coverImage;
+            }
+            else if (coverImage.StartsWith("images/"))
+            {
+                // Có images/ nhưng thiếu dấu ~/
+                return "~/" + coverImage;
+            }
+            else if (coverImage.StartsWith("/"))
+            {
+                // Bắt đầu bằng / nhưng không có images/
+                return "~" + coverImage;
+            }
+            else if (coverImage.Contains("/"))
+            {
+                // Có đường dẫn tương đối (ví dụ: books-media/gird-view/book.jpg)
+                return "~/images/" + coverImage;
+            }
+            else
+            {
+                // Chỉ có tên file
+                return basePath + coverImage;
+            }
         }
     }
 

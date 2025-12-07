@@ -96,7 +96,14 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
                     _logger.LogInformation($"Nhà cung cấp '{supplier.SupplierName}' đã được tạo thành công bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = $"Nhà cung cấp '{supplier.SupplierName}' đã được tạo thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    string referer = Request.Headers["Referer"].ToString();
+                    if (!string.IsNullOrEmpty(referer) && referer.Contains("/Details"))
+                    {
+                        return RedirectToAction(nameof(Details), new { area = "Admin", id = supplier.SupplierId });
+                    }
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -109,7 +116,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         }
 
         // GET: Admin/Supplier/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, string fromDetails)
         {
             if (id == null)
             {
@@ -122,18 +129,22 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 return NotFound();
             }
 
+            ViewBag.FromDetails = !string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true";
             return View(supplier);
         }
 
         // POST: Admin/Supplier/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Supplier supplier)
+        public async Task<IActionResult> Edit(int id, Supplier supplier, string fromDetails)
         {
             if (id != supplier.SupplierId)
             {
                 return NotFound();
             }
+
+            // Xóa lỗi validation của fromDetails (không phải là trường của model)
+            ModelState.Remove("fromDetails");
 
             if (ModelState.IsValid)
             {
@@ -170,7 +181,13 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
                     _logger.LogInformation($"Nhà cung cấp '{supplier.SupplierName}' (ID: {supplier.SupplierId}) đã được cập nhật bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = $"Nhà cung cấp '{supplier.SupplierName}' đã được cập nhật thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
+                    {
+                        return RedirectToAction(nameof(Details), new { area = "Admin", id = supplier.SupplierId });
+                    }
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -217,7 +234,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 {
                     _logger.LogWarning($"Không tìm thấy nhà cung cấp để xóa: ID {id}");
                     TempData["Error"] = "Nhà cung cấp không tồn tại hoặc đã bị xóa.";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
 
                 // Kiểm tra xem nhà cung cấp có đang được sử dụng không
@@ -225,7 +242,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 {
                     _logger.LogWarning($"Không thể xóa nhà cung cấp '{supplier.SupplierName}' vì có đơn hàng liên quan");
                     TempData["Error"] = $"Không thể xóa nhà cung cấp '{supplier.SupplierName}' vì có {supplier.Orders.Count} đơn hàng liên quan.";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
 
                 _context.Suppliers.Remove(supplier);
@@ -240,7 +257,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 TempData["Error"] = "Có lỗi xảy ra khi xóa nhà cung cấp. Vui lòng thử lại.";
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { area = "Admin" });
         }
     }
 }

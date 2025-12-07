@@ -68,7 +68,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             {
                 _logger.LogError(ex, $"Lỗi khi lấy chi tiết thể loại ID {id}: {ex.Message}");
                 TempData["Error"] = "Có lỗi xảy ra khi tải chi tiết thể loại.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Category", new { area = "Admin" });
             }
         }
 
@@ -99,7 +99,14 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
                     _logger.LogInformation($"Thể loại '{category.CategoryName}' đã được tạo thành công bởi {User.Identity?.Name ?? "Admin"} với ID {category.CategoryId}");
                     TempData["Success"] = $"Thể loại '{category.CategoryName}' đã được tạo thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    string referer = Request.Headers["Referer"].ToString();
+                    if (!string.IsNullOrEmpty(referer) && referer.Contains("/Details"))
+                    {
+                        return RedirectToAction("Details", "Category", new { area = "Admin", id = category.CategoryId });
+                    }
+                    return RedirectToAction("Index", "Category", new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -124,7 +131,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         }
 
         // GET: Admin/Category/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, string fromDetails)
         {
             if (id == null)
             {
@@ -137,18 +144,22 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 return NotFound();
             }
 
+            ViewBag.FromDetails = !string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true";
             return View(category);
         }
 
         // POST: Admin/Category/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Category category)
+        public async Task<IActionResult> Edit(int id, Category category, string fromDetails)
         {
             if (id != category.CategoryId)
             {
                 return NotFound();
             }
+
+            // Xóa lỗi validation của fromDetails (không phải là trường của model)
+            ModelState.Remove("fromDetails");
 
             if (ModelState.IsValid)
             {
@@ -166,7 +177,13 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
                     _logger.LogInformation($"Thể loại '{category.CategoryName}' (ID: {category.CategoryId}) đã được cập nhật bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = $"Thể loại '{category.CategoryName}' đã được cập nhật thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
+                    {
+                        return RedirectToAction("Details", "Category", new { area = "Admin", id = category.CategoryId });
+                    }
+                    return RedirectToAction("Index", "Category", new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -224,7 +241,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 {
                     _logger.LogWarning($"Không tìm thấy thể loại để xóa: ID {id}");
                     TempData["Error"] = "Thể loại không tồn tại hoặc đã bị xóa.";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Index", "Category", new { area = "Admin" });
                 }
 
                 // Kiểm tra xem thể loại có đang được sử dụng không
@@ -232,7 +249,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 {
                     _logger.LogWarning($"Không thể xóa thể loại '{category.CategoryName}' vì có sách đang sử dụng");
                     TempData["Error"] = $"Không thể xóa thể loại '{category.CategoryName}' vì có {category.Books.Count} sách đang thuộc thể loại này.";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Index", "Category", new { area = "Admin" });
                 }
 
                 _context.Categories.Remove(category);
@@ -247,7 +264,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 TempData["Error"] = "Có lỗi xảy ra khi xóa thể loại. Vui lòng thử lại.";
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index", "Category", new { area = "Admin" });
         }
 
         private bool CategoryExists(int id)

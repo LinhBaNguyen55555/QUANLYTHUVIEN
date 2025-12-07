@@ -9,8 +9,9 @@
         <h6 class="m-0 font-weight-bold text-primary">Chỉnh sửa Tác giả</h6>
     </div>
     <div class="card-body">
-        <form asp-action="Edit" method="post">
+        <form asp-action="Edit" asp-area="Admin" asp-controller="Author" method="post">
             <input type="hidden" asp-for="AuthorId" />
+            <input type="hidden" name="fromDetails" value="@(ViewBag.FromDetails == true ? "true" : "false")" />
             <div class="form-group">
                 <label asp-for="AuthorName" class="control-label"></label>
                 <input asp-for="AuthorName" class="form-control" />
@@ -22,8 +23,26 @@
                 <span asp-validation-for="Biography" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Image" class="control-label"></label>
-                <input asp-for="Image" class="form-control" placeholder="Tên file ảnh" />
+                <label asp-for="Image" class="control-label">Ảnh đại diện</label>
+                <div class="input-group">
+                    <input asp-for="Image" id="Image" class="form-control" placeholder="Tên file ảnh" />
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-secondary" onclick="openImageBrowser('Image', 'images/Authors')">
+                            <i class="fas fa-folder-open"></i> Chọn ảnh
+                        </button>
+                    </div>
+                </div>
+                <small class="form-text text-muted">Để trống để sử dụng ảnh mặc định</small>
+                <div class="mt-2">
+                    @if (!string.IsNullOrEmpty(Model.Image))
+                    {
+                        <img id="ImagePreview" src="@Url.Content("~/images/Authors/" + Model.Image)" alt="Preview" style="max-width: 150px; max-height: 150px; border: 1px solid #ddd; border-radius: 4px;" />
+                    }
+                    else
+                    {
+                        <img id="ImagePreview" src="@Url.Content("~/images/Authors/default-avatar.jpg")" alt="Preview" style="max-width: 150px; max-height: 150px; border: 1px solid #ddd; border-radius: 4px;" />
+                    }
+                </div>
                 <span asp-validation-for="Image" class="text-danger"></span>
             </div>
             <button type="submit" class="btn btn-primary">Cập nhật</button>
@@ -31,5 +50,6 @@
         </form>
     </div>
 </div>
+
 
 

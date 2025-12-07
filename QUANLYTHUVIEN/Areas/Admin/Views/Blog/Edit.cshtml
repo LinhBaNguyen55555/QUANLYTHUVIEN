@@ -9,12 +9,22 @@
         <h6 class="m-0 font-weight-bold text-primary">Chỉnh sửa Bài viết</h6>
     </div>
     <div class="card-body">
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle"></i> @TempData["Error"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+
         @if (ViewData.ModelState.ErrorCount > 0 && !ViewData.ModelState.IsValid)
         {
             <div class="alert alert-danger">
                 <strong>Có lỗi xảy ra:</strong>
                 <ul class="mb-0">
-                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    @foreach (var error in ViewData.ModelState.Where(x => x.Key != "fromDetails").SelectMany(v => v.Value.Errors))
                     {
                         <li>@error.ErrorMessage</li>
                     }
@@ -25,6 +35,7 @@
         <form asp-action="Edit" asp-area="Admin" asp-controller="Blog" method="post">
             <input type="hidden" asp-for="BlogId" />
             <input type="hidden" asp-for="CreatedDate" />
+            <input type="hidden" name="fromDetails" value="@(ViewBag.FromDetails == true ? "true" : "false")" />
             <div class="form-group">
                 <label asp-for="Title" class="control-label"></label>
                 <input asp-for="Title" class="form-control" />
@@ -57,8 +68,19 @@
                 <span asp-validation-for="AuthorId" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Image" class="control-label"></label>
-                <input asp-for="Image" class="form-control" placeholder="Tên file ảnh" />
+                <label asp-for="Image" class="control-label">Ảnh đại diện</label>
+                <div class="input-group">
+                    <input asp-for="Image" id="Image" class="form-control" placeholder="Chọn ảnh từ thư viện" readonly />
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-secondary" onclick="openImageBrowser('Image', 'images/blog')">
+                            <i class="fas fa-folder-open"></i> Chọn ảnh
+                        </button>
+                    </div>
+                </div>
+                <small class="form-text text-muted">Chọn ảnh từ thư viện ảnh có sẵn trong wwwroot</small>
+                <div class="mt-2">
+                    <img id="ImagePreview" src="@Url.Content(Model.BlogImageUrl)" alt="Preview" style="max-width: 300px; max-height: 200px; border: 1px solid #ddd; border-radius: 4px; display: block;" />
+                </div>
                 <span asp-validation-for="Image" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -72,3 +94,31 @@
         </form>
     </div>
 </div>
+
+<script>
+    // Xử lý preview ảnh khi chọn từ browser
+    $(document).ready(function() {
+        // Cập nhật preview khi trang load
+        updateImagePreview();
+        
+        // Lắng nghe sự thay đổi của input Image (khi chọn ảnh từ browser)
+        $('#Image').on('change', function() {
+            updateImagePreview();
+        });
+    });
+    
+    function updateImagePreview() {
+        const imageValue = $('#Image').val();
+        const preview = $('#ImagePreview');
+        
+        if (imageValue && imageValue.trim() !== '') {
+            // Nếu có giá trị, hiển thị ảnh từ wwwroot
+            preview.attr('src', '/images/blog/' + imageValue);
+            preview.show();
+        } else {
+            // Nếu không có, hiển thị ảnh mặc định
+            preview.attr('src', '@Url.Content("~/images/blog/blog-10.jpg")');
+            preview.show();
+        }
+    }
+</script>

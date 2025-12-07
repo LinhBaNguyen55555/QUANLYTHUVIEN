@@ -4,6 +4,9 @@ using QUANLYTHUVIEN.Models;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using Microsoft.AspNetCore.Hosting;
 
 namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 {
@@ -12,11 +15,13 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
     {
         private readonly QlthuvienContext _context;
         private readonly ILogger<BlogController> _logger;
+        private readonly IWebHostEnvironment _environment;
 
-        public BlogController(QlthuvienContext context, ILogger<BlogController> logger)
+        public BlogController(QlthuvienContext context, ILogger<BlogController> logger, IWebHostEnvironment environment)
         {
             _context = context;
             _logger = logger;
+            _environment = environment;
         }
 
         // GET: Admin/Blog
@@ -82,12 +87,23 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             {
                 try
                 {
+                    // Lưu đường dẫn ảnh đã chọn từ wwwroot
+                    // Image đã được set từ input khi người dùng chọn từ browser
+                    // Không cần xử lý upload nữa
+
                     blog.CreatedDate = DateTime.Now;
 
                     _context.Add(blog);
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Bài viết '{blog.Title}' đã được tạo thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    string referer = Request.Headers["Referer"].ToString();
+                    if (!string.IsNullOrEmpty(referer) && referer.Contains("/Details"))
+                    {
+                        return RedirectToAction(nameof(Details), new { area = "Admin", id = blog.BlogId });
+                    }
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -100,7 +116,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         }
 
         // GET: Admin/Blog/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, string fromDetails)
         {
             if (id == null) return NotFound();
             var blog = await _context.TbBlogs
@@ -109,15 +125,19 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             if (blog == null) return NotFound();
 
             ViewBag.Authors = _context.Users.OrderBy(u => u.Username).ToList();
+            ViewBag.FromDetails = !string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true";
             return View(blog);
         }
 
         // POST: Admin/Blog/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, TbBlog blog)
+        public async Task<IActionResult> Edit(int id, TbBlog blog, string fromDetails)
         {
             if (id != blog.BlogId) return NotFound();
+
+            // Xóa lỗi validation của fromDetails (không phải là trường của model)
+            ModelState.Remove("fromDetails");
 
             if (ModelState.IsValid)
             {
@@ -129,19 +149,29 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                         return NotFound();
                     }
 
+                    // Lưu đường dẫn ảnh đã chọn từ wwwroot
+                    // Image đã được set từ input khi người dùng chọn từ browser
+                    // Không cần xử lý upload hay xóa ảnh cũ nữa vì ảnh đã có sẵn trong wwwroot
+
                     // Cập nhật các trường
                     existingBlog.Title = blog.Title;
                     existingBlog.Alias = blog.Alias;
                     existingBlog.Content = blog.Content;
                     existingBlog.AuthorId = blog.AuthorId;
-                    existingBlog.Image = blog.Image;
+                    existingBlog.Image = blog.Image; // Lưu đường dẫn ảnh đã chọn
                     existingBlog.IsPublished = blog.IsPublished;
                     existingBlog.ModifiedDate = DateTime.Now;
 
                     _context.Update(existingBlog);
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Bài viết '{blog.Title}' đã được cập nhật thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
+                    {
+                        return RedirectToAction(nameof(Details), new { area = "Admin", id = blog.BlogId });
+                    }
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -183,13 +213,13 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             if (blog == null)
             {
                 TempData["Error"] = "Bài viết không tồn tại.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { area = "Admin" });
             }
 
             _context.TbBlogs.Remove(blog);
             await _context.SaveChangesAsync();
             TempData["Success"] = $"Bài viết '{blog.Title}' đã được xóa thành công!";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { area = "Admin" });
         }
     }
 }

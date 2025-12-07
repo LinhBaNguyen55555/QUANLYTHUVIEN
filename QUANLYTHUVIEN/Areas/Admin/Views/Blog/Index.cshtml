@@ -12,6 +12,24 @@
         </a>
     </div>
     <div class="card-body">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle"></i> @TempData["Success"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle"></i> @TempData["Error"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
         @if (!Model.Any())
         {
             <div class="alert alert-info">Chưa có bài viết nào.</div>
@@ -22,6 +40,7 @@
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th>Ảnh</th>
                         <th>Tiêu đề</th>
                         <th>Tác giả</th>
                         <th>Ngày tạo</th>
@@ -33,6 +52,9 @@
                     {
                         <tr>
                             <td>@item.BlogId</td>
+                            <td>
+                                <img src="@Url.Content(item.BlogImageUrl)" alt="@item.Title" style="width: 60px; height: 40px; object-fit: cover; border-radius: 4px;" />
+                            </td>
                             <td>@item.Title</td>
                             <td>@(item.Author?.Username ?? "Chưa xác định")</td>
                             <td>@item.CreatedDate?.ToString("dd/MM/yyyy")</td>
@@ -44,8 +66,7 @@
                                     <a href="@Url.Action("Edit", "Blog", new { id = item.BlogId })" class="btn btn-warning btn-sm" title="Chỉnh sửa">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="@Url.Action("Delete", "Blog", new { id = item.BlogId })" class="btn btn-danger btn-sm" title="Xóa"
-                                       onclick="return confirm('Bạn có chắc chắn muốn xóa bài viết này?')">
+                                    <a href="@Url.Action("Delete", "Blog", new { id = item.BlogId })" class="btn btn-danger btn-sm" title="Xóa">
                                         <i class="fas fa-trash"></i>
                                     </a>
                                 </div>

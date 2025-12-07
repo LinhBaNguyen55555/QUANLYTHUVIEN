@@ -103,7 +103,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
                     _logger.LogInformation($"Bảng giá thuê sách ID {rentalPrice.PriceId} đã được tạo thành công bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = "Bảng giá thuê sách đã được tạo thành công!";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Index", "RentalPrice", new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -163,7 +163,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
                     _logger.LogInformation($"Bảng giá thuê sách ID {rentalPrice.PriceId} đã được cập nhật thành công bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = "Bảng giá thuê sách đã được cập nhật thành công!";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Index", "RentalPrice", new { area = "Admin" });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -232,7 +232,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 }
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index", "RentalPrice", new { area = "Admin" });
         }
 
         private bool RentalPriceExists(int id)

@@ -92,7 +92,14 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
                     _logger.LogInformation($"Khách hàng '{customer.FullName}' đã được tạo thành công bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = $"Khách hàng '{customer.FullName}' đã được tạo thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    string referer = Request.Headers["Referer"].ToString();
+                    if (!string.IsNullOrEmpty(referer) && referer.Contains("/Details"))
+                    {
+                        return RedirectToAction(nameof(Details), new { area = "Admin", id = customer.CustomerId });
+                    }
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -105,7 +112,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         }
 
         // GET: Admin/Customer/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, string fromDetails)
         {
             if (id == null)
             {
@@ -118,18 +125,22 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 return NotFound();
             }
 
+            ViewBag.FromDetails = !string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true";
             return View(customer);
         }
 
         // POST: Admin/Customer/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Customer customer)
+        public async Task<IActionResult> Edit(int id, Customer customer, string fromDetails)
         {
             if (id != customer.CustomerId)
             {
                 return NotFound();
             }
+
+            // Xóa lỗi validation của fromDetails (không phải là trường của model)
+            ModelState.Remove("fromDetails");
 
             if (ModelState.IsValid)
             {
@@ -159,7 +170,13 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
                     _logger.LogInformation($"Khách hàng '{customer.FullName}' (ID: {customer.CustomerId}) đã được cập nhật bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = $"Khách hàng '{customer.FullName}' đã được cập nhật thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
+                    {
+                        return RedirectToAction(nameof(Details), new { area = "Admin", id = customer.CustomerId });
+                    }
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -208,7 +225,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 {
                     _logger.LogWarning($"Không tìm thấy khách hàng để xóa: ID {id}");
                     TempData["Error"] = "Khách hàng không tồn tại hoặc đã bị xóa.";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
 
                 // Kiểm tra xem khách hàng có đang được sử dụng không
@@ -216,7 +233,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 {
                     _logger.LogWarning($"Không thể xóa khách hàng '{customer.FullName}' vì có dữ liệu liên quan");
                     TempData["Error"] = $"Không thể xóa khách hàng '{customer.FullName}' vì có dữ liệu liên quan (phiếu thuê, bình luận).";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
 
                 _context.Customers.Remove(customer);
@@ -231,7 +248,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 TempData["Error"] = "Có lỗi xảy ra khi xóa khách hàng. Vui lòng thử lại.";
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { area = "Admin" });
         }
     }
 }

@@ -78,7 +78,14 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _context.Add(publisher);
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Nhà xuất bản '{publisher.PublisherName}' đã được tạo thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    string referer = Request.Headers["Referer"].ToString();
+                    if (!string.IsNullOrEmpty(referer) && referer.Contains("/Details"))
+                    {
+                        return RedirectToAction("Details", "Publisher", new { area = "Admin", id = publisher.PublisherId });
+                    }
+                    return RedirectToAction("Index", "Publisher", new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -90,20 +97,25 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         }
 
         // GET: Admin/Publisher/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, string fromDetails)
         {
             if (id == null) return NotFound();
             var publisher = await _context.Publishers.FindAsync(id);
             if (publisher == null) return NotFound();
+
+            ViewBag.FromDetails = !string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true";
             return View(publisher);
         }
 
         // POST: Admin/Publisher/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Publisher publisher)
+        public async Task<IActionResult> Edit(int id, Publisher publisher, string fromDetails)
         {
             if (id != publisher.PublisherId) return NotFound();
+
+            // Xóa lỗi validation của fromDetails (không phải là trường của model)
+            ModelState.Remove("fromDetails");
 
             if (ModelState.IsValid)
             {
@@ -118,7 +130,13 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _context.Update(publisher);
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Nhà xuất bản '{publisher.PublisherName}' đã được cập nhật thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
+                    {
+                        return RedirectToAction("Details", "Publisher", new { area = "Admin", id = publisher.PublisherId });
+                    }
+                    return RedirectToAction("Index", "Publisher", new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -147,19 +165,19 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             if (publisher == null)
             {
                 TempData["Error"] = "Nhà xuất bản không tồn tại.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Publisher", new { area = "Admin" });
             }
 
             if (publisher.Books.Any())
             {
                 TempData["Error"] = $"Không thể xóa nhà xuất bản '{publisher.PublisherName}' vì có {publisher.Books.Count} sách đang sử dụng.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Publisher", new { area = "Admin" });
             }
 
             _context.Publishers.Remove(publisher);
             await _context.SaveChangesAsync();
             TempData["Success"] = $"Nhà xuất bản '{publisher.PublisherName}' đã được xóa thành công!";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index", "Publisher", new { area = "Admin" });
         }
     }
 }

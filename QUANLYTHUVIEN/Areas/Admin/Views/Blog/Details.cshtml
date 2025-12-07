@@ -17,6 +17,25 @@
         </div>
     </div>
     <div class="card-body">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle"></i> @TempData["Success"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle"></i> @TempData["Error"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+
         <dl class="row">
             <dt class="col-sm-3">ID</dt>
             <dd class="col-sm-9">@Model.BlogId</dd>
@@ -52,7 +71,11 @@
             <dd class="col-sm-9">@(Model.Views ?? 0)</dd>
 
             <dt class="col-sm-3">Ảnh đại diện</dt>
-            <dd class="col-sm-9">@(Model.Image ?? "Không có ảnh")</dd>
+            <dd class="col-sm-9">
+                <img src="@Url.Content(Model.BlogImageUrl)" alt="@Model.Title" style="max-width: 300px; max-height: 200px; border: 1px solid #ddd; border-radius: 4px;" />
+                <br />
+                <small class="text-muted">@Model.Image</small>
+            </dd>
         </dl>
 
         <hr />
@@ -69,5 +92,6 @@
         </div>
     </div>
 </div>
+
 
 

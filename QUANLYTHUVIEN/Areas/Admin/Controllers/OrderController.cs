@@ -123,7 +123,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
                     _logger.LogInformation($"Đơn hàng mới đã được tạo với nhà cung cấp '{order.Supplier?.SupplierName}' bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = $"Đơn hàng đã được tạo thành công với nhà cung cấp '{order.Supplier?.SupplierName}'!";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Index", "Order", new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -192,7 +192,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
                     _logger.LogInformation($"Đơn hàng ID {id} đã được cập nhật bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = $"Đơn hàng đã được cập nhật thành công!";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Index", "Order", new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -245,7 +245,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 {
                     _logger.LogWarning($"Không tìm thấy đơn hàng để xóa: ID {id}");
                     TempData["Error"] = "Đơn hàng không tồn tại hoặc đã bị xóa.";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Index", "Order", new { area = "Admin" });
                 }
 
                 // Xóa chi tiết đơn hàng trước
@@ -262,7 +262,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 TempData["Error"] = "Có lỗi xảy ra khi xóa đơn hàng. Vui lòng thử lại.";
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index", "Order", new { area = "Admin" });
         }
     }
 }

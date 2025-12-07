@@ -135,7 +135,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
                     _logger.LogInformation($"Phiếu thuê mới đã được tạo cho khách hàng '{rental.Customer?.FullName}' bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = $"Phiếu thuê đã được tạo thành công cho khách hàng '{rental.Customer?.FullName}'!";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Index", "Rental", new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -211,7 +211,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
                     _logger.LogInformation($"Phiếu thuê ID {id} đã được cập nhật bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = $"Phiếu thuê đã được cập nhật thành công!";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Index", "Rental", new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -264,7 +264,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 {
                     _logger.LogWarning($"Không tìm thấy phiếu thuê để xóa: ID {id}");
                     TempData["Error"] = "Phiếu thuê không tồn tại hoặc đã bị xóa.";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Index", "Rental", new { area = "Admin" });
                 }
 
                 // Xóa chi tiết phiếu thuê trước
@@ -281,7 +281,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 TempData["Error"] = "Có lỗi xảy ra khi xóa phiếu thuê. Vui lòng thử lại.";
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index", "Rental", new { area = "Admin" });
         }
 
         // POST: Admin/Rental/ReturnBook/5

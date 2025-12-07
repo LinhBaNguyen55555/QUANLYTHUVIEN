@@ -9,8 +9,9 @@
         <h6 class="m-0 font-weight-bold text-primary">Chỉnh sửa Ngôn ngữ</h6>
     </div>
     <div class="card-body">
-        <form asp-action="Edit" method="post">
+        <form asp-action="Edit" asp-area="Admin" asp-controller="Language" method="post">
             <input type="hidden" asp-for="LanguageId" />
+            <input type="hidden" name="fromDetails" value="@(ViewBag.FromDetails == true ? "true" : "false")" />
             <div class="form-group">
                 <label asp-for="LanguageName" class="control-label"></label>
                 <input asp-for="LanguageName" class="form-control" />
@@ -21,5 +22,6 @@
         </form>
     </div>
 </div>
+
 
 

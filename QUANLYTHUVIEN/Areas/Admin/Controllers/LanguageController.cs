@@ -61,7 +61,14 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _context.Add(language);
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Ngôn ngữ '{language.LanguageName}' đã được tạo thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    string referer = Request.Headers["Referer"].ToString();
+                    if (!string.IsNullOrEmpty(referer) && referer.Contains("/Details"))
+                    {
+                        return RedirectToAction("Details", "Language", new { area = "Admin", id = language.LanguageId });
+                    }
+                    return RedirectToAction("Index", "Language", new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -85,19 +92,24 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             return View(language);
         }
 
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, string fromDetails)
         {
             if (id == null) return NotFound();
             var language = await _context.Languages.FindAsync(id);
             if (language == null) return NotFound();
+
+            ViewBag.FromDetails = !string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true";
             return View(language);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Language language)
+        public async Task<IActionResult> Edit(int id, Language language, string fromDetails)
         {
             if (id != language.LanguageId) return NotFound();
+
+            // Xóa lỗi validation của fromDetails (không phải là trường của model)
+            ModelState.Remove("fromDetails");
 
             if (ModelState.IsValid)
             {
@@ -112,7 +124,13 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _context.Update(language);
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Ngôn ngữ '{language.LanguageName}' đã được cập nhật thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
+                    {
+                        return RedirectToAction("Details", "Language", new { area = "Admin", id = language.LanguageId });
+                    }
+                    return RedirectToAction("Index", "Language", new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -139,19 +157,19 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             if (language == null)
             {
                 TempData["Error"] = "Ngôn ngữ không tồn tại.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Language", new { area = "Admin" });
             }
 
             if (language.Books.Any())
             {
                 TempData["Error"] = $"Không thể xóa ngôn ngữ '{language.LanguageName}' vì có {language.Books.Count} sách đang sử dụng.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Language", new { area = "Admin" });
             }
 
             _context.Languages.Remove(language);
             await _context.SaveChangesAsync();
             TempData["Success"] = $"Ngôn ngữ '{language.LanguageName}' đã được xóa thành công!";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index", "Language", new { area = "Admin" });
         }
     }
 }

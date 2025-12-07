@@ -12,6 +12,27 @@
         </a>
     </div>
     <div class="card-body">
+        <!-- Thông báo -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle"></i> @TempData["Success"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle"></i> @TempData["Error"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+
         @if (!Model.Any())
         {
             <div class="alert alert-info">Chưa có tác giả nào.</div>
@@ -22,6 +43,7 @@
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th>Ảnh đại diện</th>
                         <th>Tên tác giả</th>
                         <th>Tiểu sử</th>
                         <th>Số sách</th>
@@ -33,6 +55,19 @@
                     {
                         <tr>
                             <td>@item.AuthorId</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.Image))
+                                {
+                                    <img src="@Url.Content("~/images/Authors/" + item.Image)" alt="@item.AuthorName"
+                                         class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;" 
+                                         onerror="this.src='@Url.Content("~/images/Authors/default-avatar.jpg")'" />
+                                }
+                                else
+                                {
+                                    <img src="@Url.Content("~/images/Authors/default-avatar.jpg")" alt="@item.AuthorName"
+                                         class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;" />
+                                }
+                            </td>
                             <td>@item.AuthorName</td>
                             <td>@(item.Biography?.Length > 50 ? item.Biography.Substring(0, 50) + "..." : item.Biography ?? "Không có tiểu sử")</td>
                             <td>@item.Books.Count</td>

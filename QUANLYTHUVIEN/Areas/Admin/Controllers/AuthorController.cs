@@ -78,7 +78,14 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _context.Add(author);
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Tác giả '{author.AuthorName}' đã được tạo thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    string referer = Request.Headers["Referer"].ToString();
+                    if (!string.IsNullOrEmpty(referer) && referer.Contains("/Details"))
+                    {
+                        return RedirectToAction("Details", "Author", new { area = "Admin", id = author.AuthorId });
+                    }
+                    return RedirectToAction("Index", "Author", new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -90,20 +97,25 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         }
 
         // GET: Admin/Author/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, string fromDetails)
         {
             if (id == null) return NotFound();
             var author = await _context.Authors.FindAsync(id);
             if (author == null) return NotFound();
+
+            ViewBag.FromDetails = !string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true";
             return View(author);
         }
 
         // POST: Admin/Author/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Author author)
+        public async Task<IActionResult> Edit(int id, Author author, string fromDetails)
         {
             if (id != author.AuthorId) return NotFound();
+
+            // Xóa lỗi validation của fromDetails (không phải là trường của model)
+            ModelState.Remove("fromDetails");
 
             if (ModelState.IsValid)
             {
@@ -118,7 +130,13 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _context.Update(author);
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Tác giả '{author.AuthorName}' đã được cập nhật thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
+                    {
+                        return RedirectToAction("Details", "Author", new { area = "Admin", id = author.AuthorId });
+                    }
+                    return RedirectToAction("Index", "Author", new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -147,19 +165,19 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             if (author == null)
             {
                 TempData["Error"] = "Tác giả không tồn tại.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Author", new { area = "Admin" });
             }
 
             if (author.Books.Any())
             {
                 TempData["Error"] = $"Không thể xóa tác giả '{author.AuthorName}' vì có {author.Books.Count} sách đang sử dụng.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Author", new { area = "Admin" });
             }
 
             _context.Authors.Remove(author);
             await _context.SaveChangesAsync();
             TempData["Success"] = $"Tác giả '{author.AuthorName}' đã được xóa thành công!";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index", "Author", new { area = "Admin" });
         }
     }
 }

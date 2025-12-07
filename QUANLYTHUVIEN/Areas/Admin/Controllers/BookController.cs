@@ -125,7 +125,14 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
                     _logger.LogInformation($"Sách '{book.Title}' đã được tạo thành công bởi {User.Identity?.Name ?? "Admin"} với ID {book.BookId}");
                     TempData["Success"] = $"Sách '{book.Title}' đã được tạo thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    string referer = Request.Headers["Referer"].ToString();
+                    if (!string.IsNullOrEmpty(referer) && referer.Contains("/Details"))
+                    {
+                        return RedirectToAction(nameof(Details), new { area = "Admin", id = book.BookId });
+                    }
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -154,7 +161,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         }
 
         // GET: Admin/Book/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, string fromDetails)
         {
             if (id == null)
             {
@@ -174,6 +181,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             ViewBag.Languages = _context.Languages.OrderBy(l => l.LanguageName).ToList();
             ViewBag.Authors = _context.Authors.OrderBy(a => a.AuthorName).ToList();
             ViewBag.SelectedAuthors = book.Authors.Select(a => a.AuthorId).ToArray();
+            ViewBag.FromDetails = !string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true";
 
             return View(book);
         }
@@ -181,12 +189,15 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         // POST: Admin/Book/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Book book, int[] selectedAuthors)
+        public async Task<IActionResult> Edit(int id, Book book, int[] selectedAuthors, string fromDetails)
         {
             if (id != book.BookId)
             {
                 return NotFound();
             }
+
+            // Xóa lỗi validation của fromDetails (không phải là trường của model)
+            ModelState.Remove("fromDetails");
 
             if (ModelState.IsValid)
             {
@@ -231,7 +242,13 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
                     _logger.LogInformation($"Sách '{book.Title}' (ID: {book.BookId}) đã được cập nhật bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = $"Sách '{book.Title}' đã được cập nhật thành công!";
-                    return RedirectToAction(nameof(Index));
+
+                    // Chuyển hướng về trang nguồn
+                    if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
+                    {
+                        return RedirectToAction(nameof(Details), new { area = "Admin", id = book.BookId });
+                    }
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
                 catch (Exception ex)
                 {
@@ -298,7 +315,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 {
                     _logger.LogWarning($"Không tìm thấy sách để xóa: ID {id}");
                     TempData["Error"] = "Sách không tồn tại hoặc đã bị xóa.";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
 
                 // Kiểm tra xem sách có đang được sử dụng không
@@ -309,7 +326,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 {
                     _logger.LogWarning($"Không thể xóa sách '{book.Title}' vì có dữ liệu liên quan");
                     TempData["Error"] = $"Không thể xóa sách '{book.Title}' vì sách đang có trong đơn hàng hoặc phiếu thuê.";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
 
                 // Xóa quan hệ với tác giả
@@ -327,7 +344,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 TempData["Error"] = "Có lỗi xảy ra khi xóa sách. Vui lòng thử lại.";
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { area = "Admin" });
         }
 
         private bool BookExists(int id)
