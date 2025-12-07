@@ -41,19 +41,8 @@
             </div>
             <div class="form-group">
                 <label asp-for="Image" class="control-label"></label>
-                <div class="input-group">
-                    <input asp-for="Image" id="Image" class="form-control" placeholder="Tên file ảnh (ví dụ: blog-01.jpg)" />
-                    <div class="input-group-append">
-                        <button type="button" class="btn btn-outline-secondary" onclick="openImageBrowser('Image', 'images/blog')">
-                            <i class="fas fa-folder-open"></i> Chọn ảnh
-                        </button>
-                    </div>
-                </div>
+                <input asp-for="Image" class="form-control" placeholder="Tên file ảnh" />
                 <span asp-validation-for="Image" class="text-danger"></span>
-                <small class="form-text text-muted">Nhập tên file ảnh hoặc click "Chọn ảnh" để chọn từ thư viện</small>
-                <div class="mt-2">
-                    <img id="ImagePreview" src="" alt="Preview" style="max-width: 200px; max-height: 200px; display: none;" class="img-thumbnail" />
-                </div>
             </div>
             <div class="form-group">
                 <div class="form-check">
@@ -66,22 +55,5 @@
         </form>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        $(document).ready(function () {
-            $('#Image').on('input', function () {
-                var imageValue = $(this).val();
-                var preview = $('#ImagePreview');
-                if (imageValue) {
-                    preview.attr('src', '/images/blog/' + imageValue);
-                    preview.show();
-                } else {
-                    preview.hide();
-                }
-            });
-        });
-    </script>
-}
 
 

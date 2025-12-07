@@ -77,19 +77,8 @@ public partial class Book
             const string defaultImage = "book-media-grid-01.jpg";
 
             // Nếu CoverImage là null hoặc rỗng, dùng ảnh mặc định.
-            if (string.IsNullOrEmpty(CoverImage))
-            {
-                return basePath + defaultImage;
-            }
-
-            // Nếu CoverImage đã có đường dẫn đầy đủ (bắt đầu bằng books-media/), dùng trực tiếp
-            if (CoverImage.StartsWith("books-media/"))
-            {
-                return "~/images/" + CoverImage;
-            }
-
-            // Nếu chỉ có tên file, thêm đường dẫn mặc định
-            return basePath + CoverImage;
+            // Ngược lại, dùng ảnh của sách.
+            return basePath + (string.IsNullOrEmpty(CoverImage) ? defaultImage : CoverImage);
         }
     }
 

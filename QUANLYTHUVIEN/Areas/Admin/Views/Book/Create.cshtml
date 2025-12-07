@@ -139,19 +139,9 @@
 
                     <div class="form-group">
                         <label asp-for="CoverImage" class="control-label">Ảnh bìa</label>
-                        <div class="input-group">
-                            <input asp-for="CoverImage" id="CoverImage" class="form-control" placeholder="Tên file ảnh (ví dụ: book-media-grid-01.jpg)" />
-                            <div class="input-group-append">
-                                <button type="button" class="btn btn-outline-secondary" onclick="openImageBrowser('CoverImage', 'images/books-media/gird-view')">
-                                    <i class="fas fa-folder-open"></i> Chọn ảnh
-                                </button>
-                            </div>
-                        </div>
-                        <small class="form-text text-muted">Nhập tên file ảnh hoặc click "Chọn ảnh" để chọn từ thư viện</small>
+                        <input asp-for="CoverImage" class="form-control" placeholder="Tên file ảnh (ví dụ: book-001.jpg)" />
+                        <small class="form-text text-muted">Để trống để sử dụng ảnh mặc định</small>
                         <span asp-validation-for="CoverImage" class="text-danger"></span>
-                        <div class="mt-2">
-                            <img id="CoverImagePreview" src="" alt="Preview" style="max-width: 200px; max-height: 200px; display: none;" class="img-thumbnail" />
-                        </div>
                     </div>
                 </div>
             </div>
@@ -167,31 +157,6 @@
         </form>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        $(document).ready(function () {
-            $('#CoverImage').on('input', function () {
-                var imageValue = $(this).val();
-                var preview = $('#CoverImagePreview');
-                if (imageValue) {
-                    // Kiểm tra xem có đường dẫn đầy đủ không
-                    if (imageValue.startsWith('books-media/')) {
-                        preview.attr('src', '/images/' + imageValue);
-                    } else if (imageValue.startsWith('gird-view/') || imageValue.startsWith('list-view/') || imageValue.startsWith('detail-page/')) {
-                        preview.attr('src', '/images/books-media/' + imageValue);
-                    } else {
-                        // Chỉ có tên file, dùng thư mục mặc định
-                        preview.attr('src', '/images/books-media/gird-view/' + imageValue);
-                    }
-                    preview.show();
-                } else {
-                    preview.hide();
-                }
-            });
-        });
-    </script>
-}
 
 
 
