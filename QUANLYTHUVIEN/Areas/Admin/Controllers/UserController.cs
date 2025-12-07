@@ -206,29 +206,38 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 return NotFound();
             }
 
+            // XÓA TOÀN BỘ MODELSTATE VÀ CHỈ VALIDATE THỦ CÔNG
+            ModelState.Clear();
+
             // Validate các trường bắt buộc
+            bool isValid = true;
+            
             if (string.IsNullOrWhiteSpace(username))
             {
                 ModelState.AddModelError("Username", "Tên đăng nhập là bắt buộc.");
+                isValid = false;
             }
 
             if (string.IsNullOrWhiteSpace(fullName))
             {
                 ModelState.AddModelError("FullName", "Họ và tên là bắt buộc.");
+                isValid = false;
             }
 
             if (!roleId.HasValue)
             {
                 ModelState.AddModelError("RoleId", "Vai trò là bắt buộc.");
+                isValid = false;
             }
 
-            // Validate password chỉ khi có nhập (không bắt buộc khi edit)
+            // Password hoàn toàn tùy chọn - chỉ validate độ dài nếu có nhập
             if (!string.IsNullOrWhiteSpace(password) && password.Length < 6)
             {
                 ModelState.AddModelError("password", "Mật khẩu phải có ít nhất 6 ký tự.");
+                isValid = false;
             }
 
-            if (ModelState.IsValid)
+            if (isValid)
             {
                 try
                 {
