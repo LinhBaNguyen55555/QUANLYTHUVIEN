@@ -19258,14 +19258,201 @@ a:focus {
   background: #ff7236;
 }
 
-/* Custom Dropdown Menu Styles */
+/* Custom Dropdown Menu Styles - Cải thiện để menu đẹp và căn đều */
+.navbar-collapse {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 50px;
+}
+
+.navbar-nav {
+  display: flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  justify-content: flex-start;
+  list-style: none;
+}
+
+.navbar-nav > li {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+  height: 100%;
+}
+
 .navbar-nav > li.drop-holder {
   position: relative;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.navbar-nav > li > a,
+.navbar-nav > li.drop-holder > a {
+  position: relative;
+  padding: 15px 18px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.4;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  color: #fff;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  margin: 0;
+  min-height: 50px;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+/* Menu item đầu tiên căn sát trái */
+.navbar-nav > li:first-child > a {
+  padding-left: 0;
+}
+
+/* Menu item cuối cùng căn sát phải */
+.navbar-nav > li:last-child > a {
+  padding-right: 0;
 }
 
 .navbar-nav > li.drop-holder > a {
-  position: relative;
-  padding-right: 20px;
+  padding-right: 35px;
+}
+
+.navbar-nav > li.drop-holder > a .fa-angle-down {
+  margin-left: 8px;
+  font-size: 11px;
+  transition: transform 0.3s ease;
+  vertical-align: middle;
+}
+
+.navbar-nav > li.drop-holder:hover > a .fa-angle-down {
+  transform: rotate(180deg);
+}
+
+.navbar-nav > li > a:hover,
+.navbar-nav > li.drop-holder > a:hover {
+  color: #ff7236;
+  background-color: transparent;
+}
+
+/* Header Alignment - Căn chỉnh header-topbar và navbar */
+.header-topbar {
+  padding: 10px 0;
+  margin: 0;
+  line-height: 1.8;
+}
+
+.navbar-default {
+  margin-bottom: 0;
+  padding: 0;
+}
+
+.navbar-default .navbar-nav {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+/* Đảm bảo menu items căn đều và không bị lệch */
+.navbar-nav > li {
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+/* Đảm bảo container không có padding thừa */
+.col-md-9 > .navbar-collapse {
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Căn đều menu với topbar - loại bỏ padding để menu căn sát cạnh */
+.col-md-9 {
+  display: flex;
+  flex-direction: column;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Đảm bảo navbar-nav căn sát hai bên */
+.navbar-nav {
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Cải thiện dropdown menu */
+.navbar-nav > li.drop-holder .drop-down {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  list-style: none;
+  padding: 8px 0;
+  margin: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  border-top: 3px solid #ff7236;
+}
+
+.navbar-nav > li.drop-holder:hover .drop-down {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.navbar-nav > li.drop-holder .drop-down li {
+  border-bottom: 1px solid #f0f0f0;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-nav > li.drop-holder .drop-down li:last-child {
+  border-bottom: none;
+}
+
+.navbar-nav > li.drop-holder .drop-down li a {
+  display: block;
+  padding: 12px 20px;
+  color: #333;
+  text-decoration: none;
+  text-transform: none;
+  font-weight: 400;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.navbar-nav > li.drop-holder .drop-down li a:hover {
+  background-color: #f8f8f8;
+  color: #ff7236;
+  padding-left: 25px;
 }
 
 .navbar-nav > li.drop-holder > a .fa-angle-down {
