@@ -22,7 +22,7 @@
             </div>
         }
 
-        <form asp-action="Edit" asp-area="Admin" asp-controller="Menu" method="post" enctype="multipart/form-data">
+        <form asp-action="Edit" asp-area="Admin" asp-controller="Menu" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="MenuId" />
             <input type="hidden" asp-for="CreatedDate" />
@@ -67,13 +67,13 @@
                         <label asp-for="Levels" class="control-label font-weight-bold">
                             Cấp menu <span class="text-danger">*</span>
                         </label>
-                        <select asp-for="Levels" class="form-control">
+                        <select asp-for="Levels" class="form-control" required>
                             <option value="">Chọn cấp menu</option>
-                            <option value="1">Cấp 1 (Menu chính)</option>
-                            <option value="2">Cấp 2 (Menu con)</option>
-                            <option value="3">Cấp 3 (Menu cháu)</option>
+                            <option value="1" selected="@(Model.Levels == 1 ? "selected" : null)">Cấp 1 (Menu chính)</option>
+                            <option value="2" selected="@(Model.Levels == 2 ? "selected" : null)">Cấp 2 (Menu con)</option>
+                            <option value="3" selected="@(Model.Levels == 3 ? "selected" : null)">Cấp 3 (Menu cháu)</option>
                         </select>
-                        <span asp-validation-for="Levels" class="text-danger"></span>
+                        <span asp-validation-for="Levels" class="text-danger d-block"></span>
                     </div>
 
                     <div class="form-group">
@@ -99,21 +99,20 @@
                         <label asp-for="Position" class="control-label font-weight-bold">
                             Vị trí sắp xếp <span class="text-danger">*</span>
                         </label>
-                        <input asp-for="Position" type="number" class="form-control" />
+                        <input asp-for="Position" type="number" class="form-control" min="1" required />
                         <small class="form-text text-muted">Số nhỏ hơn sẽ hiển thị trước</small>
-                        <span asp-validation-for="Position" class="text-danger"></span>
+                        <span asp-validation-for="Position" class="text-danger d-block"></span>
                     </div>
 
                     <div class="form-group">
                         <div class="form-check">
-                            <input asp-for="IsActive" class="form-check-input" />
-                            <input type="hidden" asp-for="IsActive" value="false" />
+                            <input type="checkbox" asp-for="IsActive" class="form-check-input" />
                             <label asp-for="IsActive" class="form-check-label font-weight-bold">
                                 Kích hoạt menu
                             </label>
                         </div>
                         <small class="form-text text-muted">Menu sẽ hiển thị trên website nếu được kích hoạt</small>
-                        <span asp-validation-for="IsActive" class="text-danger"></span>
+                        <span asp-validation-for="IsActive" class="text-danger d-block"></span>
                     </div>
 
                     @if (Model.CreatedDate.HasValue)
@@ -138,10 +137,10 @@
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Cập nhật menu
                 </button>
-                <a href="@Url.Action("Index", "Menu")" class="btn btn-secondary">
+                <a href="@Url.Action("Index", "Menu", new { area = "Admin" })" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Quay lại danh sách
                 </a>
-                <a href="@Url.Action("Delete", "Menu", new { id = Model.MenuId })"
+                <a href="@Url.Action("Delete", "Menu", new { area = "Admin", id = Model.MenuId })"
                    class="btn btn-danger float-right"
                    onclick="return confirm('Bạn có chắc chắn muốn xóa menu này?')">
                     <i class="fas fa-trash"></i> Xóa menu
