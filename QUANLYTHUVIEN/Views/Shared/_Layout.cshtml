@@ -33,98 +33,6 @@
 
     <!-- Stylesheet -->
     <link href="~/style.css" rel="stylesheet" type="text/css"/>
-    
-    <!-- Custom Menu Styles -->
-    <style>
-        /* Thu hẹp chiều cao của hai thanh ngang menu (từ trên xuống và từ dưới lên) */
-        .navbar-wrapper .navbar-default .navbar-collapse {
-            border-top: 1px solid #504d4c !important;
-            border-bottom: 1px solid #504d4c !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            max-width: fit-content;
-            margin-left: auto !important;
-            margin-right: auto !important;
-            min-height: auto !important;
-            height: auto !important;
-        }
-        
-        /* Wrapper cho menu với border trên và dưới - chỉ vừa với nội dung */
-        .navbar-collapse {
-            display: flex !important;
-            justify-content: center !important;
-            padding: 0 !important;
-            width: auto !important;
-            max-width: fit-content !important;
-            margin: 0 auto !important;
-            overflow: visible;
-            position: relative;
-            min-height: auto !important;
-            height: auto !important;
-        }
-        
-        .menu-wrapper {
-            display: inline-flex;
-            position: relative;
-            padding: 0;
-            width: auto;
-            max-width: fit-content;
-            margin: 0 auto;
-            flex-direction: column;
-            align-items: center;
-        }      
-        
-        .menu-wrapper .nav.navbar-nav {
-            display: inline-flex !important;
-            width: auto !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            list-style: none;
-            flex-wrap: nowrap;
-            white-space: nowrap;
-            position: relative;
-        }
-        
-        /* Thu hẹp chiều cao của menu items - giảm padding trên dưới */
-        .navbar-nav li {
-            padding: 5px 20px !important;
-            margin: 0 !important;
-        }
-        
-        .navbar-nav li:first-child {
-            padding-left: 10px !important;
-        }
-        
-        .navbar-nav li:last-child {
-            padding-right: 10px !important;
-        }
-        
-        /* Giảm chiều cao của link trong menu */
-        .navbar-nav li a {
-            padding: 5px 0 !important;
-            line-height: 1.2 !important;
-            min-height: auto !important;
-        }
-        
-        /* Đảm bảo menu không tràn ra ngoài */
-        .menu-wrapper .nav.navbar-nav li {
-            white-space: nowrap;
-        }
-        
-        /* Responsive: thu nhỏ trên màn hình nhỏ */
-        @@media (max-width: 1200px) {
-            .navbar-nav li {
-                padding: 8px 15px !important;
-            }
-        }
-        
-        @@media (max-width: 992px) {
-            .navbar-nav li {
-                padding: 8px 12px !important;
-                font-size: 0.9em;
-            }
-        }
-    </style>
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -167,40 +75,47 @@
                                     <div class="col-sm-6">
                                         <div class="topbar-links">
                                             @{
-                                                var userId = Context.Session.GetString("UserId");
+                                                var userId = Context.Session?.GetString("UserId");
+                                                var roleName = Context.Session?.GetString("RoleName");
+                                                var isAdmin = !string.IsNullOrEmpty(roleName) && (roleName.ToLower() == "admin" || roleName.ToLower() == "administrator");
+                                                
                                                 if (string.IsNullOrEmpty(userId))
                                                 {
                                                     <a href="@Url.Action("Login", "Account")"><i class="fa fa-lock"></i>Đăng kí / Đăng nhập</a>
                                                 }
                                                 else
                                                 {
-                                                    <a href="@Url.Action("Index", "Home")"><i class="fa fa-user"></i>@Context.Session.GetString("FullName")</a>
+                                                    <a href="@Url.Action("Index", "Home")"><i class="fa fa-user"></i>@(Context.Session?.GetString("FullName") ?? "User")</a>
+                                                    if (isAdmin)
+                                                    {
+                                                        <span>|</span>
+                                                        <a href="@Url.Action("Index", "Home", new { area = "Admin" })" style="color: #ff7236; font-weight: bold;">
+                                                            <i class="fa fa-cog"></i>Quản lý
+                                                        </a>
+                                                    }
                                                     <span>|</span>
                                                     <a href="@Url.Action("Logout", "Account")"><i class="fa fa-sign-out"></i>Đăng xuất</a>
                                                 }
                                             }
                                             <span>|</span>
-                                            <div class="header-cart">
-                                                <a class="cart-icon" href="javascript:void(0)">
+                                            <div class="header-cart dropdown" id="header-cart-dropdown">
+                                                <a data-toggle="dropdown" class="dropdown-toggle" href="#">
                                                     <i class="fa fa-shopping-cart"></i>
                                                     <small id="cart-count-header">0</small>
                                                 </a>
-                                                <div class="cart-dropdown" id="cart-dropdown">
-                                                    <div id="cart-dropdown-content" style="max-height: 400px; overflow-y: auto;">
-                                                        <div class="cart-empty-message" style="padding: 40px 20px; text-align: center;">
-                                                            <i class="fa fa-shopping-cart" style="font-size: 48px; color: #ddd; margin-bottom: 15px; display: block;"></i>
-                                                            <p style="margin: 0; color: #999; font-size: 14px;">Giỏ hàng đang trống</p>
-                                                        </div>
+                                                <div class="dropdown-menu cart-dropdown">
+                                                    <ul id="cart-items-list">
+                                                        <li class="clearfix text-center" style="padding: 40px;">
+                                                            <p>Giỏ hàng trống</p>
+                                                        </li>
+                                                    </ul>
+                                                    <div class="cart-total">
+                                                        <div class="title">Tổng cộng</div>
+                                                        <div class="price" id="cart-dropdown-total">0 đ</div>
                                                     </div>
-                                                    <div id="cart-total-section" style="display: none; padding: 15px; background: #f8f9fa; border-top: 1px solid #e5e5e5;">
-                                                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                                                            <div style="font-weight: bold;">Tổng cộng</div>
-                                                            <div id="cart-dropdown-total" style="font-weight: bold; color: #ff7236;">0 đ</div>
-                                                        </div>
-                                                        <div class="cart-buttons" style="display: flex; gap: 10px;">
-                                                            <a href="@Url.Action("Index", "Cart")" class="btn btn-dark-gray" style="flex: 1; text-align: center;">Giỏ hàng</a>
-                                                            <a href="#" class="btn btn-primary" style="flex: 1; text-align: center; background: #ff7236; border-color: #ff7236;">Thanh toán</a>
-                                                        </div>
+                                                    <div class="cart-buttons">
+                                                        <a href="@Url.Action("Index", "Cart")" class="btn btn-dark-gray">Giỏ hàng</a>
+                                                        <a href="@Url.Action("Index", "Checkout")" class="btn btn-primary">Thanh toán</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -209,11 +124,9 @@
                                 </div>
                             </div>
                             <div class="navbar-collapse hidden-sm hidden-xs">
-                                <div class="menu-wrapper">
-                                    <ul class="nav navbar-nav">
-                                        @await Component.InvokeAsync("MenuTop")
-                                    </ul>
-                                </div>
+                                <ul class="nav navbar-nav">
+                                    @await Component.InvokeAsync("MenuTop")
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -489,97 +402,81 @@
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
+    @RenderSection("Scripts", required: false)
+
     <script>
-        // Load cart count and items on page load
-        $(document).ready(function() {
-            loadCartCount();
-            loadCartItems();
-            
-            // Load cart items when hovering over cart icon
-            var cartHoverTimeout;
-            $('.header-cart').on('mouseenter', function() {
-                clearTimeout(cartHoverTimeout);
-                loadCartItems();
-                $(this).addClass('show-cart');
-            }).on('mouseleave', function() {
-                var self = this;
-                cartHoverTimeout = setTimeout(function() {
-                    $(self).removeClass('show-cart');
-                }, 200);
-            });
-        });
-
-        function loadCartCount() {
-            $.ajax({
-                url: '@Url.Action("GetCartCount", "Cart")',
-                type: 'GET',
-                success: function(response) {
-                    $('#cart-count-header').text(response.cartCount);
-                }
-            });
-        }
-
+        // Load cart items vào dropdown
         function loadCartItems() {
             $.ajax({
                 url: '@Url.Action("GetCartItems", "Cart")',
                 type: 'GET',
-                success: function(response) {
-                    var content = $('#cart-dropdown-content');
-                    var totalSection = $('#cart-total-section');
+                dataType: 'json',
+                success: function (response) {
+                    console.log('=== CART ITEMS DEBUG ===');
+                    console.log('Full response:', JSON.stringify(response, null, 2));
+                    console.log('Response type:', typeof response);
+                    console.log('Items type:', typeof response.items);
+                    console.log('Items value:', response.items);
+                    console.log('Items length:', response.items ? response.items.length : 0);
+                    if (response.debug) {
+                        console.log('Debug info:', response.debug);
+                    }
                     
-                    if (response.items && response.items.length > 0) {
-                        // Fade out trước khi thay đổi nội dung
-                        content.css('opacity', '0.5');
-                        setTimeout(function() {
-                            var html = '<ul style="list-style: none; padding: 0; margin: 0;">';
-                            response.items.forEach(function(item) {
-                            var imageUrl = item.coverImageUrl;
-                            if (imageUrl.startsWith('~/')) {
-                                imageUrl = imageUrl.replace('~/', '');
-                            }
-                            if (!imageUrl.startsWith('/')) {
-                                imageUrl = '/' + imageUrl;
-                            }
-                            html += '<li class="clearfix" style="padding: 15px; border-bottom: 1px solid #e5e5e5; display: flex; align-items: center;">';
-                            html += '<img src="' + imageUrl + '" alt="' + item.title + '" style="width: 60px; height: 80px; object-fit: cover; margin-right: 15px;" onerror="this.src=\'/images/books-media/gird-view/book-media-grid-01.jpg\'" />';
-                            html += '<div class="item-info" style="flex: 1;">';
-                            html += '<div class="name" style="font-weight: bold; margin-bottom: 5px;"><a href="#" style="color: #333; text-decoration: none;">' + item.title + '</a></div>';
-                            html += '<div class="author" style="font-size: 12px; color: #666; margin-bottom: 5px;"><strong>Tác giả:</strong> ' + item.authorNames + '</div>';
-                            html += '<div class="price" style="font-size: 14px; color: #ff7236; font-weight: bold;">' + item.quantity + ' X ' + item.dailyRate.toLocaleString('vi-VN') + ' đ</div>';
-                            html += '</div>';
-                            html += '<a class="remove" href="javascript:void(0)" onclick="removeFromCartDropdown(' + item.bookId + ')" style="color: #d9534f; margin-left: 10px; font-size: 18px;"><i class="fa fa-trash-o"></i></a>';
-                            html += '</li>';
-                            });
-                            html += '</ul>';
-                            content.html(html);
-                            content.css('opacity', '1'); // Fade in lại
-                            $('#cart-dropdown-total').text(response.totalAmount.toLocaleString('vi-VN') + ' đ');
-                            totalSection.show();
-                        }, 150);
+                    var cartList = $('#cart-items-list');
+                    cartList.empty();
+                    
+                    // Xử lý cả camelCase và PascalCase
+                    var items = response.items || response.Items || [];
+                    var totalAmount = parseFloat(response.totalAmount || response.TotalAmount || 0);
+                    
+                    console.log('Processed items:', items);
+                    console.log('Items is array:', Array.isArray(items));
+                    console.log('Total amount:', totalAmount);
+                    
+                    if (Array.isArray(items) && items.length > 0) {
+                        items.forEach(function(item) {
+                            console.log('Processing item:', item);
+                            // Xử lý cả camelCase và PascalCase
+                            var bookId = item.bookId || item.BookId || 0;
+                            var title = item.title || item.Title || 'Không có tiêu đề';
+                            var authorNames = item.authorNames || item.AuthorNames || 'Updating...';
+                            var coverImageUrl = item.coverImageUrl || item.CoverImageUrl || '~/images/books-media/gird-view/book-media-grid-01.jpg';
+                            var dailyRate = parseFloat(item.dailyRate || item.DailyRate || 0);
+                            var quantity = item.quantity || item.Quantity || 1;
+                            
+                            var imageUrl = '@Url.Content("~/")' + coverImageUrl.replace('~/', '');
+                            var itemHtml = '<li class="clearfix" data-book-id="' + bookId + '">' +
+                                '<img src="' + imageUrl + '" alt="' + title + '" style="width: 64px; height: 80px; object-fit: cover;" onerror="this.src=\'@Url.Content("~/images/books-media/gird-view/book-media-grid-01.jpg")\'" />' +
+                                '<div class="item-info">' +
+                                '<div class="name">' +
+                                '<a href="@Url.Action("Detail", "Book")?id=' + bookId + '">' + title + '</a>' +
+                                '</div>' +
+                                '<div class="author"><strong>Tác giả:</strong> ' + authorNames + '</div>' +
+                                '<div class="price">' + quantity + ' X ' + dailyRate.toLocaleString("vi-VN") + ' đ</div>' +
+                                '</div>' +
+                                '<a class="remove" href="javascript:void(0)" onclick="removeFromCartDropdown(' + bookId + ')"><i class="fa fa-trash-o"></i></a>' +
+                                '</li>';
+                            cartList.append(itemHtml);
+                        });
+                        
+                        // Cập nhật tổng tiền
+                        $('#cart-dropdown-total').text(totalAmount.toLocaleString("vi-VN") + ' đ');
                     } else {
-                        var emptyHtml = '<div class="cart-empty-message" style="padding: 40px 20px; text-align: center; opacity: 0; transition: opacity 0.3s ease;">';
-                        emptyHtml += '<i class="fa fa-shopping-cart" style="font-size: 48px; color: #ddd; margin-bottom: 15px; display: block;"></i>';
-                        emptyHtml += '<p style="margin: 0; color: #999; font-size: 14px;">Giỏ hàng đang trống</p>';
-                        emptyHtml += '</div>';
-                        content.html(emptyHtml);
-                        totalSection.hide();
-                        // Fade in animation
-                        setTimeout(function() {
-                            content.find('.cart-empty-message').css('opacity', '1');
-                        }, 10);
+                        console.log('Cart is empty or items is not an array');
+                        cartList.html('<li class="clearfix text-center" style="padding: 40px;"><p>Giỏ hàng trống</p></li>');
+                        $('#cart-dropdown-total').text('0 đ');
                     }
                 },
-                error: function() {
-                    console.error('Error loading cart items');
+                error: function (xhr, status, error) {
+                    console.error('Lỗi khi load giỏ hàng:', error);
+                    console.error('Status:', status);
+                    console.error('Response:', xhr.responseText);
+                    $('#cart-items-list').html('<li class="clearfix text-center" style="padding: 40px;"><p style="color: red;">Lỗi khi tải giỏ hàng</p></li>');
                 }
             });
         }
 
-        function updateCartCount(count) {
-            $('#cart-count-header').text(count);
-            loadCartItems(); // Reload items when count changes
-        }
-
+        // Xóa item khỏi dropdown
         function removeFromCartDropdown(bookId) {
             if (!confirm('Bạn có chắc muốn xóa sách này khỏi giỏ hàng?')) {
                 return;
@@ -591,9 +488,22 @@
                 data: { bookId: bookId },
                 success: function (response) {
                     if (response.success) {
-                        updateCartCount(response.cartCount);
-                        loadCartItems();
-                        toastr.success('Đã xóa khỏi giỏ hàng');
+                        // Xóa item khỏi dropdown
+                        $('li[data-book-id="' + bookId + '"]').fadeOut(300, function() {
+                            $(this).remove();
+                            
+                            // Nếu giỏ hàng trống
+                            if ($('#cart-items-list li').length === 0) {
+                                $('#cart-items-list').html('<li class="clearfix text-center" style="padding: 40px;"><p>Giỏ hàng trống</p></li>');
+                            }
+                            
+                            // Cập nhật số lượng và tổng tiền
+                            $('#cart-count-header').text(response.cartCount || 0);
+                            var totalAmount = parseFloat(response.totalAmount) || 0;
+                            $('#cart-dropdown-total').text(totalAmount.toLocaleString("vi-VN") + ' đ');
+                            
+                            toastr.success('Đã xóa khỏi giỏ hàng');
+                        });
                     }
                 },
                 error: function () {
@@ -601,144 +511,40 @@
                 }
             });
         }
-    </script>
-    
-    <style>
-        /* Căn chỉnh icon giỏ hàng ngang hàng với Đăng kí/Đăng nhập */
-        .topbar-links {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: flex-end !important;
-        }
-        
-        .header-cart {
-            position: relative;
-            display: inline-block !important;
-            vertical-align: middle !important;
-            float: none !important;
-            margin-left: -6px;
-        }
-        
-        .header-cart .cart-icon {
-            display: inline-flex !important;
-            align-items: center !important;
-            vertical-align: middle !important;
-            padding: 5px 10px;
-            text-decoration: none;
-            color: inherit;
-            line-height: 1.8 !important;
-        }
-        
-        .header-cart .cart-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 10px;
-            min-width: 350px;
-            max-width: 400px;
-            background: #fff;
-            border-radius: 4px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
-            padding: 0;
-            z-index: 1000;
-            display: none;
-            opacity: 0;
-            transform: translateY(-10px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-        
-        .header-cart.show-cart .cart-dropdown,
-        .header-cart:hover .cart-dropdown {
-            display: block !important;
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        .header-cart .cart-dropdown::before {
-            content: '';
-            position: absolute;
-            top: -8px;
-            right: 20px;
-            width: 0;
-            height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-bottom: 8px solid #fff;
-        }
-        
-        .header-cart .cart-dropdown ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        .header-cart .cart-dropdown ul li {
-            padding: 15px;
-            border-bottom: 1px solid #e5e5e5;
-            display: flex;
-            align-items: center;
-            transition: background-color 0.2s ease;
-        }
-        
-        .header-cart .cart-dropdown ul li:hover {
-            background-color: #f8f9fa;
-        }
-        
-        .header-cart .cart-dropdown .remove {
-            color: #d9534f;
-            margin-left: 10px;
-            font-size: 18px;
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-        
-        .header-cart .cart-dropdown .remove:hover {
-            color: #c9302c !important;
-        }
-        
-        /* Animation cho thông báo giỏ hàng trống */
-        .cart-empty-message {
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        
-        @@keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        /* Smooth transition khi thay đổi nội dung */
-        #cart-dropdown-content {
-            transition: opacity 0.2s ease;
-        }
-        
-        #cart-dropdown-content ul {
-            animation: slideIn 0.3s ease-in-out;
-        }
-        
-        @@keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        .header-cart .cart-icon {
-            cursor: pointer;
-        }
-        
-    </style>
 
-    @RenderSection("Scripts", required: false)
+        // Đảm bảo các hàm là global
+        window.loadCartItems = loadCartItems;
+        window.updateCartCount = function(count) {
+            $('#cart-count-header').text(count || 0);
+            // Luôn reload cart items khi cập nhật số lượng
+            loadCartItems();
+        };
+
+        // Load cart count và items khi trang load
+        $(document).ready(function() {
+            // Load cart count
+            $.ajax({
+                url: '@Url.Action("GetCartCount", "Cart")',
+                type: 'GET',
+                success: function (response) {
+                    $('#cart-count-header').text(response.cartCount || 0);
+                }
+            });
+
+            // Load cart items ngay khi trang load
+            loadCartItems();
+
+            // Load cart items khi dropdown được mở (Bootstrap 3)
+            $('#header-cart-dropdown').on('show.bs.dropdown', function () {
+                loadCartItems();
+            });
+            
+            // Cũng load khi dropdown đã mở (fallback)
+            $('#header-cart-dropdown').on('shown.bs.dropdown', function () {
+                loadCartItems();
+            });
+        });
+    </script>
 
 </body>
 

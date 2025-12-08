@@ -52,6 +52,8 @@ namespace QUANLYTHUVIEN.Controllers
             HttpContext.Session.SetString("FullName", user.FullName);
             HttpContext.Session.SetString("Email", user.Email ?? "");
             HttpContext.Session.SetString("Role", user.Role ?? "");
+            HttpContext.Session.SetString("RoleId", user.RoleId?.ToString() ?? "");
+            HttpContext.Session.SetString("RoleName", user.RoleNavigation?.RoleName ?? "");
 
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
@@ -140,6 +142,8 @@ namespace QUANLYTHUVIEN.Controllers
                 HttpContext.Session.SetString("FullName", user.FullName);
                 HttpContext.Session.SetString("Email", user.Email ?? "");
                 HttpContext.Session.SetString("Role", user.Role ?? "");
+                HttpContext.Session.SetString("RoleId", user.RoleId?.ToString() ?? "");
+                HttpContext.Session.SetString("RoleName", "");
 
                 TempData["Success"] = "Đăng ký thành công! Chào mừng bạn đến với thư viện.";
                 return RedirectToAction("Index", "Home");

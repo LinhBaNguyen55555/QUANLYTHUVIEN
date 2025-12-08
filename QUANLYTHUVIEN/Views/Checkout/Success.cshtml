@@ -1,0 +1,382 @@
+@model QUANLYTHUVIEN.Models.Rental
+
+@{
+    ViewData["Title"] = "Đặt thuê thành công";
+}
+
+<!-- Start: Page Banner -->
+<section class="page-banner services-banner">
+    <div class="container">
+        <div class="banner-header">
+            <h2>Đặt thuê thành công</h2>
+            <span class="underline center"></span>
+            <p class="lead">Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi</p>
+        </div>
+    </div>
+</section>
+<!-- End: Page Banner -->
+
+<!-- Start: Success Section -->
+<div id="content" class="site-content">
+    <div id="primary" class="content-area">
+        <main id="main" class="site-main">
+            <div class="books-media-gird">
+                <div class="container" style="padding: 60px 15px;">
+                    <div class="success-container">
+                        <div class="success-icon">
+                            <i class="fa fa-check-circle"></i>
+                        </div>
+                        <h2 class="success-title">Đặt thuê thành công!</h2>
+                        <p class="success-message">
+                            Đơn hàng của bạn đã được xử lý thành công. Mã đơn hàng của bạn là:
+                        </p>
+                        <div class="order-number">
+                            #@Model.RentalId
+                        </div>
+
+                        <div class="order-details-card">
+                            <h3 class="details-title">
+                                <i class="fa fa-info-circle"></i> Chi tiết đơn hàng
+                            </h3>
+                            
+                            <div class="details-section">
+                                <h4>Thông tin khách hàng</h4>
+                                <div class="detail-row">
+                                    <span class="detail-label">Họ tên:</span>
+                                    <span class="detail-value">@Model.Customer.FullName</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Email:</span>
+                                    <span class="detail-value">@Model.Customer.Email</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Số điện thoại:</span>
+                                    <span class="detail-value">@Model.Customer.Phone</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Địa chỉ:</span>
+                                    <span class="detail-value">@Model.Customer.Address</span>
+                                </div>
+                            </div>
+
+                            <div class="details-section">
+                                <h4>Thông tin thuê</h4>
+                                <div class="detail-row">
+                                    <span class="detail-label">Ngày thuê:</span>
+                                    <span class="detail-value">@(Model.RentalDate?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Ngày trả dự kiến:</span>
+                                    <span class="detail-value">@(Model.ReturnDate?.ToString("dd/MM/yyyy") ?? "N/A")</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Trạng thái:</span>
+                                    <span class="detail-value status-badge">@Model.Status</span>
+                                </div>
+                            </div>
+
+                            <div class="details-section">
+                                <h4>Sách đã thuê</h4>
+                                <div class="books-list">
+                                    @foreach (var detail in Model.RentalDetails)
+                                    {
+                                        <div class="book-item">
+                                            <div class="book-info">
+                                                <h5>@detail.Book?.Title</h5>
+                                                <p>Số lượng: @detail.Quantity cuốn</p>
+                                                <p>Giá/ngày: @((detail.PricePerDay ?? 0).ToString("N0")) đ</p>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="details-section total-section">
+                                <div class="total-row">
+                                    <span class="total-label">Tổng tiền:</span>
+                                    <span class="total-value">@((Model.TotalAmount ?? 0).ToString("N0")) đ</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="success-actions">
+                            <a href="@Url.Action("Index", "Book")" class="btn-continue">
+                                <i class="fa fa-book"></i> Tiếp tục mua sách
+                            </a>
+                            <a href="@Url.Action("Index", "Home")" class="btn-home">
+                                <i class="fa fa-home"></i> Về trang chủ
+                            </a>
+                        </div>
+
+                        <div class="success-note">
+                            <i class="fa fa-envelope"></i>
+                            <p>Chúng tôi đã gửi thông tin đơn hàng đến email của bạn. Vui lòng kiểm tra hộp thư.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<!-- End: Success Section -->
+
+<style>
+    .success-container {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .success-icon {
+        font-size: 120px;
+        color: #4caf50;
+        margin-bottom: 30px;
+        animation: scaleIn 0.5s ease;
+    }
+
+    @@keyframes scaleIn {
+        from {
+            transform: scale(0);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .success-title {
+        font-size: 36px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 15px;
+    }
+
+    .success-message {
+        font-size: 18px;
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+    .order-number {
+        font-size: 32px;
+        font-weight: 700;
+        color: #667eea;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 40px;
+        padding: 20px;
+        background-color: #f0f4ff;
+        border-radius: 15px;
+        display: inline-block;
+    }
+
+    .order-details-card {
+        background: #fff;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 5px 30px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+        text-align: left;
+    }
+
+    .details-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .details-title i {
+        color: #667eea;
+    }
+
+    .details-section {
+        margin-bottom: 30px;
+    }
+
+    .details-section h4 {
+        font-size: 18px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #f8f8f8;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #666;
+        flex: 1;
+    }
+
+    .detail-value {
+        color: #333;
+        flex: 2;
+        text-align: right;
+    }
+
+    .status-badge {
+        background: #4caf50;
+        color: #fff;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .books-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .book-item {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 12px;
+        border-left: 4px solid #667eea;
+    }
+
+    .book-item h5 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #333;
+        margin: 0 0 10px 0;
+    }
+
+    .book-item p {
+        margin: 5px 0;
+        color: #666;
+        font-size: 14px;
+    }
+
+    .total-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 25px;
+        border-radius: 15px;
+        margin-top: 20px;
+    }
+
+    .total-section .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #fff;
+        border: none;
+        padding: 0;
+    }
+
+    .total-section .total-label {
+        font-size: 20px;
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .total-section .total-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #ffd700;
+    }
+
+    .success-actions {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-bottom: 30px;
+    }
+
+    .btn-continue,
+    .btn-home {
+        padding: 15px 30px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-continue {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-continue:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        color: #fff;
+    }
+
+    .btn-home {
+        background: #fff;
+        border: 2px solid #e0e0e0;
+        color: #666;
+    }
+
+    .btn-home:hover {
+        border-color: #667eea;
+        color: #667eea;
+        background: #f0f4ff;
+    }
+
+    .success-note {
+        background: #f0f4ff;
+        padding: 20px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        color: #667eea;
+    }
+
+    .success-note i {
+        font-size: 24px;
+    }
+
+    .success-note p {
+        margin: 0;
+        font-size: 14px;
+    }
+
+    @@media (max-width: 767px) {
+        .success-icon {
+            font-size: 80px;
+        }
+
+        .success-title {
+            font-size: 28px;
+        }
+
+        .order-details-card {
+            padding: 25px;
+        }
+
+        .success-actions {
+            flex-direction: column;
+        }
+
+        .btn-continue,
+        .btn-home {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+

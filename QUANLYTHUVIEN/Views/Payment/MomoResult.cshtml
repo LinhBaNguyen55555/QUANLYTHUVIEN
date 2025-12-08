@@ -1,0 +1,488 @@
+@model QUANLYTHUVIEN.Models.Rental
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Kết quả thanh toán";
+    var status = ViewBag.Status as string ?? "success";
+    var isSuccess = status == "success";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: @(isSuccess ? "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)" : "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)");
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: moveBackground 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @@keyframes moveBackground {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .result-wrapper {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.5);
+            overflow: hidden;
+            animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @@keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .result-header {
+            padding: 50px 40px;
+            background: @(isSuccess ? "linear-gradient(135deg, #4caf50 0%, #45a049 100%)" : "linear-gradient(135deg, #f44336 0%, #d32f2f 100%)");
+            color: #fff;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @@keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.3; }
+        }
+
+        .result-icon {
+            font-size: 96px;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+            animation: scaleIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @@keyframes scaleIn {
+            0% {
+                transform: scale(0) rotate(-180deg);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .result-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .result-message {
+            font-size: 16px;
+            opacity: 0.95;
+            position: relative;
+            z-index: 2;
+            font-weight: 400;
+        }
+
+        .result-content {
+            padding: 40px;
+        }
+
+        .order-details {
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 32px;
+            border: 2px solid rgba(165, 0, 100, 0.1);
+        }
+
+        .details-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .details-title i {
+            color: #A50064;
+            font-size: 24px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-size: 15px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .detail-amount {
+            margin-top: 16px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(165, 0, 100, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .detail-amount .detail-label {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .detail-amount .detail-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #A50064;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: #e8f5e9;
+            color: #4caf50;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .books-section {
+            margin-top: 32px;
+        }
+
+        .books-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .books-title i {
+            color: #A50064;
+        }
+
+        .book-card {
+            background: #fff;
+            padding: 18px;
+            border-radius: 14px;
+            margin-bottom: 12px;
+            border-left: 4px solid #A50064;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .book-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .book-card h5 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .book-card p {
+            font-size: 14px;
+            color: #666;
+            margin: 4px 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 32px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #A50064 0%, #D1007A 100%);
+            border: none;
+            border-radius: 16px;
+            color: #fff;
+            font-size: 17px;
+            font-weight: 700;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 24px rgba(165, 0, 100, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-primary:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(165, 0, 100, 0.5);
+            color: #fff;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 16px;
+            background: #fff;
+            border: 2px solid #e8e8e8;
+            border-radius: 16px;
+            color: #666;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            border-color: #A50064;
+            color: #A50064;
+            background: #fff5f9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(165, 0, 100, 0.1);
+        }
+
+        @@media (max-width: 576px) {
+            .result-content {
+                padding: 32px 24px;
+            }
+
+            .result-header {
+                padding: 40px 30px;
+            }
+
+            .result-icon {
+                font-size: 72px;
+            }
+
+            .result-title {
+                font-size: 26px;
+            }
+
+            .detail-amount .detail-value {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="result-wrapper">
+        <div class="result-card">
+            <div class="result-header">
+                @if (isSuccess)
+                {
+                    <div class="result-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h1 class="result-title">Thanh toán thành công!</h1>
+                    <p class="result-message">Đơn hàng của bạn đã được xử lý thành công</p>
+                }
+                else
+                {
+                    <div class="result-icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <h1 class="result-title">Thanh toán thất bại</h1>
+                    <p class="result-message">Vui lòng thử lại hoặc chọn phương thức thanh toán khác</p>
+                }
+            </div>
+
+            @if (isSuccess && Model != null)
+            {
+                <div class="result-content">
+                    <div class="order-details">
+                        <div class="details-title">
+                            <i class="fas fa-receipt"></i>
+                            <span>Chi tiết đơn hàng</span>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <span class="detail-label">Mã đơn hàng</span>
+                            <span class="detail-value">#@Model.RentalId</span>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <span class="detail-label">Khách hàng</span>
+                            <span class="detail-value">@Model.Customer?.FullName</span>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <span class="detail-label">Ngày thuê</span>
+                            <span class="detail-value">@(Model.RentalDate?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</span>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <span class="detail-label">Ngày trả dự kiến</span>
+                            <span class="detail-value">@(Model.ReturnDate?.ToString("dd/MM/yyyy") ?? "N/A")</span>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <span class="detail-label">Trạng thái</span>
+                            <span class="detail-value">
+                                <span class="status-badge">
+                                    <i class="fas fa-check-circle"></i>
+                                    @Model.Status
+                                </span>
+                            </span>
+                        </div>
+                        
+                        <div class="detail-amount">
+                            <span class="detail-label">Tổng tiền</span>
+                            <span class="detail-value">@((Model.TotalAmount ?? 0).ToString("N0")) đ</span>
+                        </div>
+                    </div>
+
+                    @if (Model.RentalDetails != null && Model.RentalDetails.Any())
+                    {
+                        <div class="books-section">
+                            <div class="books-title">
+                                <i class="fas fa-book"></i>
+                                <span>Sách đã thuê</span>
+                            </div>
+                            @foreach (var detail in Model.RentalDetails)
+                            {
+                                <div class="book-card">
+                                    <h5>@detail.Book?.Title</h5>
+                                    <p><i class="fas fa-layer-group"></i> Số lượng: @detail.Quantity cuốn</p>
+                                    <p><i class="fas fa-tag"></i> Giá/ngày: @((detail.PricePerDay ?? 0).ToString("N0")) đ</p>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <div class="action-buttons">
+                        <a href="@Url.Action("Success", "Checkout", new { rentalId = Model.RentalId })" class="btn-primary">
+                            <i class="fas fa-eye"></i>
+                            <span>Xem chi tiết đơn hàng</span>
+                        </a>
+                        <a href="@Url.Action("Index", "Book")" class="btn-secondary">
+                            <i class="fas fa-book"></i>
+                            <span>Tiếp tục mua sách</span>
+                        </a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="result-content">
+                    <div class="action-buttons">
+                        <a href="@Url.Action("Index", "Cart")" class="btn-primary">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Quay lại giỏ hàng</span>
+                        </a>
+                        <a href="@Url.Action("Index", "Book")" class="btn-secondary">
+                            <i class="fas fa-book"></i>
+                            <span>Tiếp tục mua sách</span>
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</body>
+</html>

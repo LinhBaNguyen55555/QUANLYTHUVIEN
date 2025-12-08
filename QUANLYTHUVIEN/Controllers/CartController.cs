@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QUANLYTHUVIEN.Models;
 using System.Text.Json;
+using System.Linq;
 
 namespace QUANLYTHUVIEN.Controllers
 {
@@ -18,109 +19,167 @@ namespace QUANLYTHUVIEN.Controllers
         // Lấy danh sách giỏ hàng từ session
         private List<CartItem> GetCart()
         {
+            if (HttpContext.Session == null)
+            {
+                return new List<CartItem>();
+            }
+            
             var cartJson = HttpContext.Session.GetString(CartSessionKey);
             if (string.IsNullOrEmpty(cartJson))
             {
                 return new List<CartItem>();
             }
-            return JsonSerializer.Deserialize<List<CartItem>>(cartJson) ?? new List<CartItem>();
+            
+            try
+            {
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                return JsonSerializer.Deserialize<List<CartItem>>(cartJson, options) ?? new List<CartItem>();
+            }
+            catch
+            {
+                return new List<CartItem>();
+            }
         }
 
         // Lưu giỏ hàng vào session
         private void SaveCart(List<CartItem> cart)
         {
-            var cartJson = JsonSerializer.Serialize(cart);
-            HttpContext.Session.SetString(CartSessionKey, cartJson);
+            if (HttpContext.Session == null || cart == null)
+            {
+                return;
+            }
+            
+            try
+            {
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = false
+                };
+                var cartJson = JsonSerializer.Serialize(cart, options);
+                HttpContext.Session.SetString(CartSessionKey, cartJson);
+            }
+            catch
+            {
+                // Log error if needed
+            }
         }
 
         // Thêm sách vào giỏ hàng
         [HttpPost]
         public async Task<IActionResult> AddToCart(int bookId)
         {
-            var book = await _context.Books
-                .Include(b => b.Authors)
-                .Include(b => b.RentalPrices)
-                .FirstOrDefaultAsync(b => b.BookId == bookId);
-
-            if (book == null)
+            try
             {
-                return Json(new { success = false, message = "Sách không tồn tại" });
-            }
+                var book = await _context.Books
+                    .Include(b => b.Authors)
+                    .Include(b => b.RentalPrices)
+                    .FirstOrDefaultAsync(b => b.BookId == bookId);
 
-            var cart = GetCart();
-            var existingItem = cart.FirstOrDefault(c => c.BookId == bookId);
-
-            if (existingItem != null)
-            {
-                existingItem.Quantity += 1;
-            }
-            else
-            {
-                var currentPrice = book.RentalPrices.OrderByDescending(rp => rp.EffectiveDate).FirstOrDefault();
-                var cartItem = new CartItem
+                if (book == null)
                 {
-                    BookId = book.BookId,
-                    Title = book.Title,
-                    AuthorNames = book.AuthorNames,
-                    CoverImageUrl = book.CoverImageUrl,
-                    DailyRate = currentPrice?.DailyRate ?? 0,
-                    Quantity = 1
-                };
-                cart.Add(cartItem);
+                    return Json(new { success = false, message = "Sách không tồn tại" });
+                }
+
+                var cart = GetCart();
+                var existingItem = cart.FirstOrDefault(c => c.BookId == bookId);
+
+                if (existingItem != null)
+                {
+                    existingItem.Quantity += 1;
+                }
+                else
+                {
+                    var currentPrice = book.RentalPrices?.OrderByDescending(rp => rp.EffectiveDate).FirstOrDefault();
+                    var authorNames = book.Authors != null && book.Authors.Any() 
+                        ? string.Join(", ", book.Authors.Select(a => a.AuthorName))
+                        : "Updating...";
+                    
+                    var cartItem = new CartItem
+                    {
+                        BookId = book.BookId,
+                        Title = book.Title ?? "Không có tiêu đề",
+                        AuthorNames = authorNames,
+                        CoverImageUrl = book.CoverImageUrl ?? "~/images/books-media/gird-view/book-media-grid-01.jpg",
+                        DailyRate = currentPrice?.DailyRate ?? 0,
+                        Quantity = 1
+                    };
+                    cart.Add(cartItem);
+                }
+
+                SaveCart(cart);
+
+                var cartCount = cart.Sum(c => c.Quantity);
+                return Json(new { success = true, cartCount = cartCount, message = "Đã thêm vào giỏ hàng" });
             }
-
-            SaveCart(cart);
-
-            var cartCount = cart.Sum(c => c.Quantity);
-            return Json(new { success = true, cartCount = cartCount, message = "Đã thêm vào giỏ hàng" });
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
         }
 
         // Xem giỏ hàng
         public IActionResult Index()
         {
             var cart = GetCart();
-            ViewBag.TotalAmount = cart.Sum(c => c.TotalPrice);
-            return View(cart);
+            ViewBag.TotalAmount = cart?.Sum(c => c.TotalPrice) ?? 0;
+            return View(cart ?? new List<CartItem>());
         }
 
         // Xóa sách khỏi giỏ hàng
         [HttpPost]
         public IActionResult RemoveFromCart(int bookId)
         {
-            var cart = GetCart();
-            var item = cart.FirstOrDefault(c => c.BookId == bookId);
-            if (item != null)
+            try
             {
-                cart.Remove(item);
-                SaveCart(cart);
-            }
+                var cart = GetCart();
+                var item = cart.FirstOrDefault(c => c.BookId == bookId);
+                if (item != null)
+                {
+                    cart.Remove(item);
+                    SaveCart(cart);
+                }
 
-            var cartCount = cart.Sum(c => c.Quantity);
-            var totalAmount = cart.Sum(c => c.TotalPrice);
-            return Json(new { success = true, cartCount = cartCount, totalAmount = totalAmount });
+                var cartCount = cart?.Sum(c => c.Quantity) ?? 0;
+                var totalAmount = cart?.Sum(c => c.TotalPrice) ?? 0;
+                return Json(new { success = true, cartCount = cartCount, totalAmount = totalAmount });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
         }
 
         // Cập nhật số lượng
         [HttpPost]
         public IActionResult UpdateQuantity(int bookId, int quantity)
         {
-            if (quantity <= 0)
+            try
             {
-                return RemoveFromCart(bookId);
-            }
+                if (quantity <= 0)
+                {
+                    return RemoveFromCart(bookId);
+                }
 
-            var cart = GetCart();
-            var item = cart.FirstOrDefault(c => c.BookId == bookId);
-            if (item != null)
+                var cart = GetCart();
+                var item = cart?.FirstOrDefault(c => c.BookId == bookId);
+                if (item != null)
+                {
+                    item.Quantity = quantity;
+                    SaveCart(cart);
+                }
+
+                var cartCount = cart?.Sum(c => c.Quantity) ?? 0;
+                var totalAmount = cart?.Sum(c => c.TotalPrice) ?? 0;
+                var itemTotal = item?.TotalPrice ?? 0;
+                return Json(new { success = true, cartCount = cartCount, totalAmount = totalAmount, itemTotal = itemTotal });
+            }
+            catch (Exception ex)
             {
-                item.Quantity = quantity;
-                SaveCart(cart);
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
             }
-
-            var cartCount = cart.Sum(c => c.Quantity);
-            var totalAmount = cart.Sum(c => c.TotalPrice);
-            var itemTotal = item?.TotalPrice ?? 0;
-            return Json(new { success = true, cartCount = cartCount, totalAmount = totalAmount, itemTotal = itemTotal });
         }
 
         // Lấy số lượng giỏ hàng (dùng cho AJAX)
@@ -128,7 +187,7 @@ namespace QUANLYTHUVIEN.Controllers
         public IActionResult GetCartCount()
         {
             var cart = GetCart();
-            var cartCount = cart.Sum(c => c.Quantity);
+            var cartCount = cart?.Sum(c => c.Quantity) ?? 0;
             return Json(new { cartCount = cartCount });
         }
 
@@ -136,9 +195,56 @@ namespace QUANLYTHUVIEN.Controllers
         [HttpGet]
         public IActionResult GetCartItems()
         {
-            var cart = GetCart();
-            var totalAmount = cart.Sum(c => c.TotalPrice);
-            return Json(new { items = cart, totalAmount = totalAmount });
+            try
+            {
+                var cart = GetCart();
+                var cartJson = HttpContext.Session?.GetString(CartSessionKey);
+                
+                // Debug info
+                var debugInfo = new
+                {
+                    sessionExists = HttpContext.Session != null,
+                    cartJsonExists = !string.IsNullOrEmpty(cartJson),
+                    cartCount = cart?.Count ?? 0,
+                    cartJsonLength = cartJson?.Length ?? 0
+                };
+                
+                var totalAmount = cart?.Sum(c => c.TotalPrice) ?? 0;
+                
+                // Convert to anonymous objects với camelCase để JavaScript dễ đọc
+                var items = new List<object>();
+                if (cart != null && cart.Any())
+                {
+                    foreach (var c in cart)
+                    {
+                        items.Add(new
+                        {
+                            bookId = c.BookId,
+                            title = c.Title ?? "Không có tiêu đề",
+                            authorNames = c.AuthorNames ?? "Updating...",
+                            coverImageUrl = c.CoverImageUrl ?? "~/images/books-media/gird-view/book-media-grid-01.jpg",
+                            dailyRate = c.DailyRate,
+                            quantity = c.Quantity,
+                            totalPrice = c.TotalPrice
+                        });
+                    }
+                }
+                
+                return Json(new { 
+                    items = items, 
+                    totalAmount = totalAmount,
+                    debug = debugInfo
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { 
+                    items = new List<object>(), 
+                    totalAmount = 0, 
+                    error = ex.Message,
+                    stackTrace = ex.StackTrace
+                });
+            }
         }
     }
 }
