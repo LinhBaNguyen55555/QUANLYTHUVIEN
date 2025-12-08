@@ -152,7 +152,7 @@
                                                     <div class="optional-links">
                                                         <ul>
                                                             <li>
-                                                                <a href="@Url.Action("Create", "Rental", new { area = "Admin" })" target="_blank" data-toggle="blog-tags" data-placement="top" title="Thêm vào giỏ">
+                                                                <a href="javascript:void(0)" onclick="addToCart(@item.BookId)" data-toggle="blog-tags" data-placement="top" title="Thêm vào giỏ">
                                                                     <i class="fa fa-shopping-cart"></i>
                                                                 </a>
                                                             </li>
@@ -196,6 +196,9 @@
                                                     </div>
                                                     <footer class="entry-footer">
                                                         <a class="btn btn-primary" href="@Url.Action("Detail", "Book", new { id = item.BookId, alias = bookAlias })">Đọc thêm</a>
+                                                        <button class="btn btn-success" onclick="addToCart(@item.BookId)" style="margin-left: 10px;">
+                                                            <i class="fa fa-shopping-cart"></i> Thêm vào giỏ
+                                                        </button>
                                                     </footer>
                                                 </div>
                                             </div>
@@ -316,4 +319,35 @@
     </div>
 </div>
 <!-- End: Products Section -->
+
+@section Scripts {
+    <script>
+        function addToCart(bookId) {
+            $.ajax({
+                url: '@Url.Action("AddToCart", "Cart")',
+                type: 'POST',
+                data: { bookId: bookId },
+                success: function (response) {
+                    if (response.success) {
+                        updateCartCount(response.cartCount);
+                        toastr.success(response.message);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function () {
+                    toastr.error('Có lỗi xảy ra khi thêm vào giỏ hàng');
+                }
+            });
+        }
+
+        function updateCartCount(count) {
+            $('#cart-count-header').text(count);
+            // Reload cart items for dropdown
+            if (typeof loadCartItems === 'function') {
+                loadCartItems();
+            }
+        }
+    </script>
+}
 

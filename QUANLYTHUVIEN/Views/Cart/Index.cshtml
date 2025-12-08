@@ -1,0 +1,200 @@
+@model IEnumerable<QUANLYTHUVIEN.Models.CartItem>
+
+@{
+    ViewData["Title"] = "Giỏ hàng";
+}
+
+<!-- Start: Page Banner -->
+<section class="page-banner services-banner">
+    <div class="container">
+        <div class="banner-header">
+            <h2>Giỏ hàng</h2>
+            <span class="underline center"></span>
+            <p class="lead">Danh sách sách bạn đã chọn</p>
+        </div>
+        <div class="breadcrumb">
+            <ul>
+                <li><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                <li>Giỏ hàng</li>
+            </ul>
+        </div>
+    </div>
+</section>
+<!-- End: Page Banner -->
+
+<!-- Start: Cart Section -->
+<div id="content" class="site-content">
+    <div id="primary" class="content-area">
+        <main id="main" class="site-main">
+            <div class="books-media-gird">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12">
+                            @if (!Model.Any())
+                            {
+                                <div class="alert alert-info text-center" style="padding: 40px; margin: 40px 0;">
+                                    <i class="fa fa-shopping-cart" style="font-size: 48px; color: #ccc; margin-bottom: 20px;"></i>
+                                    <h3>Giỏ hàng của bạn đang trống</h3>
+                                    <p>Hãy thêm sách vào giỏ hàng để bắt đầu thuê sách.</p>
+                                    <a href="@Url.Action("Index", "Book")" class="btn btn-primary" style="margin-top: 20px;">Tiếp tục mua sắm</a>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="cart-table" style="background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 100px;">Ảnh</th>
+                                                <th>Tên sách</th>
+                                                <th>Tác giả</th>
+                                                <th style="width: 150px;">Giá/ngày</th>
+                                                <th style="width: 150px;">Số lượng</th>
+                                                <th style="width: 150px;">Thành tiền</th>
+                                                <th style="width: 100px;">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in Model)
+                                            {
+                                                <tr id="cart-item-@item.BookId">
+                                                    <td>
+                                                        <img src="@Url.Content(item.CoverImageUrl)" alt="@item.Title" style="width: 80px; height: 100px; object-fit: cover;" />
+                                                    </td>
+                                                    <td>
+                                                        <strong>@item.Title</strong>
+                                                    </td>
+                                                    <td>@item.AuthorNames</td>
+                                                    <td>@item.DailyRate.ToString("N0") đ</td>
+                                                    <td>
+                                                        <div class="input-group" style="width: 120px;">
+                                                            <span class="input-group-btn">
+                                                                <button class="btn btn-default btn-sm" type="button" onclick="updateQuantity(@item.BookId, @item.Quantity - 1)">-</button>
+                                                            </span>
+                                                            <input type="number" class="form-control text-center" id="qty-@item.BookId" value="@item.Quantity" min="1" onchange="updateQuantity(@item.BookId, parseInt(this.value))" />
+                                                            <span class="input-group-btn">
+                                                                <button class="btn btn-default btn-sm" type="button" onclick="updateQuantity(@item.BookId, @item.Quantity + 1)">+</button>
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <strong id="total-@item.BookId">@item.TotalPrice.ToString("N0") đ</strong>
+                                                    </td>
+                                                    <td>
+                                                        <button class="btn btn-danger btn-sm" onclick="removeFromCart(@item.BookId)">
+                                                            <i class="fa fa-trash"></i> Xóa
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td colspan="5" class="text-right"><strong>Tổng cộng:</strong></td>
+                                                <td colspan="2">
+                                                    <strong id="cart-total" style="font-size: 18px; color: #d9534f;">@ViewBag.TotalAmount.ToString("N0") đ</strong>
+                                                </td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+
+                                    <div class="cart-actions" style="margin-top: 30px; text-align: right;">
+                                        <a href="@Url.Action("Index", "Book")" class="btn btn-default">Tiếp tục mua sắm</a>
+                                        <a href="#" class="btn btn-primary">Thanh toán</a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<!-- End: Cart Section -->
+
+@section Scripts {
+    <script>
+        function addToCart(bookId) {
+            $.ajax({
+                url: '@Url.Action("AddToCart", "Cart")',
+                type: 'POST',
+                data: { bookId: bookId },
+                success: function (response) {
+                    if (response.success) {
+                        updateCartCount(response.cartCount);
+                        toastr.success(response.message);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function () {
+                    toastr.error('Có lỗi xảy ra khi thêm vào giỏ hàng');
+                }
+            });
+        }
+
+        function removeFromCart(bookId) {
+            if (!confirm('Bạn có chắc muốn xóa sách này khỏi giỏ hàng?')) {
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("RemoveFromCart", "Cart")',
+                type: 'POST',
+                data: { bookId: bookId },
+                success: function (response) {
+                    if (response.success) {
+                        $('#cart-item-' + bookId).fadeOut(300, function() {
+                            $(this).remove();
+                            updateCartCount(response.cartCount);
+                            $('#cart-total').text(response.totalAmount.toLocaleString('vi-VN') + ' đ');
+                            
+                            // Nếu giỏ hàng trống, reload trang
+                            if (response.cartCount === 0) {
+                                location.reload();
+                            }
+                        });
+                        toastr.success('Đã xóa khỏi giỏ hàng');
+                    }
+                },
+                error: function () {
+                    toastr.error('Có lỗi xảy ra khi xóa khỏi giỏ hàng');
+                }
+            });
+        }
+
+        function updateQuantity(bookId, quantity) {
+            if (quantity < 1) {
+                removeFromCart(bookId);
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("UpdateQuantity", "Cart")',
+                type: 'POST',
+                data: { bookId: bookId, quantity: quantity },
+                success: function (response) {
+                    if (response.success) {
+                        $('#qty-' + bookId).val(quantity);
+                        $('#total-' + bookId).text(response.itemTotal.toLocaleString('vi-VN') + ' đ');
+                        $('#cart-total').text(response.totalAmount.toLocaleString('vi-VN') + ' đ');
+                        updateCartCount(response.cartCount);
+                    }
+                },
+                error: function () {
+                    toastr.error('Có lỗi xảy ra khi cập nhật số lượng');
+                }
+            });
+        }
+
+        function updateCartCount(count) {
+            $('#cart-count-header').text(count);
+            // Reload cart items for dropdown
+            if (typeof loadCartItems === 'function') {
+                loadCartItems();
+            }
+        }
+    </script>
+}
+
