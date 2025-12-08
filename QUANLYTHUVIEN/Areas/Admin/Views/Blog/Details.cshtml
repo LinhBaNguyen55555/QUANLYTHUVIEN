@@ -8,10 +8,10 @@
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <h6 class="m-0 font-weight-bold text-primary">Chi tiết Bài viết: @Model.Title</h6>
         <div>
-            <a href="@Url.Action("Edit", "Blog", new { id = Model.BlogId })" class="btn btn-warning btn-sm">
+            <a href="@Url.Action("Edit", "Blog", new { area = "Admin", id = Model.BlogId })" class="btn btn-warning btn-sm">
                 <i class="fas fa-edit"></i> Chỉnh sửa
             </a>
-            <a href="@Url.Action("Index", "Blog")" class="btn btn-secondary btn-sm">
+            <a href="@Url.Action("Index", "Blog", new { area = "Admin" })" class="btn btn-secondary btn-sm">
                 <i class="fas fa-list"></i> Danh sách
             </a>
         </div>
@@ -92,6 +92,8 @@
         </div>
     </div>
 </div>
+
+
 
 
 

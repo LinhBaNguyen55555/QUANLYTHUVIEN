@@ -19,19 +19,6 @@
             </div>
         }
 
-        @if (ViewData.ModelState.ErrorCount > 0 && !ViewData.ModelState.IsValid)
-        {
-            <div class="alert alert-danger">
-                <strong>Có lỗi xảy ra:</strong>
-                <ul class="mb-0">
-                    @foreach (var error in ViewData.ModelState.Where(x => x.Key != "fromDetails").SelectMany(v => v.Value.Errors))
-                    {
-                        <li>@error.ErrorMessage</li>
-                    }
-                </ul>
-            </div>
-        }
-
         <form asp-action="Edit" asp-area="Admin" asp-controller="Blog" method="post">
             <input type="hidden" asp-for="BlogId" />
             <input type="hidden" asp-for="CreatedDate" />
@@ -90,7 +77,7 @@
                 </div>
             </div>
             <button type="submit" class="btn btn-primary">Cập nhật</button>
-            <a href="@Url.Action("Index", "Blog")" class="btn btn-secondary">Quay lại</a>
+            <a href="@Url.Action("Index", "Blog", new { area = "Admin" })" class="btn btn-secondary">Quay lại</a>
         </form>
     </div>
 </div>

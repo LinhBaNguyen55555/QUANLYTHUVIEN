@@ -26,6 +26,23 @@
                         <input type="text" id="imageSearch" class="form-control" placeholder="Tìm kiếm ảnh...">
                     </div>
                 </div>
+                <div class="row align-items-end mb-3">
+                    <div class="col-md-8">
+                        <label>Thêm ảnh từ máy:</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="imageUploadInput" accept="image/*">
+                            <label class="custom-file-label" for="imageUploadInput">Chọn ảnh...</label>
+                        </div>
+                        <small class="text-muted">Ảnh sẽ lưu vào thư mục đang chọn (tối đa 10MB).</small>
+                    </div>
+                    <div class="col-md-4 text-md-right mt-3 mt-md-0">
+                        <button type="button" class="btn btn-primary" id="uploadImageBtn">
+                            <span class="upload-text">Tải lên</span>
+                            <span class="spinner-border spinner-border-sm d-none upload-spinner" role="status" aria-hidden="true"></span>
+                        </button>
+                        <div id="uploadStatus" class="small mt-2"></div>
+                    </div>
+                </div>
                 <div id="imageGallery" class="row" style="max-height: 500px; overflow-y: auto;">
                     <div class="col-12 text-center py-5">
                         <div class="spinner-border text-primary" role="status" id="loadingSpinner">
@@ -45,11 +62,13 @@
 <script>
     let currentImageInputId = '';
     let defaultFolder = 'images';
+    let latestUploadedPath = '';
 
     function openImageBrowser(inputId, folder = 'images') {
         console.log('Opening image browser for input:', inputId, 'with folder:', folder);
         currentImageInputId = inputId;
         defaultFolder = folder;
+        latestUploadedPath = '';
         
         // Đảm bảo modal đã được render
         if ($('#imageBrowserModal').length === 0) {
@@ -71,7 +90,7 @@
         }, 300);
     }
 
-    function loadImages(folderPath) {
+    function loadImages(folderPath, highlightPath = '') {
         // Hiển thị loading
         $('#imageGallery').html(`
             <div class="col-12 text-center py-5">
@@ -112,7 +131,7 @@
                 console.log('Images array:', images);
                 
                 if (images && images.length > 0) {
-                    displayImages(images);
+                    displayImages(images, highlightPath);
                 } else {
                     $('#imageGallery').html('<div class="col-12"><p class="text-muted">Không có ảnh nào trong thư mục này.</p></div>');
                 }
@@ -138,7 +157,7 @@
         });
     }
 
-    function displayImages(images) {
+    function displayImages(images, highlightPath = '') {
         var gallery = $('#imageGallery');
         gallery.empty();
 
@@ -147,17 +166,24 @@
             return;
         }
 
+        var normalizedHighlight = (highlightPath || '').replace(/^\/+/, '').toLowerCase();
+
         images.forEach(function (image) {
             // Escape các ký tự đặc biệt trong đường dẫn và tên file
             var escapedPath = (image.relativePath || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
             var escapedName = (image.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
             var escapedDisplayPath = (image.path || '').replace(/"/g, '&quot;');
+            var normalizedImagePath = (image.relativePath || '').replace(/^\/+/, '').toLowerCase();
+            var deleteTarget = image.relativePath || image.path || '';
             
             var imageCard = $('<div>')
                 .addClass('col-md-3 mb-3 image-item')
                 .attr('data-name', (image.name || '').toLowerCase())
                 .html(`
-                    <div class="card h-100 image-card" style="cursor: pointer;">
+                    <div class="card h-100 image-card" style="cursor: pointer; position: relative;">
+                        <button type="button" class="btn btn-sm btn-danger delete-btn" title="Xóa ảnh" style="position:absolute; top:6px; right:6px; z-index:2; opacity:0.85;">
+                            <i class="fa fa-trash"></i>
+                        </button>
                         <img src="${escapedDisplayPath}" class="card-img-top" alt="${escapedName}" 
                              style="height: 150px; object-fit: cover;" 
                              onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'150\' height=\'150\'%3E%3Crect fill=\'%23ddd\' width=\'150\' height=\'150\'/%3E%3Ctext fill=\'%23999\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\'%3ENo Image%3C/text%3E%3C/svg%3E'">
@@ -171,8 +197,76 @@
             imageCard.find('.image-card').on('click', function() {
                 selectImage(image.relativePath || image.path, image.name || '');
             });
+
+            // Ngăn sự kiện chọn khi bấm xóa
+            imageCard.find('.delete-btn').on('click', function (e) {
+                e.stopPropagation();
+                confirmDeleteImage(deleteTarget);
+            });
+
+            // Đánh dấu ảnh mới tải lên để dễ nhận biết
+            if (normalizedHighlight && normalizedHighlight === normalizedImagePath) {
+                imageCard.find('.image-card').addClass('image-card-highlight');
+            }
             
             gallery.append(imageCard);
+        });
+    }
+
+    function setUploadState(isUploading) {
+        $('#uploadImageBtn').prop('disabled', isUploading);
+        $('.upload-spinner').toggleClass('d-none', !isUploading);
+        $('.upload-text').text(isUploading ? 'Đang tải...' : 'Tải lên');
+    }
+
+    function uploadImage() {
+        var fileInput = $('#imageUploadInput')[0];
+        if (!fileInput.files || fileInput.files.length === 0) {
+            $('#uploadStatus').removeClass('text-success').addClass('text-danger').text('Vui lòng chọn một ảnh.');
+            return;
+        }
+
+        var file = fileInput.files[0];
+        var folderPath = $('#folderSelect').val() || defaultFolder;
+        var formData = new FormData();
+        formData.append('file', file);
+        formData.append('folderPath', folderPath);
+
+        // Lấy AntiForgery token từ form chứa modal (nếu có)
+        var token = $('input[name="__RequestVerificationToken"]').val();
+        if (token) {
+            formData.append('__RequestVerificationToken', token);
+        }
+
+        $('#uploadStatus').removeClass('text-danger text-success').text('');
+        setUploadState(true);
+
+        $.ajax({
+            url: '/Admin/FileBrowser/UploadImage',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response && response.success) {
+                    $('#uploadStatus').removeClass('text-danger').addClass('text-success').text(response.message || 'Tải ảnh lên thành công.');
+                    latestUploadedPath = response.relativePath || '';
+                    $('#imageUploadInput').val('');
+                    $('.custom-file-label[for="imageUploadInput"]').text('Chọn ảnh...');
+                    loadImages(folderPath, latestUploadedPath);
+                } else {
+                    $('#uploadStatus').removeClass('text-success').addClass('text-danger').text(response.message || 'Không thể tải ảnh lên.');
+                }
+            },
+            error: function (xhr, status, error) {
+                var message = xhr.responseJSON && xhr.responseJSON.message
+                    ? xhr.responseJSON.message
+                    : (xhr.responseText || error || 'Đã xảy ra lỗi khi tải ảnh.');
+                $('#uploadStatus').removeClass('text-success').addClass('text-danger').text(message);
+            },
+            complete: function () {
+                setUploadState(false);
+            }
         });
     }
 
@@ -235,6 +329,44 @@
         $('#imageBrowserModal').modal('hide');
     }
 
+    function confirmDeleteImage(relativePath) {
+        if (!relativePath) {
+            alert('Không xác định được ảnh cần xóa.');
+            return;
+        }
+
+        if (!confirm('Bạn có chắc muốn xóa ảnh này?')) {
+            return;
+        }
+
+        var token = $('input[name="__RequestVerificationToken"]').val();
+        var data = { relativePath: relativePath };
+        if (token) {
+            data.__RequestVerificationToken = token;
+        }
+
+        $.ajax({
+            url: '/Admin/FileBrowser/DeleteImage',
+            type: 'POST',
+            data: data,
+            success: function (response) {
+                if (response && response.success) {
+                    $('#uploadStatus').removeClass('text-danger').addClass('text-success').text(response.message || 'Đã xóa ảnh.');
+                    // Reload danh sách ảnh của thư mục hiện tại
+                    loadImages($('#folderSelect').val());
+                } else {
+                    $('#uploadStatus').removeClass('text-success').addClass('text-danger').text(response.message || 'Không thể xóa ảnh.');
+                }
+            },
+            error: function (xhr, status, error) {
+                var message = xhr.responseJSON && xhr.responseJSON.message
+                    ? xhr.responseJSON.message
+                    : (xhr.responseText || error || 'Đã xảy ra lỗi khi xóa ảnh.');
+                $('#uploadStatus').removeClass('text-success').addClass('text-danger').text(message);
+            }
+        });
+    }
+
     $(document).ready(function () {
         $('#folderSelect').on('change', function () {
             loadImages($(this).val());
@@ -251,6 +383,17 @@
                 }
             });
         });
+
+        $('#uploadImageBtn').on('click', function (e) {
+            e.preventDefault();
+            uploadImage();
+        });
+
+        $('#imageUploadInput').on('change', function () {
+            var fileName = this.files && this.files.length ? this.files[0].name : 'Chọn ảnh...';
+            $(this).next('.custom-file-label').text(fileName);
+            $('#uploadStatus').removeClass('text-danger text-success').text('');
+        });
     });
 </script>
 
@@ -258,6 +401,11 @@
     .image-card:hover {
         border-color: #007bff;
         box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    .image-card.image-card-highlight {
+        border-color: #28a745;
+        box-shadow: 0 0 10px rgba(40, 167, 69, 0.4);
     }
 </style>
 

@@ -1,0 +1,123 @@
+@model IEnumerable<QUANLYTHUVIEN.Models.TbBlogComment>
+
+@{
+    ViewData["Title"] = "Quản lý Bình luận";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Quản lý Bình luận</h6>
+        <form method="get" class="form-inline">
+            <input type="text" name="search" class="form-control form-control-sm mr-2" placeholder="Tìm nội dung, bài viết, người gửi"
+                   value="@ViewBag.Search" style="min-width: 280px;" />
+            <select name="status" class="form-control form-control-sm mr-2">
+                <option value="">Tất cả trạng thái</option>
+                <option value="true" selected="@(ViewBag.Status == true ? "selected" : null)">Đã duyệt</option>
+                <option value="false" selected="@(ViewBag.Status == false ? "selected" : null)">Chờ duyệt</option>
+            </select>
+            <button type="submit" class="btn btn-secondary btn-sm">Lọc</button>
+        </form>
+    </div>
+    <div class="card-body">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle"></i> @TempData["Success"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle"></i> @TempData["Error"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+
+        @if (!Model.Any())
+        {
+            <div class="alert alert-info">Chưa có bình luận nào.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Bài viết</th>
+                            <th>Người gửi</th>
+                            <th>Nội dung</th>
+                            <th>Ngày gửi</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.CommentId</td>
+                                <td>
+                                    @if (item.Blog != null)
+                                    {
+                                        <div><strong>@item.Blog.Title</strong></div>
+                                        <small class="text-muted">ID: @item.BlogId</small>
+                                    }
+                                    else
+                                    {
+                                        <em class="text-muted">Bài viết đã xóa</em>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.Customer != null)
+                                    {
+                                        <div>@(item.Customer.FullName ?? item.Customer.Email ?? "Khách")</div>
+                                        <small class="text-muted">ID: @item.CustomerId</small>
+                                    }
+                                    else
+                                    {
+                                        <em class="text-muted">Khách/ẩn danh</em>
+                                    }
+                                </td>
+                                <td style="max-width: 320px; white-space: pre-line;">@item.CommentText</td>
+                                <td>@item.CreatedDate?.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @if (item.IsApproved)
+                                    {
+                                        <span class="badge badge-success">Đã duyệt</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-warning text-dark">Chờ duyệt</span>
+                                    }
+                                </td>
+                                <td class="text-nowrap">
+                                    <form asp-action="ToggleApprove" asp-route-id="@item.CommentId" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm @(item.IsApproved ? "btn-outline-secondary" : "btn-outline-success")"
+                                                title="@(item.IsApproved ? "Bỏ duyệt" : "Duyệt")">
+                                            <i class="fas @(item.IsApproved ? "fa-ban" : "fa-check")"></i>
+                                        </button>
+                                    </form>
+                                    <form asp-action="Delete" asp-route-id="@item.CommentId" method="post" class="d-inline ml-1">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa"
+                                                onclick="return confirm('Xóa bình luận này?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+

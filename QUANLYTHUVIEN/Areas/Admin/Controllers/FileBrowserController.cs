@@ -1,8 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.StaticFiles;
+using System;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 {
@@ -14,6 +18,111 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         public FileBrowserController(IWebHostEnvironment environment)
         {
             _environment = environment;
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(10 * 1024 * 1024)] // 10MB limit to avoid oversized uploads
+        public async Task<IActionResult> UploadImage(IFormFile file, string folderPath = "images")
+        {
+            if (file == null || file.Length == 0)
+            {
+                return Json(new { success = false, message = "Vui lòng chọn một file ảnh." });
+            }
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            if (!allowedExtensions.Contains(extension))
+            {
+                return Json(new { success = false, message = "Định dạng file không hợp lệ. Vui lòng chọn ảnh (jpg, jpeg, png, gif, bmp, webp)." });
+            }
+
+            // Đảm bảo đường dẫn hợp lệ và không bắt đầu bằng / hoặc ~
+            folderPath = string.IsNullOrWhiteSpace(folderPath)
+                ? "images"
+                : folderPath.TrimStart('/', '~', '\\');
+
+            var webRootPath = _environment.WebRootPath;
+            var targetFolder = Path.Combine(webRootPath, folderPath);
+
+            if (!Directory.Exists(targetFolder))
+            {
+                Directory.CreateDirectory(targetFolder);
+            }
+
+            // Làm sạch tên file và thêm hậu tố để tránh trùng
+            var sanitizedName = Regex.Replace(Path.GetFileNameWithoutExtension(file.FileName), @"[^a-zA-Z0-9-_]+", "-").Trim('-');
+            if (string.IsNullOrWhiteSpace(sanitizedName))
+            {
+                sanitizedName = "image";
+            }
+
+            var uniqueFileName = $"{sanitizedName}-{DateTime.UtcNow:yyyyMMddHHmmssfff}{extension}";
+            var savePath = Path.Combine(targetFolder, uniqueFileName);
+
+            try
+            {
+                using (var stream = new FileStream(savePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                var normalizedFolder = folderPath.Replace('\\', '/');
+                var relativePath = $"{normalizedFolder}/{uniqueFileName}";
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Tải ảnh lên thành công.",
+                    path = $"/{relativePath}",
+                    relativePath,
+                    fileName = uniqueFileName
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Lỗi khi lưu file: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteImage(string relativePath)
+        {
+            if (string.IsNullOrWhiteSpace(relativePath))
+            {
+                return Json(new { success = false, message = "Thiếu đường dẫn ảnh cần xóa." });
+            }
+
+            try
+            {
+                // Chuẩn hóa path, tránh ký tự dẫn tới thư mục khác
+                var cleaned = relativePath.TrimStart('/', '\\', '~');
+                cleaned = cleaned.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
+
+                var fullPath = Path.Combine(_environment.WebRootPath, cleaned);
+
+                // Đảm bảo file nằm trong wwwroot
+                var webRootFull = Path.GetFullPath(_environment.WebRootPath);
+                var targetFull = Path.GetFullPath(fullPath);
+                if (!targetFull.StartsWith(webRootFull, StringComparison.OrdinalIgnoreCase))
+                {
+                    return Json(new { success = false, message = "Đường dẫn không hợp lệ." });
+                }
+
+                if (!System.IO.File.Exists(targetFull))
+                {
+                    return Json(new { success = false, message = "Ảnh không tồn tại hoặc đã bị xóa." });
+                }
+
+                System.IO.File.Delete(targetFull);
+                return Json(new { success = true, message = "Đã xóa ảnh." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Lỗi khi xóa ảnh: {ex.Message}" });
+            }
         }
 
         [HttpGet]

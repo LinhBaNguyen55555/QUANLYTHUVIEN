@@ -5,11 +5,43 @@
 }
 
 <div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">Danh sách Menu</h6>
-        <a href="@Url.Action("Create", "Menu")" class="btn btn-primary btn-sm">
-            <i class="fas fa-plus"></i> Thêm menu mới
-        </a>
+    <div class="card-header py-3">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h6 class="m-0 font-weight-bold text-primary">Danh sách Menu</h6>
+            </div>
+            <div class="col-md-6 text-right">
+                <a href="@Url.Action("Create", "Menu", new { area = "Admin" })" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Thêm menu mới
+                </a>
+            </div>
+        </div>
+
+        <!-- Search and Filter Form -->
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <form method="get" class="form-inline">
+                    <div class="form-group mr-3">
+                        <input type="text" name="searchString" class="form-control form-control-sm"
+                               placeholder="Tìm kiếm theo tiêu đề menu..."
+                               value="@ViewBag.SearchString" style="min-width: 250px;" />
+                    </div>
+                    <div class="form-group mr-3">
+                        <select name="status" class="form-control form-control-sm">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="Active" selected="@(ViewBag.SelectedStatus == "Active" ? "selected" : null)">Hoạt động</option>
+                            <option value="Inactive" selected="@(ViewBag.SelectedStatus == "Inactive" ? "selected" : null)">Không hoạt động</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-secondary btn-sm mr-2">
+                        <i class="fas fa-search"></i> Tìm kiếm
+                    </button>
+                    <a href="@Url.Action("Index", "Menu", new { area = "Admin" })" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-times"></i> Xóa bộ lọc
+                    </a>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Thông báo -->
@@ -105,17 +137,16 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <a href="@Url.Action("Details", "Menu", new { id = item.MenuId })"
+                                        <a href="@Url.Action("Details", "Menu", new { area = "Admin", id = item.MenuId })"
                                            class="btn btn-info btn-sm" title="Chi tiết">
                                             <i class="fas fa-info-circle"></i>
                                         </a>
-                                        <a href="@Url.Action("Edit", "Menu", new { id = item.MenuId })"
+                                        <a href="@Url.Action("Edit", "Menu", new { area = "Admin", id = item.MenuId })"
                                            class="btn btn-warning btn-sm" title="Chỉnh sửa">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <a href="@Url.Action("Delete", "Menu", new { id = item.MenuId })"
-                                           class="btn btn-danger btn-sm" title="Xóa"
-                                           onclick="return confirm('Bạn có chắc chắn muốn xóa menu này?')">
+                                        <a href="@Url.Action("Delete", "Menu", new { area = "Admin", id = item.MenuId })"
+                                           class="btn btn-danger btn-sm" title="Xóa">
                                             <i class="fas fa-trash"></i>
                                         </a>
                                     </div>

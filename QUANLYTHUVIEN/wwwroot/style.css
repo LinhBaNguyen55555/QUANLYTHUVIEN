@@ -19407,7 +19407,7 @@ a:focus {
   position: absolute;
   top: 100%;
   left: 0;
-  min-width: 200px;
+  min-width: 140px;
   background: #fff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   list-style: none;

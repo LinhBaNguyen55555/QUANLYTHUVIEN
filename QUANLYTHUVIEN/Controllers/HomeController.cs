@@ -126,6 +126,13 @@ namespace QUANLYTHUVIEN.Controllers
             return View();
         }
 
+        [Route("lien-he")]
+        [Route("contact")]
+        public IActionResult Contact()
+        {
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
