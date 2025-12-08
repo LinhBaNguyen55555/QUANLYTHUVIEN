@@ -33,6 +33,85 @@
 
     <!-- Stylesheet -->
     <link href="~/style.css" rel="stylesheet" type="text/css"/>
+    
+    <!-- Custom Menu Styles -->
+    <style>
+        /* Wrapper cho menu với border trên và dưới - chỉ vừa với nội dung */
+        .navbar-collapse {
+            display: flex !important;
+            justify-content: center !important;
+            padding: 0 !important;
+            width: 100%;
+            overflow: visible;
+            position: relative;
+        }
+        
+        .menu-wrapper {
+            display: inline-flex;
+            position: relative;
+            padding: 0;
+            width: auto;
+            max-width: fit-content;
+            margin: 0 auto;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* Thanh ngang trên - chỉ vừa với menu */
+        .menu-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.3);
+            width: 100%;
+        }
+        
+        /* Thanh ngang dưới - chỉ vừa với menu */
+        .menu-wrapper::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.3);
+            width: 100%;
+        }
+        
+        .menu-wrapper .nav.navbar-nav {
+            display: inline-flex !important;
+            width: auto !important;
+            margin: 0 !important;
+            padding: 0.5px 4px !important;
+            list-style: none;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Đảm bảo menu không tràn ra ngoài */
+        .menu-wrapper .nav.navbar-nav li {
+            white-space: nowrap;
+        }
+        
+        /* Responsive: thu nhỏ trên màn hình nhỏ */
+        @@media (max-width: 1200px) {
+            .menu-wrapper .nav.navbar-nav {
+                padding: 0.5px 4px !important;
+            }
+        }
+        
+        @@media (max-width: 992px) {
+            .menu-wrapper .nav.navbar-nav {
+                padding: 1px 6px !important;
+                font-size: 0.9em;
+            }
+        }
+    </style>
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -132,9 +211,11 @@
                                 </div>
                             </div>
                             <div class="navbar-collapse hidden-sm hidden-xs">
-                                <ul class="nav navbar-nav">
-                                    @await Component.InvokeAsync("MenuTop")
-                                </ul>
+                                <div class="menu-wrapper">
+                                    <ul class="nav navbar-nav">
+                                        @await Component.InvokeAsync("MenuTop")
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
