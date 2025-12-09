@@ -19,6 +19,7 @@
     <PackageReference Include="SlugGenerator" Version="2.0.2" />
     <PackageReference Include="X.PagedList" Version="10.5.9" />
     <PackageReference Include="X.PagedList.Mvc.Core" Version="10.5.9" />
+    <PackageReference Include="RestSharp" Version="112.1.0" />
   </ItemGroup>
 
   <ItemGroup>

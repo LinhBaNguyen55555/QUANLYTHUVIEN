@@ -1,0 +1,281 @@
+@model QUANLYTHUVIEN.Models.Rental
+@Html.AntiForgeryToken()
+
+@{
+    ViewData["Title"] = "Chi tiết phiếu thuê";
+}
+
+<!-- Start: Page Banner -->
+<section class="page-banner services-banner">
+    <div class="container">
+        <div class="banner-header">
+            <h2>Chi tiết phiếu thuê #@Model.RentalId</h2>
+            <span class="underline center"></span>
+            <p class="lead">Thông tin chi tiết về phiếu thuê sách của bạn</p>
+        </div>
+        <div class="breadcrumb">
+            <ul>
+                <li><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                <li><a href="@Url.Action("MyRentals", "Rental")">Sách đang thuê</a></li>
+                <li>Chi tiết phiếu thuê</li>
+            </ul>
+        </div>
+    </div>
+</section>
+<!-- End: Page Banner -->
+
+<!-- Start: Rental Details Section -->
+<div id="content" class="site-content">
+    <div id="primary" class="content-area">
+        <main id="main" class="site-main">
+            <div class="books-media-gird">
+                <div class="container" style="padding: 60px 15px;">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="rental-details-card" style="background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <!-- Rental Header -->
+                                <div class="rental-header" style="border-bottom: 2px solid #e9ecef; padding-bottom: 20px; margin-bottom: 25px;">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-8">
+                                            <h3 style="margin: 0; color: #333;">
+                                                <i class="fa fa-file-text"></i> Phiếu thuê #@Model.RentalId
+                                            </h3>
+                                        </div>
+                                        <div class="col-md-4 text-right">
+                                            <span class="badge @(Model.Status == "Đang thuê" ? "badge-success" : Model.Status == "Chờ thanh toán" ? "badge-warning" : Model.Status == "Quá hạn" ? "badge-danger" : Model.Status == "Đã trả" ? "badge-secondary" : "badge-info")" 
+                                                  style="font-size: 16px; padding: 10px 20px;">
+                                                @Model.Status
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Rental Information -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="info-box" style="background: #f8f9fa; padding: 20px; border-radius: 6px; margin-bottom: 15px;">
+                                            <h5 style="margin-bottom: 15px; color: #555;">
+                                                <i class="fa fa-info-circle"></i> Thông tin phiếu thuê
+                                            </h5>
+                                            <table class="table table-borderless" style="margin: 0;">
+                                                <tr>
+                                                    <td style="width: 40%; padding: 8px 0;"><strong>Ngày thuê:</strong></td>
+                                                    <td style="padding: 8px 0;">@Model.RentalDate?.ToString("dd/MM/yyyy HH:mm")</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 8px 0;"><strong>Ngày trả dự kiến:</strong></td>
+                                                    <td style="padding: 8px 0;">
+                                                        @if (Model.ReturnDate.HasValue)
+                                                        {
+                                                            @Model.ReturnDate.Value.ToString("dd/MM/yyyy")
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-warning">Chưa xác định</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 8px 0;"><strong>Tổng tiền:</strong></td>
+                                                    <td style="padding: 8px 0;">
+                                                        <strong style="color: #e74c3c; font-size: 18px;">
+                                                            @(Model.TotalAmount?.ToString("N0") ?? "0") đ
+                                                        </strong>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="info-box" style="background: #f8f9fa; padding: 20px; border-radius: 6px; margin-bottom: 15px;">
+                                            <h5 style="margin-bottom: 15px; color: #555;">
+                                                <i class="fa fa-user"></i> Thông tin khách hàng
+                                            </h5>
+                                            <table class="table table-borderless" style="margin: 0;">
+                                                <tr>
+                                                    <td style="width: 40%; padding: 8px 0;"><strong>Họ tên:</strong></td>
+                                                    <td style="padding: 8px 0;">@Model.Customer?.FullName</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 8px 0;"><strong>Email:</strong></td>
+                                                    <td style="padding: 8px 0;">@Model.Customer?.Email</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 8px 0;"><strong>Số điện thoại:</strong></td>
+                                                    <td style="padding: 8px 0;">@Model.Customer?.Phone</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 8px 0;"><strong>Địa chỉ:</strong></td>
+                                                    <td style="padding: 8px 0;">@(Model.Customer?.Address ?? "Chưa cập nhật")</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Books List -->
+                                <div class="books-section">
+                                    <h4 style="margin-bottom: 20px; color: #555;">
+                                        <i class="fa fa-book"></i> Danh sách sách (@Model.RentalDetails.Sum(rd => rd.Quantity ?? 0) cuốn)
+                                    </h4>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-hover">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th style="width: 80px;">Ảnh</th>
+                                                    <th>Tên sách</th>
+                                                    <th>Tác giả</th>
+                                                    <th>Thể loại</th>
+                                                    <th class="text-center">Số lượng</th>
+                                                    <th class="text-right">Giá/ngày</th>
+                                                    <th class="text-right">Thành tiền</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var detail in Model.RentalDetails)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <img src="@Url.Content(detail.Book.CoverImageUrl ?? "~/images/books-media/gird-view/book-media-grid-01.jpg")" 
+                                                                 alt="@detail.Book.Title" 
+                                                                 style="width: 60px; height: 80px; object-fit: cover; border-radius: 4px;"
+                                                                 onerror="this.src='@Url.Content("~/images/books-media/gird-view/book-media-grid-01.jpg")'" />
+                                                        </td>
+                                                        <td>
+                                                            <strong>
+                                                                <a href="@Url.Action("Detail", "Book", new { id = detail.BookId })" style="color: #333; text-decoration: none;">
+                                                                    @detail.Book.Title
+                                                                </a>
+                                                            </strong>
+                                                            @if (!string.IsNullOrEmpty(detail.Book.Isbn))
+                                                            {
+                                                                <br />
+                                                                <small class="text-muted">ISBN: @detail.Book.Isbn</small>
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            @string.Join(", ", detail.Book.Authors.Select(a => a.AuthorName))
+                                                        </td>
+                                                        <td>
+                                                            @(detail.Book.Category?.CategoryName ?? "Chưa phân loại")
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <strong>@(detail.Quantity ?? 1)</strong>
+                                                        </td>
+                                                        <td class="text-right">
+                                                            @(detail.PricePerDay?.ToString("N0") ?? "0") đ
+                                                        </td>
+                                                        <td class="text-right">
+                                                            <strong>@(((detail.Quantity ?? 1) * (detail.PricePerDay ?? 0)).ToString("N0")) đ</strong>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <td colspan="6" class="text-right"><strong>Tổng cộng:</strong></td>
+                                                    <td class="text-right">
+                                                        <strong style="color: #e74c3c; font-size: 18px;">
+                                                            @(Model.TotalAmount?.ToString("N0") ?? "0") đ
+                                                        </strong>
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="rental-actions text-center mt-4" style="border-top: 1px solid #e9ecef; padding-top: 20px;">
+                                    @if (Model.Status == "Chờ thanh toán")
+                                    {
+                                        <a href="@Url.Action("Repay", "Rental", new { id = Model.RentalId })" 
+                                           class="btn btn-warning" style="margin-right: 10px;">
+                                            <i class="fa fa-credit-card"></i> Thanh toán lại
+                                        </a>
+                                    }
+                                    @if (Model.Status == "Đang thuê" || Model.Status == "Quá hạn")
+                                    {
+                                        <button type="button" class="btn btn-success" style="margin-right: 10px;"
+                                                onclick="returnBook(@Model.RentalId, this)">
+                                            <i class="fa fa-undo"></i> Trả sách
+                                        </button>
+                                    }
+                                    <a href="@Url.Action("MyRentals", "Rental")" class="btn btn-secondary">
+                                        <i class="fa fa-arrow-left"></i> Quay lại danh sách
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<!-- End: Rental Details Section -->
+
+@section Scripts {
+    <script>
+        function returnBook(rentalId, buttonElement) {
+            if (!confirm('Bạn có chắc chắn muốn trả sách cho đơn hàng này?')) {
+                return;
+            }
+            
+            console.log('Attempting to return book for rental ID:', rentalId);
+            
+            // Hiển thị loading
+            var btn = $(buttonElement);
+            var originalText = btn.html();
+            btn.prop('disabled', true);
+            btn.html('<i class="fa fa-spinner fa-spin"></i> Đang xử lý...');
+            
+            // Sử dụng $.post() thay vì $.ajax() để đơn giản hóa
+            $.post('@Url.Action("ReturnBook", "Rental")', { id: rentalId })
+                .done(function(response) {
+                    console.log('Response received:', response);
+                    if (response && response.success) {
+                        alert(response.message || 'Trả sách thành công!');
+                        location.reload();
+                    } else {
+                        var errorMsg = response && response.message ? response.message : 'Không nhận được phản hồi từ server';
+                        alert('Lỗi: ' + errorMsg);
+                        btn.prop('disabled', false);
+                        btn.html(originalText);
+                    }
+                })
+                .fail(function(xhr, status, error) {
+                    console.error('AJAX Error:', error);
+                    console.error('Status:', status);
+                    console.error('Response Text:', xhr.responseText);
+                    console.error('Status Code:', xhr.status);
+                    
+                    var errorMsg = 'Có lỗi xảy ra khi trả sách!';
+                    try {
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        } else if (xhr.responseText) {
+                            var jsonResponse = JSON.parse(xhr.responseText);
+                            if (jsonResponse && jsonResponse.message) {
+                                errorMsg = jsonResponse.message;
+                            }
+                        }
+                    } catch (e) {
+                        if (xhr.status === 404) {
+                            errorMsg = 'Không tìm thấy trang. Vui lòng thử lại.';
+                        } else if (xhr.status === 500) {
+                            errorMsg = 'Lỗi server. Vui lòng thử lại sau.';
+                        } else if (xhr.status === 401 || xhr.status === 403) {
+                            errorMsg = 'Bạn không có quyền thực hiện thao tác này.';
+                        } else if (xhr.status === 415) {
+                            errorMsg = 'Lỗi định dạng dữ liệu. Vui lòng thử lại.';
+                        }
+                    }
+                    alert(errorMsg);
+                    btn.prop('disabled', false);
+                    btn.html(originalText);
+                });
+        }
+    </script>
+}
+

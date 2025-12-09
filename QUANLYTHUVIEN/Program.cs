@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using QUANLYTHUVIEN.Models;
+using QUANLYTHUVIEN.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,9 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+
+//Connect VNPay API
+builder.Services.AddScoped<IVnPayService, VnPayService>();
 
 var app = builder.Build();
 

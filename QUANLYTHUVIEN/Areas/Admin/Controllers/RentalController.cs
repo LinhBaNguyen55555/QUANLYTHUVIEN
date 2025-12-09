@@ -290,7 +290,11 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         {
             try
             {
-                var rental = await _context.Rentals.FindAsync(id);
+                var rental = await _context.Rentals
+                    .Include(r => r.RentalDetails)
+                        .ThenInclude(rd => rd.Book)
+                    .FirstOrDefaultAsync(r => r.RentalId == id);
+                    
                 if (rental == null)
                 {
                     return Json(new { success = false, message = "Không tìm thấy phiếu thuê!" });
@@ -301,8 +305,19 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     return Json(new { success = false, message = "Sách đã được trả rồi!" });
                 }
 
+                // Cập nhật trạng thái trả sách
                 rental.ReturnDate = DateTime.Now;
-                rental.Status = "Returned";
+                rental.Status = "Đã trả";
+
+                // Tăng lại số lượng sách có sẵn
+                foreach (var detail in rental.RentalDetails)
+                {
+                    var book = await _context.Books.FindAsync(detail.BookId);
+                    if (book != null)
+                    {
+                        book.Quantity += (detail.Quantity ?? 0);
+                    }
+                }
 
                 await _context.SaveChangesAsync();
 
@@ -312,7 +327,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Lỗi khi trả sách cho phiếu thuê ID {id}: {ex.Message}");
-                return Json(new { success = false, message = "Có lỗi xảy ra khi trả sách!" });
+                return Json(new { success = false, message = $"Có lỗi xảy ra khi trả sách: {ex.Message}" });
             }
         }
     }

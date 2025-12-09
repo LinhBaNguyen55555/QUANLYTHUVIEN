@@ -22,7 +22,7 @@ namespace QUANLYTHUVIEN.ViewComponents
             var authorsWithBio = await _context.Authors
                                         .Where(a => !string.IsNullOrEmpty(a.Biography))
                                         .OrderBy(a => Guid.NewGuid()) // Lấy ngẫu nhiên
-                                       // .Take(8) // Lấy 8 người
+                                        .Take(8) // Lấy 8 người
                                         .AsNoTracking()
                                         .ToListAsync();
 

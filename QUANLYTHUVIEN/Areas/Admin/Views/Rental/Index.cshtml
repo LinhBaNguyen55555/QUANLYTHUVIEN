@@ -130,7 +130,7 @@
                                            class="btn btn-warning btn-sm" title="Chỉnh sửa">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        @if (item.Status != "Returned")
+                                        @if (item.Status != "Returned" && item.Status != "Đã trả" && !item.ReturnDate.HasValue)
                                         {
                                             <button type="button" class="btn btn-success btn-sm" title="Trả sách"
                                                     onclick="returnBook(@item.RentalId)">

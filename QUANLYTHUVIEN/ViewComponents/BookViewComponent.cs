@@ -21,7 +21,7 @@ namespace QUANLYTHUVIEN.ViewComponents
               .Include(b => b.Language)
               .Include(b => b.Authors)
               .OrderByDescending(b => b.BookId)
-            //.Take(9)
+              .Take(8)
               .ToListAsync();
 
             return View(books);

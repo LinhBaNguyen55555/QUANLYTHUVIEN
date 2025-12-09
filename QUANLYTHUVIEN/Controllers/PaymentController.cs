@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QUANLYTHUVIEN.Models;
+using QUANLYTHUVIEN.Services;
 using System.Text.Json;
 using System.Security.Cryptography;
 using System.Text;
@@ -10,263 +11,13 @@ namespace QUANLYTHUVIEN.Controllers
     public class PaymentController : Controller
     {
         private readonly QlthuvienContext _context;
+        private readonly IVnPayService _vnPayService;
         private const string PendingRentalKey = "PendingRental";
-        
-        // MoMo API Configuration (Sandbox - thay bằng thông tin thật khi triển khai)
-        private readonly string MOMO_PARTNER_CODE = "MOMO";
-        private readonly string MOMO_ACCESS_KEY = "F8BBA842ECF85";
-        private readonly string MOMO_SECRET_KEY = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
-        private readonly string MOMO_API_ENDPOINT = "https://test-payment.momo.vn/v2/gateway/api/create";
 
-        public PaymentController(QlthuvienContext context)
+        public PaymentController(QlthuvienContext context, IVnPayService vnPayService)
         {
             _context = context;
-        }
-
-        // GET: Payment/Momo
-        public IActionResult Momo(int rentalId)
-        {
-            // Kiểm tra đăng nhập
-            var userIdStr = HttpContext.Session?.GetString("UserId");
-            if (string.IsNullOrEmpty(userIdStr))
-            {
-                TempData["Warning"] = "Vui lòng đăng nhập để tiếp tục thanh toán.";
-                return RedirectToAction("Login", "Account");
-            }
-
-            // Lấy thông tin rental từ session hoặc database
-            var rental = GetPendingRental(rentalId);
-            if (rental == null)
-            {
-                TempData["Error"] = "Không tìm thấy thông tin đơn hàng.";
-                return RedirectToAction("Index", "Cart");
-            }
-
-            ViewBag.RentalId = rentalId;
-            ViewBag.Amount = rental.TotalAmount ?? 0;
-            ViewBag.OrderInfo = $"Thanh toán đơn thuê sách #{rentalId}";
-            
-            return View();
-        }
-
-        // POST: Payment/ProcessMomo
-        [HttpPost]
-        public async Task<IActionResult> ProcessMomo(int rentalId)
-        {
-            try
-            {
-                // Kiểm tra đăng nhập
-                var userIdStr = HttpContext.Session?.GetString("UserId");
-                if (string.IsNullOrEmpty(userIdStr))
-                {
-                    return Json(new { success = false, message = "Vui lòng đăng nhập" });
-                }
-
-                // Lấy thông tin rental
-                var rental = GetPendingRental(rentalId);
-                if (rental == null)
-                {
-                    return Json(new { success = false, message = "Không tìm thấy đơn hàng" });
-                }
-
-                var amount = (long)(rental.TotalAmount ?? 0);
-                var orderInfo = $"Thanh toán đơn thuê sách #{rentalId}";
-                var orderId = $"RENTAL_{rentalId}_{DateTime.Now:yyyyMMddHHmmss}";
-                var requestId = Guid.NewGuid().ToString();
-                var extraData = "";
-
-                // Tạo signature cho MoMo
-                var rawHash = $"accessKey={MOMO_ACCESS_KEY}&amount={amount}&extraData={extraData}&ipnUrl={Request.Scheme}://{Request.Host}/Payment/MomoCallback&orderId={orderId}&orderInfo={orderInfo}&partnerCode={MOMO_PARTNER_CODE}&redirectUrl={Request.Scheme}://{Request.Host}/Payment/MomoResult&requestId={requestId}&requestType=captureWallet";
-                var signature = ComputeHmacSha256(rawHash, MOMO_SECRET_KEY);
-
-                // Tạo payment request
-                var paymentRequest = new
-                {
-                    partnerCode = MOMO_PARTNER_CODE,
-                    partnerName = "QUANLYTHUVIEN",
-                    storeId = "QUANLYTHUVIEN",
-                    requestId = requestId,
-                    amount = amount,
-                    orderId = orderId,
-                    orderInfo = orderInfo,
-                    redirectUrl = $"{Request.Scheme}://{Request.Host}/Payment/MomoResult",
-                    ipnUrl = $"{Request.Scheme}://{Request.Host}/Payment/MomoCallback",
-                    lang = "vi",
-                    extraData = extraData,
-                    requestType = "captureWallet",
-                    signature = signature
-                };
-
-                // Lưu thông tin payment vào session
-                SavePaymentInfo(rentalId, orderId, requestId);
-
-                // Trong môi trường thật, gọi API MoMo
-                // Ở đây tôi sẽ mô phỏng bằng cách redirect đến trang thanh toán MoMo
-                // Bạn có thể thay thế bằng API call thật:
-                /*
-                using (var client = new HttpClient())
-                {
-                    var json = JsonSerializer.Serialize(paymentRequest);
-                    var content = new StringContent(json, Encoding.UTF8, "application/json");
-                    var response = await client.PostAsync(MOMO_API_ENDPOINT, content);
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var momoResponse = JsonSerializer.Deserialize<MomoPaymentResponse>(responseContent);
-                    
-                    if (momoResponse.resultCode == 0)
-                    {
-                        return Redirect(momoResponse.payUrl);
-                    }
-                }
-                */
-
-                // Mô phỏng: Tạo URL thanh toán MoMo
-                var payUrl = Url.Action("MomoPayment", "Payment", new { 
-                    rentalId = rentalId, 
-                    orderId = orderId,
-                    amount = amount 
-                }, Request.Scheme);
-
-                return Json(new { 
-                    success = true, 
-                    payUrl = payUrl,
-                    orderId = orderId 
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        // GET: Payment/MomoPayment (Trang thanh toán MoMo mô phỏng)
-        public IActionResult MomoPayment(int rentalId, string orderId, long amount)
-        {
-            var rental = GetPendingRental(rentalId);
-            if (rental == null)
-            {
-                TempData["Error"] = "Không tìm thấy đơn hàng.";
-                return RedirectToAction("Index", "Cart");
-            }
-
-            ViewBag.RentalId = rentalId;
-            ViewBag.OrderId = orderId;
-            ViewBag.Amount = amount;
-            ViewBag.CustomerName = rental.Customer?.FullName ?? "Khách hàng";
-
-            return View();
-        }
-
-        // POST: Payment/MomoPayment (Xử lý thanh toán thành công)
-        [HttpPost]
-        public async Task<IActionResult> MomoPayment(int rentalId, string orderId, string phoneNumber, string otp)
-        {
-            try
-            {
-                // Trong thực tế, đây sẽ là callback từ MoMo
-                // Ở đây mô phỏng: nếu có phone và otp thì coi như thanh toán thành công
-                
-                var rental = GetPendingRental(rentalId);
-                if (rental == null)
-                {
-                    return Json(new { success = false, message = "Không tìm thấy đơn hàng" });
-                }
-
-                // Mô phỏng xác thực OTP (trong thực tế sẽ gọi API MoMo)
-                if (string.IsNullOrEmpty(phoneNumber) || string.IsNullOrEmpty(otp))
-                {
-                    return Json(new { success = false, message = "Vui lòng nhập số điện thoại và mã OTP" });
-                }
-
-                // Giả lập: OTP = "000000" hoặc bất kỳ số nào đều được (để test)
-                // Trong thực tế sẽ verify với MoMo API
-
-                // Cập nhật rental trong database
-                var dbRental = await _context.Rentals
-                    .Include(r => r.RentalDetails)
-                    .FirstOrDefaultAsync(r => r.RentalId == rentalId);
-
-                if (dbRental == null)
-                {
-                    return Json(new { success = false, message = "Không tìm thấy đơn hàng trong hệ thống" });
-                }
-
-                // Cập nhật trạng thái thanh toán
-                dbRental.Status = "Đã thanh toán";
-                
-                // Giảm số lượng sách có sẵn
-                foreach (var detail in dbRental.RentalDetails)
-                {
-                    var book = await _context.Books.FindAsync(detail.BookId);
-                    if (book != null && book.Quantity >= detail.Quantity)
-                    {
-                        book.Quantity -= detail.Quantity;
-                    }
-                    else if (book != null)
-                    {
-                        // Không đủ sách
-                        return Json(new { 
-                            success = false, 
-                            message = $"Sách '{book.Title}' không còn đủ số lượng" 
-                        });
-                    }
-                }
-                
-                await _context.SaveChangesAsync();
-
-                // Xóa thông tin pending
-                ClearPendingRental(rentalId);
-
-                // Lưu thông tin payment thành công
-                SavePaymentResult(rentalId, orderId, "success", "Thanh toán thành công qua MoMo");
-
-                return Json(new { 
-                    success = true, 
-                    message = "Thanh toán thành công!",
-                    redirectUrl = Url.Action("MomoResult", "Payment", new { rentalId = rentalId, status = "success" })
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        // GET: Payment/MomoResult (Trang kết quả thanh toán)
-        public async Task<IActionResult> MomoResult(int rentalId, string status)
-        {
-            var rental = await _context.Rentals
-                .Include(r => r.Customer)
-                .Include(r => r.RentalDetails)
-                    .ThenInclude(rd => rd.Book)
-                .FirstOrDefaultAsync(r => r.RentalId == rentalId);
-
-            if (rental == null)
-            {
-                TempData["Error"] = "Không tìm thấy đơn hàng.";
-                return RedirectToAction("Index", "Cart");
-            }
-
-            ViewBag.Status = status;
-            ViewBag.PaymentResult = GetPaymentResult(rentalId);
-
-            return View(rental);
-        }
-
-        // POST: Payment/MomoCallback (Callback từ MoMo - IPN)
-        [HttpPost]
-        public async Task<IActionResult> MomoCallback([FromBody] object momoData)
-        {
-            try
-            {
-                // Xử lý callback từ MoMo
-                // Trong thực tế sẽ verify signature và cập nhật trạng thái thanh toán
-                
-                return Ok(new { resultCode = 0, message = "Success" });
-            }
-            catch
-            {
-                return BadRequest();
-            }
+            _vnPayService = vnPayService;
         }
 
         // Helper methods
@@ -333,6 +84,166 @@ namespace QUANLYTHUVIEN.Controllers
                 var hashMessage = hmacsha256.ComputeHash(messageBytes);
                 return BitConverter.ToString(hashMessage).Replace("-", "").ToLower();
             }
+        }
+
+        // VnPay Payment Methods
+        [HttpPost]
+        public IActionResult CreatePaymentUrlVnpay(PaymentInformationModel model)
+        {
+            var url = _vnPayService.CreatePaymentUrl(model, HttpContext);
+            return Redirect(url);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> PaymentCallbackVnpay()
+        {
+            try
+            {
+                var response = _vnPayService.PaymentExecute(Request.Query);
+
+                if (response.Success && response.VnPayResponseCode == "00")
+                {
+                    int? rentalId = null;
+                    
+                    // Lấy OrderId từ response (vnp_TxnRef)
+                    var orderId = response.OrderId;
+                    
+                    // Tìm rentalId từ nhiều nguồn
+                    if (HttpContext.Session != null)
+                    {
+                        // Thử 1: Tìm từ session mapping với OrderId
+                        if (!string.IsNullOrEmpty(orderId))
+                        {
+                            var rentalIdFromOrder = HttpContext.Session.GetString($"VnPayOrder_{orderId}");
+                            if (!string.IsNullOrEmpty(rentalIdFromOrder) && int.TryParse(rentalIdFromOrder, out int id1))
+                            {
+                                rentalId = id1;
+                            }
+                        }
+                        
+                        // Thử 2: Tìm từ LastVnPayRentalId
+                        if (!rentalId.HasValue)
+                        {
+                            var rentalIdStr = HttpContext.Session.GetString("LastVnPayRentalId");
+                            if (!string.IsNullOrEmpty(rentalIdStr) && int.TryParse(rentalIdStr, out int id2))
+                            {
+                                rentalId = id2;
+                            }
+                        }
+                    }
+                    
+                    // Thử 3: Parse từ OrderId nếu có format RENTAL_{rentalId}_{timestamp}
+                    if (!rentalId.HasValue && !string.IsNullOrEmpty(orderId) && orderId.StartsWith("RENTAL_"))
+                    {
+                        var parts = orderId.Split('_');
+                        if (parts.Length >= 2 && int.TryParse(parts[1], out int id3))
+                        {
+                            rentalId = id3;
+                        }
+                    }
+                    
+                    // Thử 4: Tìm từ OrderDescription trong response
+                    if (!rentalId.HasValue && !string.IsNullOrEmpty(response.OrderDescription))
+                    {
+                        // OrderDescription có format: "Name Thanh toán đơn thuê sách #18 Amount"
+                        var match = System.Text.RegularExpressions.Regex.Match(response.OrderDescription, @"#(\d+)");
+                        if (match.Success && int.TryParse(match.Groups[1].Value, out int id4))
+                        {
+                            rentalId = id4;
+                        }
+                    }
+
+                    if (rentalId.HasValue)
+                    {
+                        // Cập nhật rental trong database
+                        var dbRental = await _context.Rentals
+                            .Include(r => r.RentalDetails)
+                            .FirstOrDefaultAsync(r => r.RentalId == rentalId.Value);
+
+                        if (dbRental != null)
+                        {
+                            // Chỉ cập nhật nếu chưa thanh toán
+                            if (dbRental.Status == "Chờ thanh toán")
+                            {
+                                // Cập nhật trạng thái thành "Đang thuê" sau khi thanh toán thành công
+                                dbRental.Status = "Đang thuê";
+
+                                // Giảm số lượng sách có sẵn
+                                foreach (var detail in dbRental.RentalDetails)
+                                {
+                                    var book = await _context.Books.FindAsync(detail.BookId);
+                                    if (book != null && book.Quantity >= (detail.Quantity ?? 0))
+                                    {
+                                        book.Quantity -= (detail.Quantity ?? 0);
+                                    }
+                                }
+
+                                await _context.SaveChangesAsync();
+                            }
+
+                            // Xóa session
+                            if (HttpContext.Session != null)
+                            {
+                                HttpContext.Session.Remove($"VnPayRental_{rentalId.Value}");
+                                HttpContext.Session.Remove("LastVnPayRentalId");
+                                if (!string.IsNullOrEmpty(orderId))
+                                {
+                                    HttpContext.Session.Remove($"VnPayOrder_{orderId}");
+                                }
+                            }
+
+                            // Redirect đến trang thành công
+                            return RedirectToAction("VnPayResult", "Payment", new { rentalId = rentalId.Value, status = "success" });
+                        }
+                    }
+
+                    // Nếu không tìm thấy rentalId, vẫn hiển thị thông báo thành công
+                    TempData["Success"] = "Thanh toán thành công qua VnPay!";
+                    return RedirectToAction("VnPayResult", "Payment", new { status = "success" });
+                }
+                else
+                {
+                    // Thanh toán thất bại
+                    TempData["Error"] = $"Thanh toán thất bại. Mã lỗi: {response.VnPayResponseCode}";
+                    return RedirectToAction("VnPayResult", "Payment", new { status = "failed" });
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Có lỗi xảy ra khi xử lý thanh toán: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"VnPay Callback Error: {ex.Message}\n{ex.StackTrace}");
+                return RedirectToAction("VnPayResult", "Payment", new { status = "error" });
+            }
+        }
+
+        // GET: Payment/VnPayResult (Trang kết quả thanh toán VnPay)
+        public async Task<IActionResult> VnPayResult(int? rentalId, string status)
+        {
+            if (rentalId.HasValue)
+            {
+                var rental = await _context.Rentals
+                    .Include(r => r.Customer)
+                    .Include(r => r.RentalDetails)
+                        .ThenInclude(rd => rd.Book)
+                    .FirstOrDefaultAsync(r => r.RentalId == rentalId.Value);
+
+                if (rental != null)
+                {
+                    // Tự động cập nhật status nếu là "Đã thanh toán" (đơn hàng cũ) thành "Đang thuê"
+                    if (rental.Status == "Đã thanh toán" && !rental.ReturnDate.HasValue)
+                    {
+                        rental.Status = "Đang thuê";
+                        await _context.SaveChangesAsync();
+                    }
+                    
+                    ViewBag.Status = status;
+                    ViewBag.Rental = rental;
+                    return View(rental);
+                }
+            }
+
+            ViewBag.Status = status;
+            return View();
         }
     }
 }

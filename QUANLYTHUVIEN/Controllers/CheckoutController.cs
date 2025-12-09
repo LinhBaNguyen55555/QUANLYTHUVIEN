@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QUANLYTHUVIEN.Models;
+using QUANLYTHUVIEN.Services;
 using System.Text.Json;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
@@ -10,11 +11,13 @@ namespace QUANLYTHUVIEN.Controllers
     public class CheckoutController : Controller
     {
         private readonly QlthuvienContext _context;
+        private readonly IVnPayService _vnPayService;
         private const string CartSessionKey = "Cart";
 
-        public CheckoutController(QlthuvienContext context)
+        public CheckoutController(QlthuvienContext context, IVnPayService vnPayService)
         {
             _context = context;
+            _vnPayService = vnPayService;
         }
 
         // Lấy danh sách giỏ hàng từ session
@@ -203,7 +206,7 @@ namespace QUANLYTHUVIEN.Controllers
                 }
 
                 // Xác định trạng thái dựa trên phương thức thanh toán
-                string rentalStatus = paymentMethod == "momo" ? "Chờ thanh toán" : "Đang thuê";
+                string rentalStatus = (paymentMethod == "vnpay") ? "Chờ thanh toán" : "Đang thuê";
 
                 // Tạo Rental
                 var rental = new Rental
@@ -227,8 +230,8 @@ namespace QUANLYTHUVIEN.Controllers
                     };
                     rental.RentalDetails.Add(rentalDetail);
 
-                    // Chỉ giảm số lượng sách nếu đã thanh toán (không phải MoMo)
-                    if (paymentMethod != "momo")
+                    // Chỉ giảm số lượng sách nếu đã thanh toán (không phải VnPay)
+                    if (paymentMethod != "vnpay")
                     {
                         var book = await _context.Books.FindAsync(item.BookId);
                         if (book != null && book.Quantity >= item.Quantity)
@@ -241,16 +244,58 @@ namespace QUANLYTHUVIEN.Controllers
                 _context.Rentals.Add(rental);
                 await _context.SaveChangesAsync();
 
-                // Xóa giỏ hàng
-                ClearCart();
-
-                // Nếu thanh toán qua MoMo, redirect đến trang thanh toán MoMo
-                if (!string.IsNullOrEmpty(paymentMethod) && paymentMethod.ToLower() == "momo")
+                // Nếu thanh toán qua VnPay, tạo URL thanh toán
+                if (!string.IsNullOrEmpty(paymentMethod) && paymentMethod.ToLower() == "vnpay")
                 {
-                    return RedirectToAction("Momo", "Payment", new { rentalId = rental.RentalId });
+                    try
+                    {
+                        // Tạo OrderId từ rentalId để có thể tìm lại sau khi callback
+                        var orderId = $"RENTAL_{rental.RentalId}_{DateTime.Now:yyyyMMddHHmmss}";
+                        
+                        var paymentModel = new PaymentInformationModel
+                        {
+                            OrderType = "other",
+                            Amount = (double)rentalTotalAmount,
+                            OrderDescription = $"Thanh toán đơn thuê sách #{rental.RentalId}",
+                            Name = fullName,
+                            OrderId = orderId
+                        };
+
+                        // Lưu rentalId vào session để xử lý sau khi thanh toán
+                        if (HttpContext.Session != null)
+                        {
+                            HttpContext.Session.SetString($"VnPayRental_{rental.RentalId}", rental.RentalId.ToString());
+                            HttpContext.Session.SetString("LastVnPayRentalId", rental.RentalId.ToString());
+                            // Lưu mapping giữa orderId và rentalId
+                            HttpContext.Session.SetString($"VnPayOrder_{orderId}", rental.RentalId.ToString());
+                        }
+
+                        var paymentUrl = _vnPayService.CreatePaymentUrl(paymentModel, HttpContext);
+                        
+                        if (!string.IsNullOrEmpty(paymentUrl))
+                        {
+                            // Chỉ xóa giỏ hàng khi đã tạo được payment URL thành công
+                            ClearCart();
+                            return Redirect(paymentUrl);
+                        }
+                        else
+                        {
+                            TempData["Error"] = "Không thể tạo URL thanh toán VnPay";
+                            // Không xóa giỏ hàng nếu có lỗi
+                            return RedirectToAction("Index");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        TempData["Error"] = $"Có lỗi xảy ra khi tạo URL thanh toán VnPay: {ex.Message}";
+                        // Không xóa giỏ hàng nếu có exception
+                        return RedirectToAction("Index");
+                    }
                 }
 
-                // Các phương thức thanh toán khác
+                // Các phương thức thanh toán khác (thanh toán khi nhận, chuyển khoản)
+                // Xóa giỏ hàng vì đã thanh toán thành công
+                ClearCart();
                 TempData["Success"] = $"Đặt thuê thành công! Mã đơn: #{rental.RentalId}";
                 return RedirectToAction("Success", new { rentalId = rental.RentalId });
             }

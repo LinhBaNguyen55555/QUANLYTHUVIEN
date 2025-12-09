@@ -1,0 +1,269 @@
+@model IEnumerable<QUANLYTHUVIEN.Models.Rental>
+@Html.AntiForgeryToken()
+
+@{
+    ViewData["Title"] = "Sách đang thuê";
+}
+
+<!-- Start: Page Banner -->
+<section class="page-banner services-banner">
+    <div class="container">
+        <div class="banner-header">
+            <h2>Sách đang thuê</h2>
+            <span class="underline center"></span>
+            <p class="lead">Danh sách sách bạn đang thuê tại thư viện</p>
+        </div>
+        <div class="breadcrumb">
+            <ul>
+                <li><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                <li>Sách đang thuê</li>
+            </ul>
+        </div>
+    </div>
+</section>
+<!-- End: Page Banner -->
+
+<!-- Start: Rental Section -->
+<div id="content" class="site-content">
+    <div id="primary" class="content-area">
+        <main id="main" class="site-main">
+            <div class="books-media-gird">
+                <div class="container" style="padding: 60px 15px;">
+                    @if (ViewBag.Message != null)
+                    {
+                        <div class="alert alert-info text-center" style="padding: 30px; margin-bottom: 30px;">
+                            <i class="fa fa-info-circle" style="font-size: 48px; color: #17a2b8; margin-bottom: 15px;"></i>
+                            <h3>@ViewBag.Message</h3>
+                            <p>Hãy bắt đầu thuê sách ngay hôm nay!</p>
+                            <a href="@Url.Action("Index", "Book")" class="btn btn-primary btn-lg" style="margin-top: 15px;">
+                                <i class="fa fa-book"></i> Khám phá sách
+                            </a>
+                        </div>
+                    }
+                    else if (Model == null || !Model.Any())
+                    {
+                        <div class="alert alert-info text-center" style="padding: 30px; margin-bottom: 30px;">
+                            <i class="fa fa-book" style="font-size: 48px; color: #17a2b8; margin-bottom: 15px;"></i>
+                            <h3>Bạn chưa có sách đang thuê</h3>
+                            <p>Hãy bắt đầu thuê sách ngay hôm nay!</p>
+                            <a href="@Url.Action("Index", "Book")" class="btn btn-primary btn-lg" style="margin-top: 15px;">
+                                <i class="fa fa-book"></i> Khám phá sách
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="rental-summary" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                                    <h4 style="margin-bottom: 15px;">
+                                        <i class="fa fa-user"></i> Thông tin khách hàng
+                                    </h4>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <p><strong>Họ tên:</strong> @ViewBag.CustomerName</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <p><strong>Email:</strong> @ViewBag.CustomerEmail</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <p><strong>Số điện thoại:</strong> @ViewBag.CustomerPhone</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <h3 style="margin-bottom: 25px;">
+                                    <i class="fa fa-list"></i> Danh sách phiếu thuê (@Model.Count() phiếu)
+                                </h3>
+
+                                @foreach (var rental in Model)
+                                {
+                                    <div class="rental-card" style="background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                        <div class="rental-header" style="border-bottom: 2px solid #e9ecef; padding-bottom: 15px; margin-bottom: 20px;">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-6">
+                                                    <h4 style="margin: 0; color: #333;">
+                                                        <i class="fa fa-file-text"></i> Phiếu thuê #@rental.RentalId
+                                                    </h4>
+                                                </div>
+                                                <div class="col-md-6 text-right">
+                                                    <span class="badge @(rental.Status == "Đang thuê" ? "badge-success" : rental.Status == "Chờ thanh toán" ? "badge-warning" : rental.Status == "Quá hạn" ? "badge-danger" : rental.Status == "Đã trả" ? "badge-secondary" : "badge-info")" 
+                                                          style="font-size: 14px; padding: 8px 15px;">
+                                                        @rental.Status
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="row mt-2">
+                                                <div class="col-md-4">
+                                                    <small class="text-muted">
+                                                        <i class="fa fa-calendar"></i> Ngày thuê: @rental.RentalDate?.ToString("dd/MM/yyyy HH:mm")
+                                                    </small>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <small class="text-muted">
+                                                        <i class="fa fa-calendar-check"></i> Ngày trả dự kiến: 
+                                                        @if (rental.ReturnDate.HasValue)
+                                                        {
+                                                            @rental.ReturnDate.Value.ToString("dd/MM/yyyy")
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-warning">Chưa xác định</span>
+                                                        }
+                                                    </small>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <strong style="color: #e74c3c; font-size: 18px;">
+                                                        <i class="fa fa-money"></i> Tổng tiền: @(rental.TotalAmount?.ToString("N0") ?? "0") đ
+                                                    </strong>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="rental-books">
+                                            <h5 style="margin-bottom: 15px; color: #555;">
+                                                <i class="fa fa-book"></i> Sách đang thuê (@rental.RentalDetails.Sum(rd => rd.Quantity ?? 0) cuốn)
+                                            </h5>
+                                            <div class="row">
+                                                @foreach (var detail in rental.RentalDetails)
+                                                {
+                                                    <div class="col-md-6 mb-3">
+                                                        <div class="book-item" style="display: flex; align-items: center; padding: 15px; background: #f8f9fa; border-radius: 6px;">
+                                                            <div class="book-image" style="width: 80px; height: 100px; margin-right: 15px; flex-shrink: 0;">
+                                                                <img src="@Url.Content(detail.Book.CoverImageUrl ?? "~/images/books-media/gird-view/book-media-grid-01.jpg")" 
+                                                                     alt="@detail.Book.Title" 
+                                                                     style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;"
+                                                                     onerror="this.src='@Url.Content("~/images/books-media/gird-view/book-media-grid-01.jpg")'" />
+                                                            </div>
+                                                            <div class="book-info" style="flex: 1;">
+                                                                <h6 style="margin: 0 0 5px 0; font-weight: 600;">
+                                                                    <a href="@Url.Action("Detail", "Book", new { id = detail.BookId })" style="color: #333; text-decoration: none;">
+                                                                        @detail.Book.Title
+                                                                    </a>
+                                                                </h6>
+                                                                <p style="margin: 0; font-size: 13px; color: #666;">
+                                                                    <i class="fa fa-user"></i> 
+                                                                    @string.Join(", ", detail.Book.Authors.Select(a => a.AuthorName))
+                                                                </p>
+                                                                <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">
+                                                                    <i class="fa fa-tag"></i> 
+                                                                    @(detail.Book.Category?.CategoryName ?? "Chưa phân loại")
+                                                                </p>
+                                                                <div style="margin-top: 8px;">
+                                                                    <span style="font-size: 12px; color: #888;">
+                                                                        Số lượng: <strong>@(detail.Quantity ?? 1)</strong> | 
+                                                                        Giá/ngày: <strong>@(detail.PricePerDay?.ToString("N0") ?? "0") đ</strong>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+
+                                        <div class="rental-actions text-right mt-3" style="border-top: 1px solid #e9ecef; padding-top: 15px;">
+                                            @if (rental.Status == "Chờ thanh toán")
+                                            {
+                                                <a href="@Url.Action("Repay", "Rental", new { id = rental.RentalId })" 
+                                                   class="btn btn-warning btn-sm" style="margin-right: 5px;">
+                                                    <i class="fa fa-credit-card"></i> Thanh toán lại
+                                                </a>
+                                            }
+                                            @if (rental.Status == "Đang thuê" || rental.Status == "Quá hạn")
+                                            {
+                                                <button type="button" class="btn btn-success btn-sm" style="margin-right: 5px;"
+                                                        onclick="returnBook(@rental.RentalId, this)">
+                                                    <i class="fa fa-undo"></i> Trả sách
+                                                </button>
+                                            }
+                                            <a href="@Url.Action("Details", "Rental", new { id = rental.RentalId })" 
+                                               class="btn btn-primary btn-sm">
+                                                <i class="fa fa-eye"></i> Xem chi tiết
+                                            </a>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<!-- End: Rental Section -->
+
+@section Scripts {
+    <script>
+        function returnBook(rentalId, buttonElement) {
+            if (!confirm('Bạn có chắc chắn muốn trả sách cho đơn hàng này?')) {
+                return;
+            }
+            
+            console.log('Attempting to return book for rental ID:', rentalId);
+            
+            // Hiển thị loading
+            var btn = $(buttonElement);
+            var originalText = btn.html();
+            btn.prop('disabled', true);
+            btn.html('<i class="fa fa-spinner fa-spin"></i> Đang xử lý...');
+            
+            var requestUrl = '@Url.Action("ReturnBook", "Rental")';
+            console.log('Request URL:', requestUrl);
+            console.log('Rental ID:', rentalId);
+            
+            // Dùng $.ajax() với Content-Type rõ ràng
+            $.ajax({
+                url: requestUrl,
+                method: 'POST',
+                data: { id: rentalId },
+                dataType: 'json',
+                success: function(response) {
+                    console.log('Response received:', response);
+                    if (response && response.success) {
+                        alert(response.message || 'Trả sách thành công!');
+                        location.reload();
+                    } else {
+                        var errorMsg = response && response.message ? response.message : 'Không nhận được phản hồi từ server';
+                        alert('Lỗi: ' + errorMsg);
+                        btn.prop('disabled', false);
+                        btn.html(originalText);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', error);
+                    console.error('Status:', status);
+                    console.error('Response Text:', xhr.responseText);
+                    console.error('Status Code:', xhr.status);
+                    
+                    var errorMsg = 'Có lỗi xảy ra khi trả sách!';
+                    try {
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        } else if (xhr.responseText) {
+                            var jsonResponse = JSON.parse(xhr.responseText);
+                            if (jsonResponse && jsonResponse.message) {
+                                errorMsg = jsonResponse.message;
+                            }
+                        }
+                    } catch (e) {
+                        if (xhr.status === 404) {
+                            errorMsg = 'Không tìm thấy trang. Vui lòng thử lại.';
+                        } else if (xhr.status === 500) {
+                            errorMsg = 'Lỗi server. Vui lòng thử lại sau.';
+                        } else if (xhr.status === 401 || xhr.status === 403) {
+                            errorMsg = 'Bạn không có quyền thực hiện thao tác này.';
+                        } else if (xhr.status === 415) {
+                            errorMsg = 'Lỗi định dạng dữ liệu. Vui lòng thử lại.';
+                        }
+                    }
+                    alert(errorMsg);
+                    btn.prop('disabled', false);
+                    btn.html(originalText);
+                }
+            });
+        }
+    </script>
+}
+
