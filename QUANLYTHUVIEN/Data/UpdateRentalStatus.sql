@@ -12,3 +12,5 @@ WHERE Status = N'Đã thanh toán'
 PRINT N'Đã cập nhật ' + CAST(@@ROWCOUNT AS NVARCHAR(10)) + N' đơn hàng từ "Đã thanh toán" thành "Đang thuê"';
 GO
 
+
+

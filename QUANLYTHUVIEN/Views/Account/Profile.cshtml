@@ -1,0 +1,182 @@
+@model QUANLYTHUVIEN.Models.User
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+}
+
+<!-- Start: Page Banner -->
+<section class="page-banner services-banner">
+    <div class="container">
+        <div class="banner-header">
+            <h2>Thông tin cá nhân</h2>
+            <span class="underline center"></span>
+            <p class="lead">Quản lý thông tin tài khoản của bạn</p>
+        </div>
+        <div class="breadcrumb">
+            <ul>
+                <li><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                <li>Thông tin cá nhân</li>
+            </ul>
+        </div>
+    </div>
+</section>
+<!-- End: Page Banner -->
+
+<!-- Start: Profile Section -->
+<div id="content" class="site-content">
+    <div id="primary" class="content-area">
+        <main id="main" class="site-main">
+            <div class="books-media-gird">
+                <div class="container" style="padding: 60px 15px;">
+                    <div class="row">
+                        <div class="col-md-8 offset-md-2">
+                            <div class="profile-card" style="background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <h3 style="margin-bottom: 25px; color: #333;">
+                                    <i class="fa fa-user"></i> Thông tin tài khoản
+                                </h3>
+
+                                @if (ViewBag.Error != null)
+                                {
+                                    <div class="alert alert-danger" style="margin-bottom: 20px;">
+                                        <i class="fa fa-exclamation-circle"></i> @ViewBag.Error
+                                    </div>
+                                }
+
+                                @if (TempData["Success"] != null)
+                                {
+                                    <div class="alert alert-success" style="margin-bottom: 20px;">
+                                        <i class="fa fa-check-circle"></i> @TempData["Success"]
+                                    </div>
+                                }
+
+                                <form method="post" asp-action="Profile" asp-controller="Account">
+                                    @Html.AntiForgeryToken()
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="username" class="control-label" style="font-weight: bold;">
+                                                    Tên đăng nhập
+                                                </label>
+                                                <input type="text" id="username" class="form-control" value="@Model.Username" disabled style="background-color: #f8f9fa; cursor: not-allowed;" />
+                                                <small class="form-text text-muted">Tên đăng nhập không thể thay đổi</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="fullName" class="control-label" style="font-weight: bold;">
+                                                    Họ và tên <span class="text-danger">*</span>
+                                                </label>
+                                                <input type="text" id="fullName" name="fullName" class="form-control" value="@Model.FullName" required />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="email" class="control-label" style="font-weight: bold;">
+                                                    Email
+                                                </label>
+                                                <input type="email" id="email" name="email" class="form-control" value="@Model.Email" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="phone" class="control-label" style="font-weight: bold;">
+                                                    Số điện thoại
+                                                </label>
+                                                <input type="tel" id="phone" name="phone" class="form-control" value="@Model.Phone" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <hr style="margin: 30px 0;" />
+
+                                    <h4 style="margin-bottom: 20px; color: #555;">
+                                        <i class="fa fa-lock"></i> Đổi mật khẩu
+                                    </h4>
+                                    <p class="text-muted" style="margin-bottom: 20px;">Để trống nếu không muốn đổi mật khẩu</p>
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label for="currentPassword" class="control-label" style="font-weight: bold;">
+                                                    Mật khẩu hiện tại
+                                                </label>
+                                                <input type="password" id="currentPassword" name="currentPassword" class="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="newPassword" class="control-label" style="font-weight: bold;">
+                                                    Mật khẩu mới
+                                                </label>
+                                                <input type="password" id="newPassword" name="newPassword" class="form-control" />
+                                                <small class="form-text text-muted">Tối thiểu 6 ký tự</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="confirmPassword" class="control-label" style="font-weight: bold;">
+                                                    Xác nhận mật khẩu mới
+                                                </label>
+                                                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-actions" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef;">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <a href="@Url.Action("Index", "Home")" class="btn btn-secondary btn-lg" style="width: 100%;">
+                                                    <i class="fa fa-arrow-left"></i> Quay lại
+                                                </a>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+                                                    <i class="fa fa-save"></i> Lưu thay đổi
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<!-- End: Profile Section -->
+
+@section Scripts {
+    <script>
+        // Validate password confirmation
+        document.getElementById('confirmPassword')?.addEventListener('input', function() {
+            var newPassword = document.getElementById('newPassword').value;
+            var confirmPassword = this.value;
+            
+            if (newPassword && confirmPassword && newPassword !== confirmPassword) {
+                this.setCustomValidity('Mật khẩu xác nhận không khớp');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
+        // Only require current password if new password is provided
+        document.getElementById('newPassword')?.addEventListener('input', function() {
+            var currentPassword = document.getElementById('currentPassword');
+            if (this.value) {
+                currentPassword.required = true;
+            } else {
+                currentPassword.required = false;
+            }
+        });
+    </script>
+}
+
+

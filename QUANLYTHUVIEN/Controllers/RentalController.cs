@@ -99,6 +99,66 @@ namespace QUANLYTHUVIEN.Controllers
             return View(rentals);
         }
 
+        // GET: Rental/RentalHistory - Lịch sử sách đã thuê
+        [Route("sach-da-thue")]
+        [Route("Rental/RentalHistory")]
+        public async Task<IActionResult> RentalHistory()
+        {
+            // Kiểm tra đăng nhập
+            var userId = HttpContext.Session?.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                TempData["Warning"] = "Vui lòng đăng nhập để xem lịch sử thuê sách.";
+                return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("RentalHistory", "Rental") });
+            }
+
+            // Lấy thông tin user
+            if (!int.TryParse(userId, out int userIdInt))
+            {
+                TempData["Error"] = "Không tìm thấy thông tin người dùng.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userIdInt);
+            if (user == null)
+            {
+                TempData["Error"] = "Không tìm thấy thông tin người dùng.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Tìm customer dựa trên email hoặc phone của user
+            var customer = await _context.Customers
+                .FirstOrDefaultAsync(c => 
+                    (!string.IsNullOrEmpty(user.Email) && c.Email == user.Email) ||
+                    (!string.IsNullOrEmpty(user.Phone) && c.Phone == user.Phone));
+
+            if (customer == null)
+            {
+                ViewBag.Message = "Bạn chưa có sách đã thuê nào.";
+                return View(new List<Rental>());
+            }
+
+            // Lấy danh sách rental đã trả (Status == "Đã trả")
+            var rentals = await _context.Rentals
+                .Include(r => r.Customer)
+                .Include(r => r.RentalDetails)
+                    .ThenInclude(rd => rd.Book)
+                        .ThenInclude(b => b.Authors)
+                .Include(r => r.RentalDetails)
+                    .ThenInclude(rd => rd.Book)
+                        .ThenInclude(b => b.Category)
+                .Where(r => r.CustomerId == customer.CustomerId)
+                .Where(r => r.Status == "Đã trả")
+                .OrderByDescending(r => r.ReturnDate ?? r.RentalDate)
+                .ToListAsync();
+
+            ViewBag.CustomerName = customer.FullName;
+            ViewBag.CustomerEmail = customer.Email;
+            ViewBag.CustomerPhone = customer.Phone;
+
+            return View(rentals);
+        }
+
         // GET: Rental/Details/5
         [Route("sach-dang-thue/{id}")]
         public async Task<IActionResult> Details(int? id)

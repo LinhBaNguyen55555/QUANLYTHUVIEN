@@ -321,12 +321,24 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 // Kiểm tra xem sách có đang được sử dụng không
                 var hasOrders = await _context.OrderDetails.AnyAsync(od => od.BookId == id);
                 var hasRentals = await _context.RentalDetails.AnyAsync(rd => rd.BookId == id);
+                var hasRentalPrices = await _context.RentalPrices.AnyAsync(rp => rp.BookId == id);
 
                 if (hasOrders || hasRentals)
                 {
                     _logger.LogWarning($"Không thể xóa sách '{book.Title}' vì có dữ liệu liên quan");
                     TempData["Error"] = $"Không thể xóa sách '{book.Title}' vì sách đang có trong đơn hàng hoặc phiếu thuê.";
                     return RedirectToAction(nameof(Index), new { area = "Admin" });
+                }
+
+                // Xóa các bản ghi RentalPrice liên quan trước
+                if (hasRentalPrices)
+                {
+                    var rentalPrices = await _context.RentalPrices
+                        .Where(rp => rp.BookId == id)
+                        .ToListAsync();
+                    _context.RentalPrices.RemoveRange(rentalPrices);
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation($"Đã xóa {rentalPrices.Count} bản ghi giá thuê liên quan đến sách '{book.Title}'");
                 }
 
                 // Xóa quan hệ với tác giả
@@ -338,10 +350,15 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 _logger.LogInformation($"Sách '{book.Title}' (ID: {book.BookId}) đã được xóa bởi {User.Identity?.Name ?? "Admin"}");
                 TempData["Success"] = $"Sách '{book.Title}' đã được xóa thành công!";
             }
+            catch (DbUpdateException dbEx)
+            {
+                _logger.LogError(dbEx, $"Lỗi database khi xóa sách ID {id}: {dbEx.Message}");
+                TempData["Error"] = "Không thể xóa sách vì có ràng buộc dữ liệu. Vui lòng kiểm tra lại các đơn hàng, phiếu thuê hoặc dữ liệu liên quan khác.";
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Lỗi khi xóa sách ID {id}: {ex.Message}");
-                TempData["Error"] = "Có lỗi xảy ra khi xóa sách. Vui lòng thử lại.";
+                TempData["Error"] = $"Có lỗi xảy ra khi xóa sách: {ex.Message}. Vui lòng thử lại.";
             }
 
             return RedirectToAction(nameof(Index), new { area = "Admin" });

@@ -155,6 +155,122 @@ namespace QUANLYTHUVIEN.Controllers
             }
         }
 
+        // GET: Account/Profile - Trang thông tin cá nhân
+        public async Task<IActionResult> Profile()
+        {
+            var userId = HttpContext.Session?.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                TempData["Warning"] = "Vui lòng đăng nhập để xem thông tin cá nhân.";
+                return RedirectToAction("Login", "Account");
+            }
+
+            if (!int.TryParse(userId, out int userIdInt))
+            {
+                TempData["Error"] = "Không tìm thấy thông tin người dùng.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userIdInt);
+            if (user == null)
+            {
+                TempData["Error"] = "Không tìm thấy thông tin người dùng.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View(user);
+        }
+
+        // POST: Account/Profile - Cập nhật thông tin cá nhân
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Profile(string fullName, string email, string phone, string currentPassword, string newPassword, string confirmPassword)
+        {
+            var userId = HttpContext.Session?.GetString("UserId");
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                TempData["Error"] = "Vui lòng đăng nhập để cập nhật thông tin.";
+                return RedirectToAction("Login", "Account");
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userIdInt);
+            if (user == null)
+            {
+                TempData["Error"] = "Không tìm thấy thông tin người dùng.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Validation
+            if (string.IsNullOrWhiteSpace(fullName))
+            {
+                ViewBag.Error = "Họ và tên là bắt buộc";
+                return View(user);
+            }
+
+            // Kiểm tra email trùng (nếu có thay đổi)
+            if (!string.IsNullOrWhiteSpace(email) && email != user.Email)
+            {
+                if (await _context.Users.AnyAsync(u => u.Email != null && u.Email.ToLower() == email.ToLower() && u.UserId != userIdInt))
+                {
+                    ViewBag.Error = "Email đã được sử dụng bởi tài khoản khác";
+                    return View(user);
+                }
+            }
+
+            // Kiểm tra mật khẩu nếu muốn đổi
+            if (!string.IsNullOrWhiteSpace(newPassword))
+            {
+                if (string.IsNullOrWhiteSpace(currentPassword))
+                {
+                    ViewBag.Error = "Vui lòng nhập mật khẩu hiện tại để đổi mật khẩu";
+                    return View(user);
+                }
+
+                var hashedCurrentPassword = HashPassword(currentPassword);
+                if (user.PasswordHash != hashedCurrentPassword)
+                {
+                    ViewBag.Error = "Mật khẩu hiện tại không đúng";
+                    return View(user);
+                }
+
+                if (newPassword.Length < 6)
+                {
+                    ViewBag.Error = "Mật khẩu mới phải có ít nhất 6 ký tự";
+                    return View(user);
+                }
+
+                if (newPassword != confirmPassword)
+                {
+                    ViewBag.Error = "Mật khẩu xác nhận không khớp";
+                    return View(user);
+                }
+
+                user.PasswordHash = HashPassword(newPassword);
+            }
+
+            // Cập nhật thông tin
+            user.FullName = fullName;
+            user.Email = string.IsNullOrWhiteSpace(email) ? null : email;
+            user.Phone = string.IsNullOrWhiteSpace(phone) ? null : phone;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+
+                // Cập nhật session
+                HttpContext.Session.SetString("FullName", user.FullName);
+                HttpContext.Session.SetString("Email", user.Email ?? "");
+
+                TempData["Success"] = "Cập nhật thông tin thành công!";
+                return RedirectToAction("Profile", "Account");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "Có lỗi xảy ra khi cập nhật thông tin. Vui lòng thử lại.";
+                return View(user);
+            }
+        }
+
         // GET: Account/Logout
         public IActionResult Logout()
         {
@@ -173,5 +289,6 @@ namespace QUANLYTHUVIEN.Controllers
         }
     }
 }
+
 
 
