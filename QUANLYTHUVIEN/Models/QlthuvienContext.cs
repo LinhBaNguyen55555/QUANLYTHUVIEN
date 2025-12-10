@@ -49,6 +49,8 @@ public partial class QlthuvienContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<BookReview> BookReviews { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -374,6 +376,34 @@ public partial class QlthuvienContext : DbContext
             entity.HasOne(d => d.RoleNavigation).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)
                 .HasConstraintName("FK_Users_Roles");
+        });
+
+        modelBuilder.Entity<BookReview>(entity =>
+        {
+            entity.HasKey(e => e.ReviewId).HasName("PK_BookReviews");
+
+            entity.Property(e => e.ReviewId).HasColumnName("ReviewID");
+            entity.Property(e => e.BookId).HasColumnName("BookID");
+            entity.Property(e => e.CustomerId).HasColumnName("CustomerID");
+            entity.Property(e => e.Comment).HasMaxLength(1000);
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.Book).WithMany(p => p.BookReviews)
+                .HasForeignKey(d => d.BookId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_BookReviews_Books");
+
+            entity.HasOne(d => d.Customer).WithMany(p => p.BookReviews)
+                .HasForeignKey(d => d.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_BookReviews_Customers");
+
+            // Unique constraint: mỗi customer chỉ đánh giá 1 lần cho mỗi sách
+            entity.HasIndex(e => new { e.BookId, e.CustomerId })
+                .IsUnique()
+                .HasDatabaseName("UQ_BookReviews_Book_Customer");
         });
 
         OnModelCreatingPartial(modelBuilder);

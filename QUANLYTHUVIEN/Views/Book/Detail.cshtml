@@ -1,5 +1,7 @@
 @model QUANLYTHUVIEN.Models.Book
 @using QUANLYTHUVIEN.Utilities
+@using QUANLYTHUVIEN.Models
+@using System.Linq
 @{
     ViewData["Title"] = Model.Title;
     var alias = Function.TitleSlugGenerationAlias(Model.Title);
@@ -7,6 +9,17 @@
     var relatedBooks = ViewBag.BooksRelated as List<QUANLYTHUVIEN.Models.Book>;
     var availableQuantity = ViewBag.AvailableQuantity ?? 0;
     var totalQuantity = Model.Quantity ?? 0;
+    
+    // Xử lý reviews an toàn
+    List<BookReview> reviews = new List<BookReview>();
+    if (ViewBag.Reviews != null && ViewBag.Reviews is IEnumerable<BookReview>)
+    {
+        reviews = (ViewBag.Reviews as IEnumerable<BookReview>)?.ToList() ?? new List<BookReview>();
+    }
+    
+    var reviewCount = ViewBag.ReviewCount != null ? (int)ViewBag.ReviewCount : 0;
+    var averageRating = ViewBag.AverageRating != null ? (double)ViewBag.AverageRating : 0.0;
+    var canReview = ViewBag.CanReview != null && (bool)ViewBag.CanReview;
 }
 
 <!-- Start: Page Banner -->
@@ -183,7 +196,7 @@
                         <div class="table-tabs" id="responsiveTabs">
                             <ul class="nav nav-tabs">
                                 <li class="active"><b class="arrow-up"></b><a data-toggle="tab" href="#sectionA">Bản sao: @totalQuantity</a></li>
-                                <li><b class="arrow-up"></b><a data-toggle="tab" href="#sectionB">Đánh giá (0)</a></li>
+                                <li><b class="arrow-up"></b><a data-toggle="tab" href="#sectionB">Đánh giá (@reviewCount)</a></li>
                                 <li><b class="arrow-up"></b><a data-toggle="tab" href="#sectionC">Mục lục</a></li>
                                 <li><b class="arrow-up"></b><a data-toggle="tab" href="#sectionD">Sách đề xuất</a></li>
                             </ul>
@@ -224,7 +237,128 @@
                                 </div>
                                 <div id="sectionB" class="tab-pane fade in">
                                     <h5>Đánh giá</h5>
-                                    <p>Chưa có đánh giá nào cho cuốn sách này. Hãy là người đầu tiên đánh giá!</p>
+                                    
+                                    @if (reviewCount > 0)
+                                    {
+                                        <div style="margin-bottom: 30px;">
+                                            <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                                                <div style="font-size: 48px; font-weight: bold; color: #ff7236; margin-right: 20px;">
+                                                    @averageRating.ToString("F1")
+                                                </div>
+                                                <div>
+                                                    <div style="font-size: 24px; color: #ffc107; margin-bottom: 5px;">
+                                                        @for (int i = 1; i <= 5; i++)
+                                                        {
+                                                            if (i <= (int)averageRating)
+                                                            {
+                                                                <i class="fa fa-star"></i>
+                                                            }
+                                                            else if (i - averageRating < 1)
+                                                            {
+                                                                <i class="fa fa-star-half-o"></i>
+                                                            }
+                                                            else
+                                                            {
+                                                                <i class="fa fa-star-o"></i>
+                                                            }
+                                                        }
+                                                    </div>
+                                                    <div style="color: #666;">
+                                                        Dựa trên @reviewCount đánh giá
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    @if (canReview)
+                                    {
+                                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                                            <h6 style="margin-bottom: 15px;">Viết đánh giá của bạn</h6>
+                                            <form id="reviewForm">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="bookId" value="@Model.BookId" />
+                                                
+                                                <div class="form-group" style="margin-bottom: 15px;">
+                                                    <label style="font-weight: bold; margin-bottom: 10px; display: block;">Đánh giá sao <span class="text-danger">*</span></label>
+                                                    <div class="star-rating" style="font-size: 24px; color: #ffc107; cursor: pointer;">
+                                                        @for (int i = 1; i <= 5; i++)
+                                                        {
+                                                            <i class="fa fa-star-o" data-rating="@i" style="margin-right: 5px;" onmouseover="highlightStars(@i)" onmouseout="resetStars()" onclick="selectRating(@i)"></i>
+                                                        }
+                                                    </div>
+                                                    <input type="hidden" id="rating" name="rating" value="0" required />
+                                                    <small class="text-danger" id="ratingError" style="display: none;">Vui lòng chọn số sao</small>
+                                                </div>
+
+                                                <div class="form-group" style="margin-bottom: 15px;">
+                                                    <label for="comment" style="font-weight: bold; margin-bottom: 10px; display: block;">Bình luận</label>
+                                                    <textarea id="comment" name="comment" class="form-control" rows="4" placeholder="Chia sẻ cảm nhận của bạn về cuốn sách này..." maxlength="1000"></textarea>
+                                                    <small class="text-muted">Tối đa 1000 ký tự</small>
+                                                </div>
+
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fa fa-paper-plane"></i> Gửi đánh giá
+                                                </button>
+                                            </form>
+                                        </div>
+                                    }
+                                    else if (!string.IsNullOrEmpty(Context.Session?.GetString("UserId")))
+                                    {
+                                        <div class="alert alert-info" style="margin-bottom: 30px;">
+                                            <i class="fa fa-info-circle"></i> Bạn chỉ có thể đánh giá sách đã thuê và trả.
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-warning" style="margin-bottom: 30px;">
+                                            <i class="fa fa-exclamation-triangle"></i> Vui lòng <a href="@Url.Action("Login", "Account")">đăng nhập</a> để đánh giá sách.
+                                        </div>
+                                    }
+
+                                    <div class="reviews-list">
+                                        <h6 style="margin-bottom: 20px;">Đánh giá từ độc giả (@reviewCount)</h6>
+                                        
+                                        @if (reviews.Any())
+                                        {
+                                            @foreach (var review in reviews)
+                                            {
+                                                <div style="border-bottom: 1px solid #e9ecef; padding: 20px 0;">
+                                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                                                        <div>
+                                                            <strong style="font-size: 16px;">@review.Customer?.FullName ?? "Khách hàng"</strong>
+                                                            <div style="color: #ffc107; font-size: 14px; margin-top: 5px;">
+                                                                @for (int i = 1; i <= 5; i++)
+                                                                {
+                                                                    if (i <= review.Rating)
+                                                                    {
+                                                                        <i class="fa fa-star"></i>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <i class="fa fa-star-o"></i>
+                                                                    }
+                                                                }
+                                                                <span style="color: #666; margin-left: 10px;">@review.Rating/5</span>
+                                                            </div>
+                                                        </div>
+                                                        <small class="text-muted">@review.CreatedDate.ToString("dd/MM/yyyy HH:mm")</small>
+                                                    </div>
+                                                    @if (!string.IsNullOrEmpty(review.Comment))
+                                                    {
+                                                        <p style="color: #555; margin-top: 10px; line-height: 1.6;">@review.Comment</p>
+                                                    }
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <div class="alert alert-info text-center" style="padding: 30px;">
+                                                <i class="fa fa-info-circle" style="font-size: 48px; color: #17a2b8; margin-bottom: 15px;"></i>
+                                                <p>Chưa có đánh giá nào cho cuốn sách này. Hãy là người đầu tiên đánh giá!</p>
+                                            </div>
+                                        }
+                                    </div>
                                 </div>
                                 <div id="sectionC" class="tab-pane fade in">
                                     <h5>Mục lục</h5>
@@ -335,6 +469,69 @@
 
 @section Scripts {
     <script>
+        var selectedRating = 0;
+
+        function highlightStars(rating) {
+            $('.star-rating i').each(function(index) {
+                if (index < rating) {
+                    $(this).removeClass('fa-star-o fa-star-half-o').addClass('fa-star');
+                } else {
+                    $(this).removeClass('fa-star fa-star-half-o').addClass('fa-star-o');
+                }
+            });
+        }
+
+        function resetStars() {
+            if (selectedRating === 0) {
+                $('.star-rating i').removeClass('fa-star fa-star-half-o').addClass('fa-star-o');
+            } else {
+                highlightStars(selectedRating);
+            }
+        }
+
+        function selectRating(rating) {
+            selectedRating = rating;
+            $('#rating').val(rating);
+            $('#ratingError').hide();
+            highlightStars(rating);
+        }
+
+        $('#reviewForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            var rating = $('#rating').val();
+            if (rating === '0' || rating === '') {
+                $('#ratingError').show();
+                return;
+            }
+
+            var formData = {
+                bookId: $('input[name="bookId"]').val(),
+                rating: rating,
+                comment: $('#comment').val(),
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            };
+
+            $.ajax({
+                url: '@Url.Action("SubmitReview", "Book")',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function() {
+                    toastr.error('Có lỗi xảy ra khi gửi đánh giá');
+                }
+            });
+        });
+
         function addToCart(bookId) {
             $.ajax({
                 url: '@Url.Action("AddToCart", "Cart")',

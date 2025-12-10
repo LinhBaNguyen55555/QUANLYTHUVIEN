@@ -20,4 +20,6 @@ public partial class Customer
     public virtual ICollection<Rental> Rentals { get; set; } = new List<Rental>();
 
     public virtual ICollection<TbBlogComment> TbBlogComments { get; set; } = new List<TbBlogComment>();
+
+    public virtual ICollection<BookReview> BookReviews { get; set; } = new List<BookReview>();
 }

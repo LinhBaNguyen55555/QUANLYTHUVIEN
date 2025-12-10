@@ -59,6 +59,8 @@ public partial class Book
 
     public virtual ICollection<Author> Authors { get; set; } = new List<Author>();
 
+    public virtual ICollection<BookReview> BookReviews { get; set; } = new List<BookReview>();
+
 
     // DÒNG NÀY ĐÃ BỊ XÓA VÌ MÂU THUẪN VỚI CategoryId
     // public virtual ICollection<Category> Categories { get; set; } = new List<Category>();
