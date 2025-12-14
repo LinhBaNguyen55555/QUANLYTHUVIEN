@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Thêm Người dùng mới";
+    var model = Model ?? new QUANLYTHUVIEN.Models.User();
 }
 
 <div class="card shadow mb-4">
@@ -9,77 +10,85 @@
         <h6 class="m-0 font-weight-bold text-primary">Thêm Người dùng mới</h6>
     </div>
     <div class="card-body">
-        @if (ViewData.ModelState.ErrorCount > 0 && !ViewData.ModelState.IsValid)
-        {
-            <div class="alert alert-danger">
-                <strong>Có lỗi xảy ra:</strong>
-                <ul class="mb-0">
-                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                    {
-                        <li>@error.ErrorMessage</li>
-                    }
-                </ul>
-            </div>
-        }
-
-        <form asp-action="Create" method="post">
+        <form asp-action="Create" asp-area="Admin" asp-controller="User" method="post">
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label asp-for="Username" class="control-label font-weight-bold">
+                        <label for="username" class="control-label font-weight-bold">
                             Tên đăng nhập <span class="text-danger">*</span>
                         </label>
-                        <input asp-for="Username" class="form-control" placeholder="Nhập tên đăng nhập" />
+                        <input type="text" id="username" name="username" class="form-control" placeholder="Nhập tên đăng nhập" value="@(model.Username ?? "")" required />
                         <small class="form-text text-muted">Tên đăng nhập không được trùng</small>
-                        <span asp-validation-for="Username" class="text-danger"></span>
+                        @if (ViewData.ModelState["Username"]?.Errors?.Count > 0)
+                        {
+                            <span class="text-danger d-block">@ViewData.ModelState["Username"].Errors[0].ErrorMessage</span>
+                        }
                     </div>
 
                     <div class="form-group">
-                        <label asp-for="FullName" class="control-label font-weight-bold">
+                        <label for="fullName" class="control-label font-weight-bold">
                             Họ và tên <span class="text-danger">*</span>
                         </label>
-                        <input asp-for="FullName" class="form-control" placeholder="Nhập họ và tên đầy đủ" />
-                        <span asp-validation-for="FullName" class="text-danger"></span>
+                        <input type="text" id="fullName" name="fullName" class="form-control" placeholder="Nhập họ và tên đầy đủ" value="@(model.FullName ?? "")" required />
+                        @if (ViewData.ModelState["FullName"]?.Errors?.Count > 0)
+                        {
+                            <span class="text-danger d-block">@ViewData.ModelState["FullName"].Errors[0].ErrorMessage</span>
+                        }
                     </div>
 
                     <div class="form-group">
-                        <label asp-for="Email" class="control-label">Email</label>
-                        <input asp-for="Email" type="email" class="form-control" placeholder="email@example.com" />
+                        <label for="email" class="control-label">Email</label>
+                        <input type="email" id="email" name="email" class="form-control" placeholder="email@example.com" value="@(model.Email ?? "")" />
                         <small class="form-text text-muted">Email không được trùng</small>
-                        <span asp-validation-for="Email" class="text-danger"></span>
+                        @if (ViewData.ModelState["Email"]?.Errors?.Count > 0)
+                        {
+                            <span class="text-danger d-block">@ViewData.ModelState["Email"].Errors[0].ErrorMessage</span>
+                        }
                     </div>
 
                     <div class="form-group">
                         <label for="password" class="control-label font-weight-bold">
                             Mật khẩu <span class="text-danger">*</span>
                         </label>
-                        <input type="password" id="password" name="password" class="form-control" placeholder="Nhập mật khẩu" />
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Nhập mật khẩu" required minlength="6" />
                         <small class="form-text text-muted">Mật khẩu tối thiểu 6 ký tự</small>
+                        @if (ViewData.ModelState["password"]?.Errors?.Count > 0)
+                        {
+                            <span class="text-danger d-block">@ViewData.ModelState["password"].Errors[0].ErrorMessage</span>
+                        }
                     </div>
                 </div>
 
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label asp-for="Phone" class="control-label">Số điện thoại</label>
-                        <input asp-for="Phone" class="form-control" placeholder="0123456789" />
-                        <span asp-validation-for="Phone" class="text-danger"></span>
+                        <label for="phone" class="control-label">Số điện thoại</label>
+                        <input type="text" id="phone" name="phone" class="form-control" placeholder="0123456789" value="@(model.Phone ?? "")" />
+                        @if (ViewData.ModelState["Phone"]?.Errors?.Count > 0)
+                        {
+                            <span class="text-danger d-block">@ViewData.ModelState["Phone"].Errors[0].ErrorMessage</span>
+                        }
                     </div>
 
                     <div class="form-group">
-                        <label asp-for="RoleId" class="control-label font-weight-bold">
+                        <label for="roleId" class="control-label font-weight-bold">
                             Vai trò <span class="text-danger">*</span>
                         </label>
-                        <select asp-for="RoleId" class="form-control">
+                        <select id="roleId" name="roleId" class="form-control" required>
                             <option value="">Chọn vai trò</option>
                             @if (ViewBag.Roles != null)
                             {
                                 foreach (var role in ViewBag.Roles as IEnumerable<QUANLYTHUVIEN.Models.TbRole>)
                                 {
-                                    <option value="@role.RoleId">@role.RoleName</option>
+                                    <option value="@role.RoleId" selected="@(model.RoleId.HasValue && role.RoleId == model.RoleId ? "selected" : null)">
+                                        @role.RoleName
+                                    </option>
                                 }
                             }
                         </select>
-                        <span asp-validation-for="RoleId" class="text-danger"></span>
+                        @if (ViewData.ModelState["RoleId"]?.Errors?.Count > 0)
+                        {
+                            <span class="text-danger d-block">@ViewData.ModelState["RoleId"].Errors[0].ErrorMessage</span>
+                        }
                     </div>
                 </div>
             </div>
@@ -88,7 +97,7 @@
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Tạo người dùng
                 </button>
-                <a href="@Url.Action("Index", "User")" class="btn btn-secondary">
+                <a href="@Url.Action("Index", "User", new { area = "Admin" })" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Quay lại danh sách
                 </a>
             </div>

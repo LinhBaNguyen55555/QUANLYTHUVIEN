@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using QUANLYTHUVIEN.Models;
 using Microsoft.AspNetCore.Http;
 using QUANLYTHUVIEN.Services;
+using QUANLYTHUVIEN.Utilities;
+using System.Collections.Generic;
 
 namespace QUANLYTHUVIEN.Controllers
 {
@@ -152,9 +154,35 @@ namespace QUANLYTHUVIEN.Controllers
                 .OrderByDescending(r => r.ReturnDate ?? r.RentalDate)
                 .ToListAsync();
 
+            // Kiểm tra xem mỗi sách đã được đánh giá chưa
+            Dictionary<int, bool> bookReviewStatus = new Dictionary<int, bool>();
+            try
+            {
+                var reviewedBookIds = await _context.BookReviews
+                    .Where(r => r.CustomerId == customer.CustomerId)
+                    .Select(r => r.BookId)
+                    .ToListAsync();
+                
+                foreach (var rental in rentals)
+                {
+                    foreach (var detail in rental.RentalDetails)
+                    {
+                        if (!bookReviewStatus.ContainsKey(detail.BookId))
+                        {
+                            bookReviewStatus[detail.BookId] = reviewedBookIds.Contains(detail.BookId);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Bảng BookReviews chưa tồn tại, tất cả đều chưa đánh giá
+            }
+
             ViewBag.CustomerName = customer.FullName;
             ViewBag.CustomerEmail = customer.Email;
             ViewBag.CustomerPhone = customer.Phone;
+            ViewBag.BookReviewStatus = bookReviewStatus;
 
             return View(rentals);
         }
@@ -518,6 +546,21 @@ namespace QUANLYTHUVIEN.Controllers
                 // Cập nhật trạng thái trả sách
                 rentalToUpdate.ReturnDate = DateTime.Now;
                 rentalToUpdate.Status = "Đã trả";
+
+                // Tạo thông báo khi trả sách thành công
+                var bookTitles = string.Join(", ", rental.RentalDetails.Take(3).Select(rd => rd.Book?.Title ?? "Sách"));
+                if (rental.RentalDetails.Count > 3)
+                {
+                    bookTitles += $" và {rental.RentalDetails.Count - 3} cuốn khác";
+                }
+
+                await NotificationHelper.CreateNotificationAsync(
+                    _context,
+                    userIdInt,
+                    "Trả sách thành công",
+                    $"Bạn đã trả sách thành công cho đơn #{rentalId}. Sách: {bookTitles}. Cảm ơn bạn đã sử dụng dịch vụ!",
+                    "success"
+                );
 
                 // Tăng lại số lượng sách có sẵn
                 foreach (var detail in rental.RentalDetails)

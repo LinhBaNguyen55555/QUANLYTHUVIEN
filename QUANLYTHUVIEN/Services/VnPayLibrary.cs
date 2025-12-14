@@ -24,28 +24,45 @@ namespace QUANLYTHUVIEN.Services
                 }
             }
 
-            var orderId = Convert.ToInt64(vnPay.GetResponseData("vnp_TxnRef"));
-            var vnPayTranId = Convert.ToInt64(vnPay.GetResponseData("vnp_TransactionNo"));
+            var orderId = vnPay.GetResponseData("vnp_TxnRef"); // Lấy OrderId dạng string, không convert
+            var vnPayTranIdStr = vnPay.GetResponseData("vnp_TransactionNo");
             var vnpResponseCode = vnPay.GetResponseData("vnp_ResponseCode");
             var vnpSecureHash =
                 collection.FirstOrDefault(k => k.Key == "vnp_SecureHash").Value; //hash của dữ liệu trả về
             var orderInfo = vnPay.GetResponseData("vnp_OrderInfo");
 
+            // Log để debug
+            System.Diagnostics.Debug.WriteLine($"VnPay Callback - OrderId: {orderId}, ResponseCode: {vnpResponseCode}, SecureHash: {vnpSecureHash}");
+
             var checkSignature =
                 vnPay.ValidateSignature(vnpSecureHash, hashSecret); //check Signature
 
             if (!checkSignature)
+            {
+                System.Diagnostics.Debug.WriteLine($"VnPay Signature validation failed!");
                 return new PaymentResponseModel()
                 {
-                    Success = false
+                    Success = false,
+                    VnPayResponseCode = vnpResponseCode,
+                    OrderId = orderId
                 };
+            }
+
+            // Parse TransactionNo an toàn
+            long vnPayTranId = 0;
+            if (!string.IsNullOrEmpty(vnPayTranIdStr) && long.TryParse(vnPayTranIdStr, out long parsedTranId))
+            {
+                vnPayTranId = parsedTranId;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"VnPay Callback Success - OrderId: {orderId}, TransactionId: {vnPayTranId}, ResponseCode: {vnpResponseCode}");
 
             return new PaymentResponseModel()
             {
                 Success = true,
                 PaymentMethod = "VnPay",
                 OrderDescription = orderInfo,
-                OrderId = orderId.ToString(),
+                OrderId = orderId ?? string.Empty,
                 PaymentId = vnPayTranId.ToString(),
                 TransactionId = vnPayTranId.ToString(),
                 Token = vnpSecureHash,
@@ -112,10 +129,13 @@ namespace QUANLYTHUVIEN.Services
             var signData = querystring;
             if (signData.Length > 0)
             {
-                signData = signData.Remove(data.Length - 1, 1);
+                signData = signData.Remove(signData.Length - 1, 1); // Sửa: dùng signData.Length thay vì data.Length
             }
             var vnpSecureHash = HmacSha512(vnpHashSecret, signData);
             baseUrl += "vnp_SecureHash=" + vnpSecureHash;
+            
+            // Log để debug
+            System.Diagnostics.Debug.WriteLine($"VnPay Payment URL created: {baseUrl.Substring(0, Math.Min(200, baseUrl.Length))}...");
 
             return baseUrl;
         }

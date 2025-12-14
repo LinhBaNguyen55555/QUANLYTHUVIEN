@@ -51,6 +51,9 @@ public partial class QlthuvienContext : DbContext
 
     public virtual DbSet<BookReview> BookReviews { get; set; }
 
+    public virtual DbSet<Contact> Contacts { get; set; }
+
+    public virtual DbSet<Notification> Notifications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -404,6 +407,56 @@ public partial class QlthuvienContext : DbContext
             entity.HasIndex(e => new { e.BookId, e.CustomerId })
                 .IsUnique()
                 .HasDatabaseName("UQ_BookReviews_Book_Customer");
+        });
+
+        modelBuilder.Entity<Contact>(entity =>
+        {
+            entity.HasKey(e => e.ContactID).HasName("PK_Contacts");
+
+            entity.ToTable("Contacts");
+
+            entity.Property(e => e.ContactID).HasColumnName("ContactID");
+            entity.Property(e => e.FullName)
+                .IsRequired()
+                .HasMaxLength(200);
+            entity.Property(e => e.Email)
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.Phone).HasMaxLength(20);
+            entity.Property(e => e.Content)
+                .IsRequired()
+                .HasMaxLength(2000);
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasKey(e => e.NotificationId).HasName("PK_Notifications");
+
+            entity.ToTable("Notifications");
+
+            entity.Property(e => e.NotificationId).HasColumnName("NotificationID");
+            entity.Property(e => e.UserId).HasColumnName("UserID");
+            entity.Property(e => e.Title)
+                .IsRequired()
+                .HasMaxLength(200);
+            entity.Property(e => e.Content)
+                .IsRequired()
+                .HasMaxLength(2000);
+            entity.Property(e => e.Type).HasMaxLength(50);
+            entity.Property(e => e.IsRead).HasDefaultValue(false);
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.ReadDate).HasColumnType("datetime");
+
+            entity.HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_Notifications_Users");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QUANLYTHUVIEN.Models;
 using QUANLYTHUVIEN.Services;
+using QUANLYTHUVIEN.Utilities;
 using System.Text.Json;
 using System.Security.Cryptography;
 using System.Text;
@@ -99,7 +100,16 @@ namespace QUANLYTHUVIEN.Controllers
         {
             try
             {
+                // Log tất cả query parameters để debug
+                System.Diagnostics.Debug.WriteLine("=== VnPay Callback ===");
+                foreach (var query in Request.Query)
+                {
+                    System.Diagnostics.Debug.WriteLine($"{query.Key} = {query.Value}");
+                }
+
                 var response = _vnPayService.PaymentExecute(Request.Query);
+
+                System.Diagnostics.Debug.WriteLine($"Response Success: {response.Success}, ResponseCode: {response.VnPayResponseCode}, OrderId: {response.OrderId}");
 
                 if (response.Success && response.VnPayResponseCode == "00")
                 {
@@ -179,6 +189,22 @@ namespace QUANLYTHUVIEN.Controllers
                                 }
 
                                 await _context.SaveChangesAsync();
+
+                                // Tạo thông báo khi thanh toán thành công
+                                var rentalUser = await _context.Users
+                                    .FirstOrDefaultAsync(u => u.UserId == dbRental.UserId);
+                                
+                                if (rentalUser != null)
+                                {
+                                    var bookCount = dbRental.RentalDetails.Sum(rd => rd.Quantity ?? 0);
+                                    await NotificationHelper.CreateNotificationAsync(
+                                        _context,
+                                        dbRental.UserId,
+                                        "Thanh toán thành công",
+                                        $"Bạn đã thanh toán thành công cho đơn thuê sách #{dbRental.RentalId}. Số lượng sách: {bookCount} cuốn. Tổng tiền: {dbRental.TotalAmount:N0} VNĐ.",
+                                        "success"
+                                    );
+                                }
                             }
 
                             // Xóa session
@@ -204,7 +230,33 @@ namespace QUANLYTHUVIEN.Controllers
                 else
                 {
                     // Thanh toán thất bại
-                    TempData["Error"] = $"Thanh toán thất bại. Mã lỗi: {response.VnPayResponseCode}";
+                    var errorMessage = "Thanh toán thất bại.";
+                    if (!string.IsNullOrEmpty(response.VnPayResponseCode))
+                    {
+                        // Map response code to user-friendly message
+                        errorMessage = response.VnPayResponseCode switch
+                        {
+                            "07" => "Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường).",
+                            "09" => "Thẻ/Tài khoản chưa đăng ký dịch vụ InternetBanking.",
+                            "10" => "Xác thực thông tin thẻ/tài khoản không đúng. Quá số lần cho phép.",
+                            "11" => "Đã hết hạn chờ thanh toán. Vui lòng thử lại.",
+                            "12" => "Thẻ/Tài khoản bị khóa.",
+                            "13" => "Nhập sai mật khẩu xác thực giao dịch (OTP). Quá số lần cho phép.",
+                            "51" => "Tài khoản không đủ số dư để thực hiện giao dịch.",
+                            "65" => "Tài khoản đã vượt quá hạn mức giao dịch trong ngày.",
+                            "75" => "Ngân hàng thanh toán đang bảo trì.",
+                            "79" => "Nhập sai mật khẩu thanh toán quá số lần quy định.",
+                            "99" => "Lỗi không xác định.",
+                            _ => $"Thanh toán thất bại. Mã lỗi: {response.VnPayResponseCode}"
+                        };
+                    }
+                    else if (!response.Success)
+                    {
+                        errorMessage = "Xác thực chữ ký thất bại. Giao dịch không hợp lệ.";
+                    }
+
+                    System.Diagnostics.Debug.WriteLine($"Payment failed: {errorMessage}");
+                    TempData["Error"] = errorMessage;
                     return RedirectToAction("VnPayResult", "Payment", new { status = "failed" });
                 }
             }

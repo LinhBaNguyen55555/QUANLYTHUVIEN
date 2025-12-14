@@ -1,0 +1,127 @@
+@model IEnumerable<QUANLYTHUVIEN.Models.Contact>
+
+@{
+    ViewData["Title"] = "Quản lý Liên hệ";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h6 class="m-0 font-weight-bold text-primary">Danh sách Tin nhắn Liên hệ</h6>
+            </div>
+        </div>
+
+        <!-- Search Form -->
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <form method="get" class="form-inline">
+                    <div class="form-group mr-3">
+                        <input type="text" name="searchString" class="form-control form-control-sm"
+                               placeholder="Tìm kiếm theo tên, email, số điện thoại, nội dung..."
+                               value="@ViewBag.SearchString" style="min-width: 300px;" />
+                    </div>
+                    <button type="submit" class="btn btn-secondary btn-sm mr-2">
+                        <i class="fas fa-search"></i> Tìm kiếm
+                    </button>
+                    <a href="@Url.Action("Index", "Contact")" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-times"></i> Xóa bộ lọc
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Thông báo -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle"></i> @TempData["Success"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle"></i> @TempData["Error"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+
+        @if (!Model.Any())
+        {
+            <div class="alert alert-info">
+                Chưa có tin nhắn liên hệ nào.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Họ và tên</th>
+                            <th>Email</th>
+                            <th>Số điện thoại</th>
+                            <th>Nội dung</th>
+                            <th>Ngày gửi</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.ContactID</td>
+                                <td><strong>@item.FullName</strong></td>
+                                <td>
+                                    <a href="mailto:@item.Email">@item.Email</a>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.Phone))
+                                    {
+                                        <a href="tel:@item.Phone">@item.Phone</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa cập nhật</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.Content))
+                                    {
+                                        @(item.Content.Length > 50 ? item.Content.Substring(0, 50) + "..." : item.Content)
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Không có nội dung</span>
+                                    }
+                                </td>
+                                <td>@item.CreatedDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="@Url.Action("Details", "Contact", new { id = item.ContactID })"
+                                           class="btn btn-info btn-sm" title="Chi tiết">
+                                            <i class="fas fa-info-circle"></i>
+                                        </a>
+                                        <a href="@Url.Action("Delete", "Contact", new { id = item.ContactID })"
+                                           class="btn btn-danger btn-sm" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+

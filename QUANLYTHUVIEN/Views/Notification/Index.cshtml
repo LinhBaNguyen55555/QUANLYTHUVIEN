@@ -1,0 +1,284 @@
+@model IEnumerable<QUANLYTHUVIEN.Models.Notification>
+
+@{
+    ViewData["Title"] = "Thông báo";
+    var unreadCount = ViewBag.UnreadCount as int? ?? 0;
+}
+
+<!-- Start: Page Banner -->
+<section class="page-banner services-banner">
+    <div class="container">
+        <div class="banner-header">
+            <h2>Thông báo</h2>
+            <span class="underline center"></span>
+            <p class="lead">Xem tất cả thông báo của bạn</p>
+        </div>
+        <div class="breadcrumb">
+            <ul>
+                <li><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                <li>Thông báo</li>
+            </ul>
+        </div>
+    </div>
+</section>
+<!-- End: Page Banner -->
+
+<div id="content" class="site-content">
+    <div id="primary" class="content-area">
+        <main id="main" class="site-main">
+            <div class="books-media-gird">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-10 col-md-offset-1">
+                            <div style="background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 40px 0;">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h3 style="margin: 0;">
+                                        <i class="fa fa-bell"></i> Thông báo của tôi
+                                        @if (unreadCount > 0)
+                                        {
+                                            <span class="badge badge-danger" style="font-size: 14px; margin-left: 10px;">@unreadCount chưa đọc</span>
+                                        }
+                                    </h3>
+                                    @if (unreadCount > 0)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-primary" id="markAllReadBtn">
+                                            <i class="fa fa-check-double"></i> Đánh dấu tất cả đã đọc
+                                        </button>
+                                    }
+                                </div>
+
+                                @if (TempData["Success"] != null)
+                                {
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        <i class="fa fa-check-circle"></i> @TempData["Success"]
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                }
+
+                                @if (TempData["Error"] != null)
+                                {
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="fa fa-exclamation-circle"></i> @TempData["Error"]
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                }
+
+                                @if (!Model.Any())
+                                {
+                                    <div class="text-center" style="padding: 60px 20px;">
+                                        <i class="fa fa-bell-slash" style="font-size: 64px; color: #ddd; margin-bottom: 20px;"></i>
+                                        <h4 style="color: #999;">Chưa có thông báo nào</h4>
+                                        <p style="color: #999;">Bạn sẽ nhận được thông báo khi có cập nhật mới.</p>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="notifications-list">
+                                        @foreach (var notification in Model)
+                                        {
+                                            var alertClass = notification.Type switch
+                                            {
+                                                "success" => "alert-success",
+                                                "warning" => "alert-warning",
+                                                "danger" => "alert-danger",
+                                                _ => "alert-info"
+                                            };
+
+                                            <div class="notification-item alert @alertClass @(notification.IsRead ? "" : "border-left-4")" 
+                                                 data-notification-id="@notification.NotificationId"
+                                                 style="margin-bottom: 15px; padding: 20px; border-radius: 8px; @(notification.IsRead ? "opacity: 0.7;" : "border-left: 4px solid #ff7236 !important;")">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div style="flex: 1;">
+                                                        <h5 style="margin: 0 0 10px 0; font-weight: @(notification.IsRead ? "normal" : "bold");">
+                                                            @if (!notification.IsRead)
+                                                            {
+                                                                <span class="badge badge-danger" style="margin-right: 8px;">Mới</span>
+                                                            }
+                                                            @notification.Title
+                                                        </h5>
+                                                        <p style="margin: 0; line-height: 1.6; white-space: pre-wrap;">@notification.Content</p>
+                                                        <small class="text-muted" style="display: block; margin-top: 10px;">
+                                                            <i class="fa fa-clock-o"></i> @notification.CreatedDate.ToString("dd/MM/yyyy HH:mm")
+                                                        </small>
+                                                    </div>
+                                                    <div class="notification-actions" style="margin-left: 15px;">
+                                                        @if (!notification.IsRead)
+                                                        {
+                                                            <button type="button" class="btn btn-sm btn-outline-primary mark-read-btn" 
+                                                                    data-id="@notification.NotificationId" 
+                                                                    title="Đánh dấu đã đọc">
+                                                                <i class="fa fa-check"></i>
+                                                            </button>
+                                                        }
+                                                        <button type="button" class="btn btn-sm btn-outline-danger delete-notification-btn" 
+                                                                data-id="@notification.NotificationId" 
+                                                                title="Xóa">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<style>
+    .border-left-4 {
+        border-left: 4px solid #ff7236 !important;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Đánh dấu đã đọc
+            $(document).on('click', '.mark-read-btn', function() {
+                var $btn = $(this);
+                var notificationId = $btn.data('id');
+                var $item = $btn.closest('.notification-item');
+
+                $.ajax({
+                    url: '@Url.Action("MarkAsRead", "Notification")',
+                    type: 'POST',
+                    data: { id: notificationId },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response && response.success) {
+                            $item.removeClass('border-left-4').css('opacity', '0.7');
+                            $item.find('h5').css('font-weight', 'normal');
+                            $item.find('.badge-danger').remove();
+                            $btn.remove();
+                            
+                            // Cập nhật số thông báo chưa đọc
+                            updateUnreadCount(response.unreadCount);
+                            
+                            if (typeof toastr !== 'undefined') {
+                                toastr.success('Đã đánh dấu đã đọc');
+                            }
+                        }
+                    },
+                    error: function() {
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error('Có lỗi xảy ra');
+                        } else {
+                            alert('Có lỗi xảy ra');
+                        }
+                    }
+                });
+            });
+
+            // Xóa thông báo
+            $(document).on('click', '.delete-notification-btn', function() {
+                if (!confirm('Bạn có chắc chắn muốn xóa thông báo này?')) {
+                    return;
+                }
+
+                var $btn = $(this);
+                var notificationId = $btn.data('id');
+                var $item = $btn.closest('.notification-item');
+
+                $.ajax({
+                    url: '@Url.Action("Delete", "Notification")',
+                    type: 'POST',
+                    data: { id: notificationId },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response && response.success) {
+                            $item.fadeOut(300, function() {
+                                $(this).remove();
+                                
+                                // Kiểm tra nếu không còn thông báo nào
+                                if ($('.notification-item').length === 0) {
+                                    location.reload();
+                                }
+                            });
+                            
+                            if (typeof toastr !== 'undefined') {
+                                toastr.success(response.message || 'Đã xóa thông báo');
+                            }
+                        }
+                    },
+                    error: function() {
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error('Có lỗi xảy ra');
+                        } else {
+                            alert('Có lỗi xảy ra');
+                        }
+                    }
+                });
+            });
+
+            // Đánh dấu tất cả đã đọc
+            $('#markAllReadBtn').on('click', function() {
+                var $btn = $(this);
+                $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Đang xử lý...');
+
+                $.ajax({
+                    url: '@Url.Action("MarkAllAsRead", "Notification")',
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response && response.success) {
+                            $('.notification-item').each(function() {
+                                $(this).removeClass('border-left-4').css('opacity', '0.7');
+                                $(this).find('h5').css('font-weight', 'normal');
+                                $(this).find('.badge-danger').remove();
+                                $(this).find('.mark-read-btn').remove();
+                            });
+                            
+                            $btn.hide();
+                            updateUnreadCount(0);
+                            
+                            if (typeof toastr !== 'undefined') {
+                                toastr.success(response.message || 'Đã đánh dấu tất cả đã đọc');
+                            } else {
+                                alert(response.message || 'Đã đánh dấu tất cả đã đọc');
+                            }
+                        }
+                    },
+                    error: function() {
+                        $btn.prop('disabled', false).html('<i class="fa fa-check-double"></i> Đánh dấu tất cả đã đọc');
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error('Có lỗi xảy ra');
+                        }
+                    }
+                });
+            });
+
+            // Cập nhật số thông báo chưa đọc
+            function updateUnreadCount(count) {
+                $('#notification-badge').text(count);
+                if (count > 0) {
+                    $('#notification-badge').show();
+                } else {
+                    $('#notification-badge').hide();
+                }
+            }
+
+            // Load số thông báo chưa đọc khi trang load
+            $.ajax({
+                url: '@Url.Action("GetUnreadCount", "Notification")',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response) {
+                        updateUnreadCount(response.count || 0);
+                    }
+                }
+            });
+        });
+    </script>
+}
+

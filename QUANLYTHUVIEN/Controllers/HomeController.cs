@@ -133,6 +133,87 @@ namespace QUANLYTHUVIEN.Controllers
             return View();
         }
 
+        // POST: Home/Contact - Xử lý gửi tin nhắn liên hệ
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Route("lien-he")]
+        [Route("contact")]
+        public async Task<IActionResult> Contact(string firstName, string lastName, string email, string phone, string message)
+        {
+            try
+            {
+                // Lấy từ form với tên có dấu gạch ngang
+                var first_name = Request.Form["first-name"].ToString();
+                var last_name = Request.Form["last-name"].ToString();
+                var emailValue = Request.Form["email"].ToString();
+                var phoneValue = Request.Form["phone"].ToString();
+                var messageValue = Request.Form["message"].ToString();
+
+                // Validation
+                if (string.IsNullOrWhiteSpace(first_name) && string.IsNullOrWhiteSpace(last_name))
+                {
+                    TempData["Error"] = "Vui lòng nhập họ hoặc tên.";
+                    return View();
+                }
+
+                if (string.IsNullOrWhiteSpace(emailValue))
+                {
+                    TempData["Error"] = "Vui lòng nhập email.";
+                    return View();
+                }
+
+                if (string.IsNullOrWhiteSpace(messageValue))
+                {
+                    TempData["Error"] = "Vui lòng nhập nội dung tin nhắn.";
+                    return View();
+                }
+
+                // Kiểm tra email hợp lệ
+                if (!emailValue.Contains("@") || !emailValue.Contains("."))
+                {
+                    TempData["Error"] = "Email không hợp lệ.";
+                    return View();
+                }
+
+                // Ghép họ và tên
+                var fullName = $"{first_name} {last_name}".Trim();
+                if (string.IsNullOrWhiteSpace(fullName))
+                {
+                    fullName = emailValue.Split('@')[0]; // Dùng phần trước @ của email nếu không có tên
+                }
+
+                // Tạo contact mới
+                var contact = new Contact
+                {
+                    FullName = fullName,
+                    Email = emailValue.Trim(),
+                    Phone = string.IsNullOrWhiteSpace(phoneValue) ? null : phoneValue.Trim(),
+                    Content = messageValue.Trim(),
+                    CreatedDate = DateTime.Now
+                };
+
+                _context.Contacts.Add(contact);
+                await _context.SaveChangesAsync();
+
+                // Tạo thông báo cho tất cả admin khi có tin nhắn liên hệ mới
+                await NotificationHelper.CreateNotificationForAdminsAsync(
+                    _context,
+                    "Tin nhắn liên hệ mới",
+                    $"Bạn có tin nhắn liên hệ mới từ {fullName} ({emailValue}). Nội dung: {messageValue.Trim().Substring(0, Math.Min(100, messageValue.Trim().Length))}...",
+                    "info"
+                );
+
+                TempData["Success"] = "Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.";
+                return RedirectToAction("Contact");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Có lỗi xảy ra khi gửi tin nhắn: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"Contact Error: {ex.Message}\n{ex.StackTrace}");
+                return View();
+            }
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

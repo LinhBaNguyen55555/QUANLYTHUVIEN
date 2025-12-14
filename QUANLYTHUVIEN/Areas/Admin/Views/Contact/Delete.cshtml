@@ -1,0 +1,56 @@
+@model QUANLYTHUVIEN.Models.Contact
+
+@{
+    ViewData["Title"] = "Xóa Tin nhắn Liên hệ";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-danger">Xác nhận xóa Tin nhắn Liên hệ</h6>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> Bạn có chắc chắn muốn xóa tin nhắn liên hệ này? Hành động này không thể hoàn tác.
+        </div>
+
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">@Model.ContactID</dd>
+
+            <dt class="col-sm-3">Họ và tên</dt>
+            <dd class="col-sm-9"><strong>@Model.FullName</strong></dd>
+
+            <dt class="col-sm-3">Email</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+
+            <dt class="col-sm-3">Số điện thoại</dt>
+            <dd class="col-sm-9">@(Model.Phone ?? "Chưa cập nhật")</dd>
+
+            <dt class="col-sm-3">Ngày gửi</dt>
+            <dd class="col-sm-9">@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm:ss")</dd>
+
+            <dt class="col-sm-3">Nội dung</dt>
+            <dd class="col-sm-9">
+                <div class="card border-light">
+                    <div class="card-body" style="white-space: pre-wrap; word-wrap: break-word; max-height: 200px; overflow-y: auto;">
+                        @Model.Content
+                    </div>
+                </div>
+            </dd>
+        </dl>
+
+        <form asp-action="Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ContactID" />
+            <div class="form-group">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Xóa
+                </button>
+                <a href="@Url.Action("Index", "Contact")" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Hủy
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+

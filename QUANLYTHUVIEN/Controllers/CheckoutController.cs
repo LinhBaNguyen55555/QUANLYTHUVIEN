@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QUANLYTHUVIEN.Models;
 using QUANLYTHUVIEN.Services;
+using QUANLYTHUVIEN.Utilities;
 using System.Text.Json;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
@@ -244,7 +245,7 @@ namespace QUANLYTHUVIEN.Controllers
                 _context.Rentals.Add(rental);
                 await _context.SaveChangesAsync();
 
-                // Nếu thanh toán qua VnPay, tạo URL thanh toán
+                // Nếu thanh toán qua VnPay, tạo URL thanh toán (thông báo sẽ được tạo sau khi thanh toán thành công)
                 if (!string.IsNullOrEmpty(paymentMethod) && paymentMethod.ToLower() == "vnpay")
                 {
                     try
@@ -294,6 +295,24 @@ namespace QUANLYTHUVIEN.Controllers
                 }
 
                 // Các phương thức thanh toán khác (thanh toán khi nhận, chuyển khoản)
+                // Tạo thông báo khi hoàn thành phiếu thuê (chỉ cho thanh toán không phải VnPay)
+                if (userIdInt > 0)
+                {
+                    var bookTitles = string.Join(", ", cart.Select(c => c.Title).Take(3));
+                    if (cart.Count > 3)
+                    {
+                        bookTitles += $" và {cart.Count - 3} cuốn khác";
+                    }
+
+                    await NotificationHelper.CreateNotificationAsync(
+                        _context,
+                        userIdInt,
+                        "Đặt thuê sách thành công",
+                        $"Bạn đã đặt thuê thành công với mã đơn #{rental.RentalId}. Sách: {bookTitles}. Tổng tiền: {rentalTotalAmount:N0} VNĐ.",
+                        "success"
+                    );
+                }
+
                 // Xóa giỏ hàng vì đã thanh toán thành công
                 ClearCart();
                 TempData["Success"] = $"Đặt thuê thành công! Mã đơn: #{rental.RentalId}";

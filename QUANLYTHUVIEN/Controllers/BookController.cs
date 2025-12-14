@@ -192,18 +192,23 @@ namespace QUANLYTHUVIEN.Controllers
             // 8. Kiểm tra xem user đã trả sách này chưa (để cho phép đánh giá)
             var userId = HttpContext.Session?.GetString("UserId");
             bool canReview = false;
+            Customer? customer = null;
+            int? currentCustomerId = null;
+            
             if (!string.IsNullOrEmpty(userId) && int.TryParse(userId, out int userIdInt))
             {
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userIdInt);
                 if (user != null)
                 {
-                    var customer = await _context.Customers
+                    customer = await _context.Customers
                         .FirstOrDefaultAsync(c => 
                             (!string.IsNullOrEmpty(user.Email) && c.Email == user.Email) ||
                             (!string.IsNullOrEmpty(user.Phone) && c.Phone == user.Phone));
                     
                     if (customer != null)
                     {
+                        currentCustomerId = customer.CustomerId;
+                        
                         // Kiểm tra xem customer đã thuê và trả sách này chưa
                         var hasReturnedBook = await _context.RentalDetails
                             .Include(rd => rd.Rental)
@@ -229,6 +234,7 @@ namespace QUANLYTHUVIEN.Controllers
                 }
             }
             ViewBag.CanReview = canReview;
+            ViewBag.CurrentCustomerId = currentCustomerId;
 
             return View(book);
         }
@@ -315,6 +321,133 @@ namespace QUANLYTHUVIEN.Controllers
                 _context.BookReviews.Add(review);
                 await _context.SaveChangesAsync();
                 return Json(new { success = true, message = "Cảm ơn bạn đã đánh giá!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Có lỗi xảy ra: {ex.Message}" });
+            }
+        }
+
+        // POST: Book/DeleteReview - Xóa đánh giá
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteReview(int reviewId)
+        {
+            var userId = HttpContext.Session?.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập để xóa đánh giá." });
+            }
+
+            if (!int.TryParse(userId, out int userIdInt))
+            {
+                return Json(new { success = false, message = "Không tìm thấy thông tin người dùng." });
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userIdInt);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy thông tin người dùng." });
+            }
+
+            var customer = await _context.Customers
+                .FirstOrDefaultAsync(c => 
+                    (!string.IsNullOrEmpty(user.Email) && c.Email == user.Email) ||
+                    (!string.IsNullOrEmpty(user.Phone) && c.Phone == user.Phone));
+
+            if (customer == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy thông tin khách hàng." });
+            }
+
+            // Tìm review
+            var review = await _context.BookReviews.FindAsync(reviewId);
+            if (review == null)
+            {
+                return Json(new { success = false, message = "Đánh giá không tồn tại." });
+            }
+
+            // Kiểm tra quyền: chỉ người đã đánh giá mới có thể xóa
+            if (review.CustomerId != customer.CustomerId)
+            {
+                return Json(new { success = false, message = "Bạn không có quyền xóa đánh giá này." });
+            }
+
+            try
+            {
+                _context.BookReviews.Remove(review);
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Đánh giá đã được xóa thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Có lỗi xảy ra: {ex.Message}" });
+            }
+        }
+
+        // POST: Book/UpdateReview - Cập nhật đánh giá
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateReview(int reviewId, int rating, string comment)
+        {
+            var userId = HttpContext.Session?.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập để chỉnh sửa đánh giá." });
+            }
+
+            if (!int.TryParse(userId, out int userIdInt))
+            {
+                return Json(new { success = false, message = "Không tìm thấy thông tin người dùng." });
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userIdInt);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy thông tin người dùng." });
+            }
+
+            var customer = await _context.Customers
+                .FirstOrDefaultAsync(c => 
+                    (!string.IsNullOrEmpty(user.Email) && c.Email == user.Email) ||
+                    (!string.IsNullOrEmpty(user.Phone) && c.Phone == user.Phone));
+
+            if (customer == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy thông tin khách hàng." });
+            }
+
+            // Tìm review
+            var review = await _context.BookReviews.FindAsync(reviewId);
+            if (review == null)
+            {
+                return Json(new { success = false, message = "Đánh giá không tồn tại." });
+            }
+
+            // Kiểm tra quyền: chỉ người đã đánh giá mới có thể sửa
+            if (review.CustomerId != customer.CustomerId)
+            {
+                return Json(new { success = false, message = "Bạn không có quyền chỉnh sửa đánh giá này." });
+            }
+
+            // Validation
+            if (rating < 1 || rating > 5)
+            {
+                return Json(new { success = false, message = "Đánh giá phải từ 1 đến 5 sao." });
+            }
+
+            if (comment != null && comment.Length > 1000)
+            {
+                return Json(new { success = false, message = "Bình luận không được vượt quá 1000 ký tự." });
+            }
+
+            try
+            {
+                review.Rating = rating;
+                review.Comment = comment?.Trim();
+                // Có thể thêm ModifiedDate nếu model có
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Đánh giá đã được cập nhật thành công!" });
             }
             catch (Exception ex)
             {

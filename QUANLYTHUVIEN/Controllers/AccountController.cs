@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QUANLYTHUVIEN.Models;
+using QUANLYTHUVIEN.Utilities;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -261,6 +262,15 @@ namespace QUANLYTHUVIEN.Controllers
                 HttpContext.Session.SetString("FullName", user.FullName);
                 HttpContext.Session.SetString("Email", user.Email ?? "");
 
+                // Tạo thông báo cho user
+                await NotificationHelper.CreateNotificationAsync(
+                    _context,
+                    userIdInt,
+                    "Cập nhật thông tin thành công",
+                    $"Bạn đã cập nhật thông tin cá nhân thành công vào lúc {DateTime.Now:dd/MM/yyyy HH:mm}.",
+                    "success"
+                );
+
                 TempData["Success"] = "Cập nhật thông tin thành công!";
                 return RedirectToAction("Profile", "Account");
             }
@@ -279,12 +289,215 @@ namespace QUANLYTHUVIEN.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        // GET: Account/ForgotPassword
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        // POST: Account/ForgotPassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(string usernameOrEmail)
+        {
+            if (string.IsNullOrWhiteSpace(usernameOrEmail))
+            {
+                ViewBag.Error = "Vui lòng nhập tên đăng nhập hoặc email";
+                return View();
+            }
+
+            // Tìm user theo username hoặc email
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => 
+                    u.Username.ToLower() == usernameOrEmail.ToLower() ||
+                    (u.Email != null && u.Email.ToLower() == usernameOrEmail.ToLower()));
+
+            if (user == null)
+            {
+                // Không cho biết user có tồn tại hay không (bảo mật)
+                ViewBag.Success = "Nếu tài khoản tồn tại, chúng tôi đã gửi hướng dẫn đặt lại mật khẩu. Vui lòng kiểm tra email hoặc liên hệ quản trị viên.";
+                return View();
+            }
+
+            // Tạo token reset password (đơn giản: hash của userId + timestamp)
+            var token = GenerateResetToken(user.UserId);
+            
+            // Lưu token vào session (có thể lưu vào database nếu cần)
+            if (HttpContext.Session != null)
+            {
+                HttpContext.Session.SetString($"ResetToken_{user.UserId}", token);
+                HttpContext.Session.SetString($"ResetUserId_{token}", user.UserId.ToString());
+                HttpContext.Session.SetString($"ResetTokenTime_{token}", DateTime.Now.ToString("yyyyMMddHHmmss"));
+            }
+
+            // Trong môi trường production, nên gửi email với link reset
+            // Ở đây, tôi sẽ hiển thị token cho user (chỉ để demo/test)
+            // Trong thực tế, nên gửi email với link: /Account/ResetPassword?token=xxx
+            
+            ViewBag.Success = $"Mã đặt lại mật khẩu đã được tạo. Vui lòng sử dụng mã sau để đặt lại mật khẩu: <strong>{token}</strong><br/>" +
+                             $"<small class='text-muted'>(Trong môi trường thực tế, mã này sẽ được gửi qua email)</small>";
+            ViewBag.Token = token;
+            ViewBag.UserId = user.UserId;
+
+            return View();
+        }
+
+        // GET: Account/ResetPassword
+        public IActionResult ResetPassword(string token)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                ViewBag.Error = "Mã đặt lại mật khẩu không hợp lệ";
+                return View();
+            }
+
+            // Kiểm tra token
+            if (HttpContext.Session != null)
+            {
+                var userIdStr = HttpContext.Session.GetString($"ResetUserId_{token}");
+                if (!string.IsNullOrEmpty(userIdStr))
+                {
+                    var tokenTimeStr = HttpContext.Session.GetString($"ResetTokenTime_{token}");
+                    if (!string.IsNullOrEmpty(tokenTimeStr) && DateTime.TryParseExact(tokenTimeStr, "yyyyMMddHHmmss", null, System.Globalization.DateTimeStyles.None, out DateTime tokenTime))
+                    {
+                        // Token có hiệu lực trong 1 giờ
+                        if (DateTime.Now.Subtract(tokenTime).TotalHours <= 1)
+                        {
+                            ViewBag.Token = token;
+                            ViewBag.UserId = userIdStr;
+                            return View();
+                        }
+                        else
+                        {
+                            ViewBag.Error = "Mã đặt lại mật khẩu đã hết hạn. Vui lòng yêu cầu mã mới.";
+                        }
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(ViewBag.Error as string))
+            {
+                ViewBag.Error = "Mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn";
+            }
+
+            return View();
+        }
+
+        // POST: Account/ResetPassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(string token, string newPassword, string confirmPassword)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                ViewBag.Error = "Mã đặt lại mật khẩu không hợp lệ";
+                return View();
+            }
+
+            // Validation
+            if (string.IsNullOrWhiteSpace(newPassword))
+            {
+                ViewBag.Error = "Vui lòng nhập mật khẩu mới";
+                ViewBag.Token = token;
+                return View();
+            }
+
+            if (newPassword.Length < 6)
+            {
+                ViewBag.Error = "Mật khẩu phải có ít nhất 6 ký tự";
+                ViewBag.Token = token;
+                return View();
+            }
+
+            if (newPassword != confirmPassword)
+            {
+                ViewBag.Error = "Mật khẩu xác nhận không khớp";
+                ViewBag.Token = token;
+                return View();
+            }
+
+            // Kiểm tra token
+            int? userId = null;
+            if (HttpContext.Session != null)
+            {
+                var userIdStr = HttpContext.Session.GetString($"ResetUserId_{token}");
+                if (!string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out int userIdInt))
+                {
+                    var tokenTimeStr = HttpContext.Session.GetString($"ResetTokenTime_{token}");
+                    if (!string.IsNullOrEmpty(tokenTimeStr) && DateTime.TryParseExact(tokenTimeStr, "yyyyMMddHHmmss", null, System.Globalization.DateTimeStyles.None, out DateTime tokenTime))
+                    {
+                        // Token có hiệu lực trong 1 giờ
+                        if (DateTime.Now.Subtract(tokenTime).TotalHours <= 1)
+                        {
+                            userId = userIdInt;
+                        }
+                        else
+                        {
+                            ViewBag.Error = "Mã đặt lại mật khẩu đã hết hạn. Vui lòng yêu cầu mã mới.";
+                            return View();
+                        }
+                    }
+                }
+            }
+
+            if (!userId.HasValue)
+            {
+                ViewBag.Error = "Mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn";
+                return View();
+            }
+
+            // Tìm user và cập nhật mật khẩu
+            var user = await _context.Users.FindAsync(userId.Value);
+            if (user == null)
+            {
+                ViewBag.Error = "Không tìm thấy tài khoản";
+                return View();
+            }
+
+            try
+            {
+                user.PasswordHash = HashPassword(newPassword);
+                await _context.SaveChangesAsync();
+
+                // Xóa token sau khi đã sử dụng
+                if (HttpContext.Session != null)
+                {
+                    HttpContext.Session.Remove($"ResetToken_{userId.Value}");
+                    HttpContext.Session.Remove($"ResetUserId_{token}");
+                    HttpContext.Session.Remove($"ResetTokenTime_{token}");
+                }
+
+                TempData["Success"] = "Đặt lại mật khẩu thành công! Vui lòng đăng nhập với mật khẩu mới.";
+                return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "Có lỗi xảy ra khi đặt lại mật khẩu. Vui lòng thử lại.";
+                System.Diagnostics.Debug.WriteLine($"Reset Password Error: {ex.Message}");
+                return View();
+            }
+        }
+
         private string HashPassword(string password)
         {
             using (var sha256 = SHA256.Create())
             {
                 var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
                 return BitConverter.ToString(hashedBytes).Replace("-", "").ToLower();
+            }
+        }
+
+        private string GenerateResetToken(int userId)
+        {
+            // Tạo token từ userId + timestamp + random
+            var timestamp = DateTime.Now.Ticks.ToString();
+            var random = new Random().Next(1000, 9999).ToString();
+            var tokenString = $"{userId}_{timestamp}_{random}";
+            
+            using (var sha256 = SHA256.Create())
+            {
+                var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(tokenString));
+                return BitConverter.ToString(hashedBytes).Replace("-", "").ToLower().Substring(0, 32);
             }
         }
     }

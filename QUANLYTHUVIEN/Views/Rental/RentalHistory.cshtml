@@ -1,4 +1,5 @@
 @model IEnumerable<QUANLYTHUVIEN.Models.Rental>
+@using QUANLYTHUVIEN.Utilities
 @Html.AntiForgeryToken()
 
 @{
@@ -164,6 +165,33 @@
                                                                         Giá/ngày: <strong>@(detail.PricePerDay?.ToString("N0") ?? "0") đ</strong>
                                                                     </span>
                                                                 </div>
+                                                                <div style="margin-top: 10px;">
+                                                                    @{
+                                                                        var bookReviewStatus = ViewBag.BookReviewStatus as Dictionary<int, bool> ?? new Dictionary<int, bool>();
+                                                                        var hasReviewed = bookReviewStatus.ContainsKey(detail.BookId) && bookReviewStatus[detail.BookId];
+                                                                    }
+                                                                    @if (hasReviewed)
+                                                                    {
+                                                                        var bookAlias = Function.TitleSlugGenerationAlias(detail.Book.Title);
+                                                                        <span class="badge badge-success" style="font-size: 12px; padding: 5px 10px;">
+                                                                            <i class="fa fa-check-circle"></i> Đã đánh giá
+                                                                        </span>
+                                                                        <a href="@Url.Action("Detail", "Book", new { id = detail.BookId, alias = bookAlias })#sectionB" 
+                                                                           class="btn btn-sm btn-outline-primary" 
+                                                                           style="margin-left: 5px; font-size: 12px; padding: 5px 10px;">
+                                                                            <i class="fa fa-eye"></i> Xem đánh giá
+                                                                        </a>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <button type="button" 
+                                                                                class="btn btn-sm btn-warning" 
+                                                                                style="font-size: 12px; padding: 5px 15px;"
+                                                                                onclick="openReviewModal(@detail.BookId, '@detail.Book.Title.Replace("'", "\\'")')">
+                                                                            <i class="fa fa-star"></i> Đánh giá ngay
+                                                                        </button>
+                                                                    }
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -189,5 +217,159 @@
 </div>
 <!-- End: Rental History Section -->
 
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1" role="dialog" aria-labelledby="reviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #ff7236; color: #fff;">
+                <h5 class="modal-title" id="reviewModalLabel">
+                    <i class="fa fa-star"></i> Đánh giá sách
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="reviewFormModal">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="modalBookId" name="bookId" />
+                    <div class="form-group">
+                        <label style="font-weight: bold; margin-bottom: 10px; display: block;">
+                            Sách: <span id="modalBookTitle" style="color: #333;"></span>
+                        </label>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-weight: bold; margin-bottom: 10px; display: block;">
+                            Đánh giá sao <span class="text-danger">*</span>
+                        </label>
+                        <div class="star-rating-modal" style="font-size: 32px; color: #ffc107; cursor: pointer;">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="fa fa-star-o" data-rating="@i" style="margin-right: 5px;" 
+                                   onmouseover="highlightStarsModal(@i)" 
+                                   onmouseout="resetStarsModal()" 
+                                   onclick="selectRatingModal(@i)"></i>
+                            }
+                        </div>
+                        <input type="hidden" id="modalRating" name="rating" value="0" required />
+                        <small class="text-danger" id="modalRatingError" style="display: none;">Vui lòng chọn số sao</small>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="modalComment" style="font-weight: bold; margin-bottom: 10px; display: block;">
+                            Bình luận
+                        </label>
+                        <textarea id="modalComment" name="comment" class="form-control" rows="4" 
+                                  placeholder="Chia sẻ cảm nhận của bạn về cuốn sách này..." 
+                                  maxlength="1000"></textarea>
+                        <small class="text-muted">Tối đa 1000 ký tự</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fa fa-times"></i> Hủy
+                </button>
+                <button type="button" class="btn btn-primary" onclick="submitReviewModal()">
+                    <i class="fa fa-send"></i> Gửi đánh giá
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var selectedRatingModal = 0;
+
+        function openReviewModal(bookId, bookTitle) {
+            $('#modalBookId').val(bookId);
+            $('#modalBookTitle').text(bookTitle);
+            $('#modalRating').val(0);
+            $('#modalComment').val('');
+            selectedRatingModal = 0;
+            resetStarsModal();
+            $('#modalRatingError').hide();
+            $('#reviewModal').modal('show');
+        }
+
+        function highlightStarsModal(rating) {
+            $('.star-rating-modal i').each(function(index) {
+                if (index < rating) {
+                    $(this).removeClass('fa-star-o').addClass('fa-star');
+                } else {
+                    $(this).removeClass('fa-star').addClass('fa-star-o');
+                }
+            });
+        }
+
+        function resetStarsModal() {
+            highlightStarsModal(selectedRatingModal);
+        }
+
+        function selectRatingModal(rating) {
+            selectedRatingModal = rating;
+            $('#modalRating').val(rating);
+            highlightStarsModal(rating);
+            $('#modalRatingError').hide();
+        }
+
+        function submitReviewModal() {
+            var rating = $('#modalRating').val();
+            if (rating === '0' || rating === '') {
+                $('#modalRatingError').show();
+                return;
+            }
+
+            var formData = {
+                bookId: $('#modalBookId').val(),
+                rating: rating,
+                comment: $('#modalComment').val(),
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            };
+
+            $.ajax({
+                url: '@Url.Action("SubmitReview", "Book")',
+                type: 'POST',
+                data: formData,
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        if (typeof toastr !== 'undefined') {
+                            toastr.success(response.message);
+                        } else {
+                            alert(response.message);
+                        }
+                        $('#reviewModal').modal('hide');
+                        // Reload trang để cập nhật trạng thái đánh giá
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(response.message);
+                        } else {
+                            alert('Lỗi: ' + response.message);
+                        }
+                    }
+                },
+                error: function(xhr, status, error) {
+                    var errorMsg = 'Có lỗi xảy ra khi gửi đánh giá';
+                    try {
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                    } catch (e) {
+                        // Ignore
+                    }
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error(errorMsg);
+                    } else {
+                        alert(errorMsg);
+                    }
+                }
+            });
+        }
+    </script>
+}
 
 

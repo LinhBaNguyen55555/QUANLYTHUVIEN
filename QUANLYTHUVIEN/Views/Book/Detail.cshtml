@@ -319,13 +319,17 @@
                                     <div class="reviews-list">
                                         <h6 style="margin-bottom: 20px;">Đánh giá từ độc giả (@reviewCount)</h6>
                                         
+                                        @{
+                                            var currentCustomerId = ViewBag.CurrentCustomerId as int?;
+                                        }
                                         @if (reviews.Any())
                                         {
                                             @foreach (var review in reviews)
                                             {
-                                                <div style="border-bottom: 1px solid #e9ecef; padding: 20px 0;">
+                                                var canEdit = currentCustomerId.HasValue && review.CustomerId == currentCustomerId.Value;
+                                                <div id="review-@review.ReviewId" style="border-bottom: 1px solid #e9ecef; padding: 20px 0;">
                                                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
-                                                        <div>
+                                                        <div style="flex: 1;">
                                                             <strong style="font-size: 16px;">@review.Customer?.FullName ?? "Khách hàng"</strong>
                                                             <div style="color: #ffc107; font-size: 14px; margin-top: 5px;">
                                                                 @for (int i = 1; i <= 5; i++)
@@ -342,11 +346,32 @@
                                                                 <span style="color: #666; margin-left: 10px;">@review.Rating/5</span>
                                                             </div>
                                                         </div>
-                                                        <small class="text-muted">@review.CreatedDate.ToString("dd/MM/yyyy HH:mm")</small>
+                                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                                            <small class="text-muted">@review.CreatedDate.ToString("dd/MM/yyyy HH:mm")</small>
+                                                            @if (canEdit)
+                                                            {
+                                                                <button type="button" 
+                                                                        class="btn btn-sm btn-primary edit-review-btn" 
+                                                                        data-review-id="@review.ReviewId"
+                                                                        data-rating="@review.Rating"
+                                                                        data-comment="@review.Comment"
+                                                                        style="font-size: 11px; padding: 3px 8px;"
+                                                                        title="Chỉnh sửa đánh giá">
+                                                                    <i class="fa fa-edit"></i> Sửa
+                                                                </button>
+                                                                <button type="button" 
+                                                                        class="btn btn-sm btn-danger delete-review-btn" 
+                                                                        data-review-id="@review.ReviewId"
+                                                                        style="font-size: 11px; padding: 3px 8px;"
+                                                                        title="Xóa đánh giá">
+                                                                    <i class="fa fa-trash"></i> Xóa
+                                                                </button>
+                                                            }
+                                                        </div>
                                                     </div>
                                                     @if (!string.IsNullOrEmpty(review.Comment))
                                                     {
-                                                        <p style="color: #555; margin-top: 10px; line-height: 1.6;">@review.Comment</p>
+                                                        <p id="review-comment-@review.ReviewId" style="color: #555; margin-top: 10px; line-height: 1.6;">@review.Comment</p>
                                                     }
                                                 </div>
                                             }
@@ -552,5 +577,283 @@
         }
 
         // Hàm updateCartCount được định nghĩa trong _Layout.cshtml
+        
+        // Tự động mở tab đánh giá nếu URL có hash #sectionB
+        $(document).ready(function() {
+            if (window.location.hash === '#sectionB') {
+                // Đợi một chút để đảm bảo tabs đã được khởi tạo
+                setTimeout(function() {
+                    // Click vào tab "Đánh giá"
+                    $('a[href="#sectionB"]').tab('show');
+                    
+                    // Scroll đến phần đánh giá
+                    var $sectionB = $('#sectionB');
+                    if ($sectionB.length) {
+                        $('html, body').animate({
+                            scrollTop: $sectionB.offset().top - 100
+                        }, 500);
+                    }
+                }, 300);
+            }
+            
+            // Xóa đánh giá
+            $(document).on('click', '.delete-review-btn', function() {
+                var $btn = $(this);
+                var reviewId = $btn.data('review-id');
+                var $reviewItem = $('#review-' + reviewId);
+                
+                if (!confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
+                    return false;
+                }
+                
+                var originalText = $btn.html();
+                $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+                
+                $.ajax({
+                    url: '@Url.Action("DeleteReview", "Book")',
+                    type: 'POST',
+                    data: {
+                        reviewId: reviewId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response && response.success) {
+                            if (typeof toastr !== 'undefined') {
+                                toastr.success(response.message || 'Đánh giá đã được xóa thành công!');
+                            } else {
+                                alert(response.message || 'Đánh giá đã được xóa thành công!');
+                            }
+                            
+                            // Ẩn đánh giá với animation
+                            $reviewItem.fadeOut(300, function() {
+                                $(this).remove();
+                                
+                                // Cập nhật số lượng đánh giá
+                                var $reviewTitle = $('#sectionB h6');
+                                if ($reviewTitle.length) {
+                                    var currentCount = parseInt($reviewTitle.text().match(/\d+/)) || 0;
+                                    var newCount = Math.max(0, currentCount - 1);
+                                    $reviewTitle.text('Đánh giá từ độc giả (' + newCount + ')');
+                                }
+                                
+                                // Reload để cập nhật
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            });
+                        } else {
+                            var errorMsg = response && response.message ? response.message : 'Có lỗi xảy ra khi xóa đánh giá.';
+                            $btn.prop('disabled', false).html(originalText);
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error(errorMsg);
+                            } else {
+                                alert(errorMsg);
+                            }
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        var errorMsg = 'Có lỗi xảy ra khi xóa đánh giá.';
+                        try {
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing response:', e);
+                        }
+                        $btn.prop('disabled', false).html(originalText);
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(errorMsg);
+                        } else {
+                            alert(errorMsg);
+                        }
+                    }
+                });
+            });
+            
+            // Chỉnh sửa đánh giá
+            $(document).on('click', '.edit-review-btn', function() {
+                var $btn = $(this);
+                var reviewId = $btn.data('review-id');
+                var rating = $btn.data('rating');
+                var comment = $btn.data('comment') || '';
+                
+                // Mở modal chỉnh sửa
+                $('#editReviewModal').modal('show');
+                $('#editReviewId').val(reviewId);
+                $('#editRating').val(rating);
+                $('#editComment').val(comment);
+                $('#editCharCount').text(comment.length);
+                
+                // Highlight stars
+                selectedEditRating = rating;
+                highlightEditStars(rating);
+            });
+        });
+        
+        // Modal chỉnh sửa đánh giá
+        var selectedEditRating = 0;
+        
+        function highlightEditStars(rating) {
+            $('.edit-star-rating i').each(function(index) {
+                if (index < rating) {
+                    $(this).removeClass('fa-star-o').addClass('fa-star');
+                } else {
+                    $(this).removeClass('fa-star').addClass('fa-star-o');
+                }
+            });
+        }
+        
+        function resetEditStars() {
+            highlightEditStars(selectedEditRating);
+        }
+        
+        function selectEditRating(rating) {
+            selectedEditRating = rating;
+            $('#editRating').val(rating);
+            highlightEditStars(rating);
+        }
+        
+        // Character counter cho edit comment
+        $(document).ready(function() {
+            $('#editComment').on('input', function() {
+                var length = $(this).val().length;
+                $('#editCharCount').text(length);
+                
+                if (length > 1000) {
+                    $('#editCharCount').css('color', '#dc3545');
+                } else if (length > 800) {
+                    $('#editCharCount').css('color', '#ffc107');
+                } else {
+                    $('#editCharCount').css('color', '#6c757d');
+                }
+            });
+            
+            // Submit chỉnh sửa đánh giá
+            $('#editReviewForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                var reviewId = $('#editReviewId').val();
+                var rating = $('#editRating').val();
+                var comment = $('#editComment').val().trim();
+                
+                if (!rating || rating === '0') {
+                    alert('Vui lòng chọn số sao');
+                    return;
+                }
+                
+                if (comment.length > 1000) {
+                    alert('Bình luận không được vượt quá 1000 ký tự');
+                    return;
+                }
+                
+                var $submitBtn = $('#editReviewForm button[type="submit"]');
+                var originalText = $submitBtn.html();
+                $submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Đang cập nhật...');
+                
+                $.ajax({
+                    url: '@Url.Action("UpdateReview", "Book")',
+                    type: 'POST',
+                    data: {
+                        reviewId: reviewId,
+                        rating: rating,
+                        comment: comment,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response && response.success) {
+                            if (typeof toastr !== 'undefined') {
+                                toastr.success(response.message || 'Đánh giá đã được cập nhật thành công!');
+                            } else {
+                                alert(response.message || 'Đánh giá đã được cập nhật thành công!');
+                            }
+                            $('#editReviewModal').modal('hide');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            var errorMsg = response && response.message ? response.message : 'Có lỗi xảy ra khi cập nhật đánh giá.';
+                            $submitBtn.prop('disabled', false).html(originalText);
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error(errorMsg);
+                            } else {
+                                alert(errorMsg);
+                            }
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        var errorMsg = 'Có lỗi xảy ra khi cập nhật đánh giá.';
+                        try {
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing response:', e);
+                        }
+                        $submitBtn.prop('disabled', false).html(originalText);
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(errorMsg);
+                        } else {
+                            alert(errorMsg);
+                        }
+                    }
+                });
+            });
+        });
     </script>
 }
+
+<!-- Modal chỉnh sửa đánh giá -->
+<div class="modal fade" id="editReviewModal" tabindex="-1" role="dialog" aria-labelledby="editReviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #ff7236; color: #fff;">
+                <h5 class="modal-title" id="editReviewModalLabel">
+                    <i class="fa fa-edit"></i> Chỉnh sửa đánh giá
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editReviewForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="editReviewId" name="reviewId" />
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-weight: bold; margin-bottom: 10px; display: block;">
+                            Đánh giá sao <span class="text-danger">*</span>
+                        </label>
+                        <div class="edit-star-rating" style="font-size: 32px; color: #ffc107; cursor: pointer;">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="fa fa-star-o" data-rating="@i" style="margin-right: 5px;" 
+                                   onmouseover="highlightEditStars(@i)" 
+                                   onmouseout="resetEditStars()" 
+                                   onclick="selectEditRating(@i)"></i>
+                            }
+                        </div>
+                        <input type="hidden" id="editRating" name="rating" value="0" required />
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="editComment" style="font-weight: bold; margin-bottom: 10px; display: block;">
+                            Bình luận
+                        </label>
+                        <textarea id="editComment" name="comment" class="form-control" rows="4" 
+                                  placeholder="Chia sẻ cảm nhận của bạn về cuốn sách này..." 
+                                  maxlength="1000"></textarea>
+                        <small class="text-muted">Tối đa 1000 ký tự (<span id="editCharCount">0</span>/1000)</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fa fa-times"></i> Hủy
+                </button>
+                <button type="submit" form="editReviewForm" class="btn btn-primary">
+                    <i class="fa fa-save"></i> Lưu thay đổi
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

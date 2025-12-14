@@ -158,9 +158,10 @@ namespace QUANLYTHUVIEN.Controllers
         {
             try
             {
-                if (quantity <= 0)
+                // Đảm bảo quantity tối thiểu là 1
+                if (quantity < 1)
                 {
-                    return RemoveFromCart(bookId);
+                    quantity = 1;
                 }
 
                 var cart = GetCart();
@@ -169,6 +170,10 @@ namespace QUANLYTHUVIEN.Controllers
                 {
                     item.Quantity = quantity;
                     SaveCart(cart);
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Không tìm thấy sách trong giỏ hàng." });
                 }
 
                 var cartCount = cart?.Sum(c => c.Quantity) ?? 0;

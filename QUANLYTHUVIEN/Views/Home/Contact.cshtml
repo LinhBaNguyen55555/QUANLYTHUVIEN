@@ -160,38 +160,56 @@
                                                 <div class="contact-form bg-light margin-right">
                                                 <h2 class="contact-title">Gửi tin nhắn cho chúng tôi</h2>
                                                     <span class="underline left"></span>
+                                                    
+                                                    @if (TempData["Success"] != null)
+                                                    {
+                                                        <div class="alert alert-success" style="margin-bottom: 20px; padding: 15px; border-radius: 5px;">
+                                                            <i class="fa fa-check-circle"></i> @TempData["Success"]
+                                                        </div>
+                                                    }
+                                                    
+                                                    @if (TempData["Error"] != null)
+                                                    {
+                                                        <div class="alert alert-danger" style="margin-bottom: 20px; padding: 15px; border-radius: 5px;">
+                                                            <i class="fa fa-exclamation-circle"></i> @TempData["Error"]
+                                                        </div>
+                                                    }
+                                                    
                                                     <div class="contact-fields">
-                                                        <form id="contact" name="contact" action="#" method="post">
+                                                        <form id="contact" name="contact" method="post" action="@Url.Action("Contact", "Home")">
+                                                            @Html.AntiForgeryToken()
                                                             <div class="row">
                                                                 <div class="col-md-6 col-sm-6">
                                                                     <div class="form-group">
-                                                                        <input class="form-control" type="text" placeholder="Họ" name="first-name" />
+                                                                        <input class="form-control" type="text" placeholder="Họ" name="first-name" id="first-name" />
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-md-6 col-sm-6">
                                                                     <div class="form-group">
-                                                                        <input class="form-control" type="text" placeholder="Tên" name="last-name" />
+                                                                        <input class="form-control" type="text" placeholder="Tên" name="last-name" id="last-name" />
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-md-6 col-sm-6">
                                                                     <div class="form-group">
-                                                                        <input class="form-control" type="email" placeholder="Email" name="email" />
+                                                                        <input class="form-control" type="email" placeholder="Email *" name="email" id="email" required />
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-md-6 col-sm-6">
                                                                     <div class="form-group">
-                                                                        <input class="form-control" type="text" placeholder="Số điện thoại" name="phone" />
+                                                                        <input class="form-control" type="text" placeholder="Số điện thoại" name="phone" id="phone" />
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-sm-12">
                                                                     <div class="form-group">
-                                                                        <textarea class="form-control" placeholder="Nội dung" name="message"></textarea>
+                                                                        <textarea class="form-control" placeholder="Nội dung tin nhắn *" name="message" id="message" rows="6" required style="min-height: 120px;"></textarea>
                                                                         <div class="clearfix"></div>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-sm-12">
                                                                     <div class="form-group form-submit">
-                                                                        <input class="btn btn-default" type="submit" value="Gửi tin nhắn" />
+                                                                        <button class="btn btn-default" type="submit" style="background: #ff7236; color: #fff; border: none; padding: 12px 30px; font-weight: 600;">
+                                                                            <i class="fa fa-paper-plane"></i> Gửi tin nhắn
+                                                                        </button>
                                                                     </div>
                                                                 </div>
                                                             </div>

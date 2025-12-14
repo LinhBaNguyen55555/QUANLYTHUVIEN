@@ -77,14 +77,14 @@
                                                 <label class="quantity-label">Số lượng</label>
                                                 <div class="quantity-controls">
                                                     <button type="button" class="qty-btn qty-minus" 
-                                                            onclick="updateQuantity(@item.BookId, @item.Quantity - 1)">
+                                                            onclick="decreaseQuantity(@item.BookId)">
                                                         <i class="fa fa-minus"></i>
                                                     </button>
                                                     <input type="number" class="qty-input" id="qty-@item.BookId" 
                                                            value="@item.Quantity" min="1" 
-                                                           onchange="updateQuantity(@item.BookId, parseInt(this.value))" />
+                                                           onchange="updateQuantity(@item.BookId, parseInt(this.value) || 1)" />
                                                     <button type="button" class="qty-btn qty-plus" 
-                                                            onclick="updateQuantity(@item.BookId, @item.Quantity + 1)">
+                                                            onclick="increaseQuantity(@item.BookId)">
                                                         <i class="fa fa-plus"></i>
                                                     </button>
                                                 </div>
@@ -698,11 +698,30 @@
             });
         }
 
-        function updateQuantity(bookId, quantity) {
-            if (quantity < 1) {
+        function increaseQuantity(bookId) {
+            var $input = $('#qty-' + bookId);
+            var currentQuantity = parseInt($input.val()) || 1;
+            var newQuantity = currentQuantity + 1;
+            updateQuantity(bookId, newQuantity);
+        }
+
+        function decreaseQuantity(bookId) {
+            var $input = $('#qty-' + bookId);
+            var currentQuantity = parseInt($input.val()) || 1;
+            var newQuantity = Math.max(1, currentQuantity - 1);
+            
+            // Nếu giảm xuống 0 hoặc nhỏ hơn 1, hỏi xác nhận xóa
+            if (newQuantity < 1) {
                 removeFromCart(bookId);
                 return;
             }
+            
+            updateQuantity(bookId, newQuantity);
+        }
+
+        function updateQuantity(bookId, quantity) {
+            // Đảm bảo quantity tối thiểu là 1
+            quantity = Math.max(1, parseInt(quantity) || 1);
 
             // Disable input during update
             var $input = $('#qty-' + bookId);

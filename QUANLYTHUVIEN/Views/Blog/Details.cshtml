@@ -175,29 +175,95 @@
 
                             <!-- Comments Section -->
                             <div id="comments" class="comments-section" style="margin-top: 50px; padding-top: 30px; border-top: 2px solid #eee;">
-                                <h3 style="margin-bottom: 30px;">
-                                    <i class="fa fa-comments"></i> Bình luận (@(Model.TbBlogComments?.Where(c => c.IsApproved).Count() ?? 0))
+                                <h3 style="margin-bottom: 30px; font-size: 24px; font-weight: 700; color: #333;">
+                                    <i class="fa fa-comments" style="color: #ff7236;"></i> Bình luận (@(Model.TbBlogComments?.Where(c => c.IsApproved).Count() ?? 0))
                                 </h3>
                                 
+                                <!-- Comment Form -->
+                                @if (!string.IsNullOrEmpty(Context.Session?.GetString("UserId")))
+                                {
+                                    <div class="comment-form-container" style="background: #fff; border: 2px solid #e9ecef; border-radius: 12px; padding: 25px; margin-bottom: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                        <h5 style="margin-bottom: 20px; color: #333; font-weight: 600;">
+                                            <i class="fa fa-pencil"></i> Viết bình luận của bạn
+                                        </h5>
+                                        <form id="commentForm" method="post" action="@Url.Action("SubmitComment", "Blog")" onsubmit="return false;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="blogId" value="@Model.BlogId" />
+                                            <div class="form-group" style="margin-bottom: 15px;">
+                                                <label for="commentText" style="font-weight: 600; margin-bottom: 10px; display: block; color: #555;">
+                                                    Nội dung bình luận <span class="text-danger">*</span>
+                                                </label>
+                                                <textarea id="commentText" name="commentText" 
+                                                          class="form-control" 
+                                                          rows="5" 
+                                                          placeholder="Chia sẻ suy nghĩ của bạn về bài viết này..." 
+                                                          maxlength="1000" 
+                                                          required
+                                                          style="border: 1px solid #dee2e6; border-radius: 8px; padding: 12px; font-size: 14px; resize: vertical;"></textarea>
+                                                <small class="text-muted" style="display: block; margin-top: 5px;">
+                                                    <span id="charCount">0</span>/1000 ký tự
+                                                </small>
+                                                <small class="text-danger" id="commentError" style="display: none;"></small>
+                                            </div>
+                                            <div class="form-group" style="margin-bottom: 0;">
+                                                <button type="button" id="submitCommentBtn" class="btn btn-primary" style="background: #ff7236; border: none; padding: 10px 30px; font-weight: 600; border-radius: 6px;">
+                                                    <i class="fa fa-paper-plane"></i> Gửi bình luận
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-info" style="background: #e7f3ff; border: 1px solid #b3d9ff; color: #004085; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                                        <i class="fa fa-info-circle" style="margin-right: 8px;"></i>
+                                        Vui lòng <a href="@Url.Action("Login", "Account", new { returnUrl = Context.Request.Path })" style="color: #ff7236; font-weight: 600;">đăng nhập</a> để viết bình luận.
+                                    </div>
+                                }
+
+                                <!-- Comments List -->
                                 @if (Model.TbBlogComments != null && Model.TbBlogComments.Where(c => c.IsApproved).Any())
                                 {
                                     <div class="comments-list">
+                                        @{
+                                            var currentCustomerId = ViewBag.CurrentCustomerId as int?;
+                                        }
                                         @foreach (var comment in Model.TbBlogComments.Where(c => c.IsApproved).OrderByDescending(c => c.CreatedDate))
                                         {
-                                            <div class="comment-item" style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
-                                                <div class="comment-author" style="display: flex; align-items: center; margin-bottom: 15px;">
-                                                    <div class="author-avatar" style="width: 50px; height: 50px; border-radius: 50%; background: #007bff; color: #fff; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold;">
+                                            var canDelete = currentCustomerId.HasValue && comment.CustomerId == currentCustomerId.Value;
+                                            <div class="comment-item" id="comment-@comment.CommentId" style="margin-bottom: 25px; padding: 20px; background: #fff; border: 1px solid #e9ecef; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s;">
+                                                <div class="comment-header" style="display: flex; align-items: center; margin-bottom: 15px;">
+                                                    <div class="author-avatar" style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold; font-size: 18px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
                                                         @(comment.Customer?.FullName?.Substring(0, 1).ToUpper() ?? "K")
                                                     </div>
-                                                    <div>
-                                                        <strong>@(comment.Customer?.FullName ?? "Khách")</strong>
-                                                        <div style="font-size: 12px; color: #666;">
-                                                            @(comment.CreatedDate?.ToString("dd/MM/yyyy HH:mm", culture) ?? "")
+                                                    <div style="flex: 1;">
+                                                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                                                            <div>
+                                                                <strong style="font-size: 16px; color: #333; display: block; margin-bottom: 3px;">
+                                                                    @(comment.Customer?.FullName ?? "Khách")
+                                                                </strong>
+                                                                <div style="font-size: 13px; color: #888;">
+                                                                    <i class="fa fa-clock-o" style="margin-right: 5px;"></i>
+                                                                    @(comment.CreatedDate?.ToString("dd/MM/yyyy HH:mm", culture) ?? "")
+                                                                </div>
+                                                            </div>
+                                                            @if (canDelete)
+                                                            {
+                                                                <div>
+                                                                    <button type="button" 
+                                                                            class="btn btn-sm btn-danger delete-comment-btn" 
+                                                                            data-comment-id="@comment.CommentId"
+                                                                            style="font-size: 12px; padding: 5px 12px;"
+                                                                            title="Xóa bình luận">
+                                                                        <i class="fa fa-trash"></i> Xóa
+                                                                    </button>
+                                                                </div>
+                                                            }
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="comment-content" style="color: #555; line-height: 1.6;">
-                                                    @comment.CommentText
+                                                <div class="comment-content" style="color: #555; line-height: 1.8; font-size: 15px; padding-left: 65px; word-wrap: break-word;">
+                                                    @Html.Raw(comment.CommentText.Replace("\n", "<br />"))
                                                 </div>
                                             </div>
                                         }
@@ -205,9 +271,12 @@
                                 }
                                 else
                                 {
-                                    <p style="color: #999; font-style: italic; text-align: center; padding: 40px;">
-                                        Chưa có bình luận nào. Hãy là người đầu tiên bình luận!
-                                    </p>
+                                    <div style="text-align: center; padding: 60px 20px; background: #f8f9fa; border-radius: 12px; border: 2px dashed #dee2e6;">
+                                        <i class="fa fa-comment-o" style="font-size: 48px; color: #adb5bd; margin-bottom: 15px;"></i>
+                                        <p style="color: #6c757d; font-size: 16px; margin: 0;">
+                                            Chưa có bình luận nào. Hãy là người đầu tiên bình luận!
+                                        </p>
+                                    </div>
                                 }
                             </div>
                         </div>
@@ -289,7 +358,11 @@
     function copyLink() {
         var url = window.location.href;
         navigator.clipboard.writeText(url).then(function() {
-            alert('Đã sao chép link bài viết!');
+            if (typeof toastr !== 'undefined') {
+                toastr.success('Đã sao chép link bài viết!');
+            } else {
+                alert('Đã sao chép link bài viết!');
+            }
         }, function() {
             // Fallback
             var textArea = document.createElement("textarea");
@@ -298,9 +371,309 @@
             textArea.select();
             document.execCommand('copy');
             document.body.removeChild(textArea);
-            alert('Đã sao chép link bài viết!');
+            if (typeof toastr !== 'undefined') {
+                toastr.success('Đã sao chép link bài viết!');
+            } else {
+                alert('Đã sao chép link bài viết!');
+            }
         });
     }
+
+    // Flag để tránh double submit
+    var isSubmittingComment = false;
+
+    // Hàm submit comment
+    function submitComment() {
+        // Kiểm tra đang submit
+        if (isSubmittingComment) {
+            return false;
+        }
+        
+        // Kiểm tra jQuery
+        if (typeof jQuery === 'undefined' && typeof $ === 'undefined') {
+            console.error('jQuery is not loaded!');
+            alert('Có lỗi xảy ra. Vui lòng refresh trang và thử lại.');
+            return false;
+        }
+        
+        var $ = typeof jQuery !== 'undefined' ? jQuery : window.$;
+        var $commentText = $('#commentText');
+        var $charCount = $('#charCount');
+        var $submitBtn = $('#submitCommentBtn');
+        var $form = $('#commentForm');
+        var $errorMsg = $('#commentError');
+        
+        if (!$commentText.length || !$submitBtn.length || !$form.length) {
+            console.error('Comment form elements not found!');
+            return false;
+        }
+        
+        var commentText = $commentText.val().trim();
+        var originalText = $submitBtn.html();
+        
+        // Validation
+        if (!commentText) {
+            if ($errorMsg.length) {
+                $errorMsg.text('Vui lòng nhập nội dung bình luận.').show();
+            } else {
+                alert('Vui lòng nhập nội dung bình luận.');
+            }
+            return false;
+        }
+        
+        if (commentText.length > 1000) {
+            if ($errorMsg.length) {
+                $errorMsg.text('Bình luận không được vượt quá 1000 ký tự.').show();
+            } else {
+                alert('Bình luận không được vượt quá 1000 ký tự.');
+            }
+            return false;
+        }
+        
+        if ($errorMsg.length) {
+            $errorMsg.hide();
+        }
+        
+        // Đánh dấu đang submit
+        isSubmittingComment = true;
+        
+        // Disable button
+        $submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Đang gửi...');
+        
+        var formData = {
+            blogId: $('input[name="blogId"]').val(),
+            commentText: commentText,
+            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+        };
+        
+        $.ajax({
+            url: $form.attr('action'),
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function(response) {
+                isSubmittingComment = false; // Reset flag
+                
+                if (response && response.success) {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success(response.message || 'Bình luận đã được gửi thành công!');
+                    } else {
+                        alert(response.message || 'Bình luận đã được gửi thành công!');
+                    }
+                    // Clear form
+                    $commentText.val('');
+                    if ($charCount.length) {
+                        $charCount.text('0');
+                    }
+                    // Reload page after 1 second
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    var errorMsg = response && response.message ? response.message : 'Có lỗi xảy ra khi gửi bình luận.';
+                    if ($errorMsg.length) {
+                        $errorMsg.text(errorMsg).show();
+                    }
+                    $submitBtn.prop('disabled', false).html(originalText);
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error(errorMsg);
+                    } else {
+                        alert(errorMsg);
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                isSubmittingComment = false; // Reset flag
+                
+                var errorMsg = 'Có lỗi xảy ra khi gửi bình luận.';
+                try {
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    } else if (xhr.responseText) {
+                        var jsonResponse = JSON.parse(xhr.responseText);
+                        if (jsonResponse && jsonResponse.message) {
+                            errorMsg = jsonResponse.message;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error parsing response:', e);
+                }
+                if ($errorMsg.length) {
+                    $errorMsg.text(errorMsg).show();
+                }
+                $submitBtn.prop('disabled', false).html(originalText);
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(errorMsg);
+                } else {
+                    alert(errorMsg);
+                }
+            }
+        });
+        
+        return false;
+    }
+
+    // Khởi tạo khi DOM ready - chỉ chạy một lần
+    (function() {
+        var isInitialized = false;
+        
+        function initCommentForm() {
+            // Tránh khởi tạo nhiều lần
+            if (isInitialized) {
+                return;
+            }
+            
+            if (typeof jQuery === 'undefined' && typeof $ === 'undefined') {
+                setTimeout(initCommentForm, 100);
+                return;
+            }
+            
+            var $ = typeof jQuery !== 'undefined' ? jQuery : window.$;
+            
+            $(document).ready(function() {
+                // Character counter
+                var $commentText = $('#commentText');
+                var $charCount = $('#charCount');
+                
+                if ($commentText.length && $charCount.length) {
+                    $commentText.off('input.commentCounter').on('input.commentCounter', function() {
+                        var length = $(this).val().length;
+                        $charCount.text(length);
+                        
+                        if (length > 1000) {
+                            $charCount.css('color', '#dc3545');
+                        } else if (length > 800) {
+                            $charCount.css('color', '#ffc107');
+                        } else {
+                            $charCount.css('color', '#6c757d');
+                        }
+                    });
+                    
+                    $charCount.text($commentText.val().length);
+                }
+                
+                // Gắn event handler cho button - chỉ một lần
+                var $submitBtn = $('#submitCommentBtn');
+                if ($submitBtn.length) {
+                    // Xóa tất cả event handler cũ trước khi gắn mới
+                    $submitBtn.off('click.submitComment');
+                    $submitBtn.on('click.submitComment', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return submitComment();
+                    });
+                }
+                
+                // Gắn event handler cho nút xóa bình luận
+                $(document).off('click', '.delete-comment-btn').on('click', '.delete-comment-btn', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    var $btn = $(this);
+                    var commentId = $btn.data('comment-id');
+                    var $commentItem = $('#comment-' + commentId);
+                    
+                    if (!commentId) {
+                        alert('Không tìm thấy ID bình luận.');
+                        return false;
+                    }
+                    
+                    if (!confirm('Bạn có chắc chắn muốn xóa bình luận này?')) {
+                        return false;
+                    }
+                    
+                    var originalText = $btn.html();
+                    $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Đang xóa...');
+                    
+                    $.ajax({
+                        url: '@Url.Action("DeleteComment", "Blog")',
+                        type: 'POST',
+                        data: {
+                            commentId: commentId,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response && response.success) {
+                                if (typeof toastr !== 'undefined') {
+                                    toastr.success(response.message || 'Bình luận đã được xóa thành công!');
+                                } else {
+                                    alert(response.message || 'Bình luận đã được xóa thành công!');
+                                }
+                                
+                                // Ẩn bình luận với animation
+                                $commentItem.fadeOut(300, function() {
+                                    $(this).remove();
+                                    
+                                    // Cập nhật số lượng bình luận
+                                    var $commentsTitle = $('.comments-section h3');
+                                    if ($commentsTitle.length) {
+                                        var currentCount = parseInt($commentsTitle.text().match(/\d+/)) || 0;
+                                        var newCount = Math.max(0, currentCount - 1);
+                                        $commentsTitle.html('<i class="fa fa-comments" style="color: #ff7236;"></i> Bình luận (' + newCount + ')');
+                                    }
+                                    
+                                    // Nếu không còn bình luận nào, hiển thị thông báo
+                                    if ($('.comment-item').length === 0) {
+                                        $('.comments-list').html(
+                                            '<div style="text-align: center; padding: 60px 20px; background: #f8f9fa; border-radius: 12px; border: 2px dashed #dee2e6;">' +
+                                            '<i class="fa fa-comment-o" style="font-size: 48px; color: #adb5bd; margin-bottom: 15px;"></i>' +
+                                            '<p style="color: #6c757d; font-size: 16px; margin: 0;">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>' +
+                                            '</div>'
+                                        );
+                                    }
+                                });
+                            } else {
+                                var errorMsg = response && response.message ? response.message : 'Có lỗi xảy ra khi xóa bình luận.';
+                                $btn.prop('disabled', false).html(originalText);
+                                if (typeof toastr !== 'undefined') {
+                                    toastr.error(errorMsg);
+                                } else {
+                                    alert(errorMsg);
+                                }
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            var errorMsg = 'Có lỗi xảy ra khi xóa bình luận.';
+                            try {
+                                if (xhr.responseJSON && xhr.responseJSON.message) {
+                                    errorMsg = xhr.responseJSON.message;
+                                } else if (xhr.responseText) {
+                                    var jsonResponse = JSON.parse(xhr.responseText);
+                                    if (jsonResponse && jsonResponse.message) {
+                                        errorMsg = jsonResponse.message;
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('Error parsing response:', e);
+                            }
+                            $btn.prop('disabled', false).html(originalText);
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error(errorMsg);
+                            } else {
+                                alert(errorMsg);
+                            }
+                        }
+                    });
+                    
+                    return false;
+                });
+                
+                isInitialized = true;
+            });
+        }
+        
+        // Chờ window load
+        if (window.addEventListener) {
+            window.addEventListener('load', function() {
+                setTimeout(initCommentForm, 200);
+            });
+        } else {
+            window.onload = function() {
+                setTimeout(initCommentForm, 200);
+            };
+        }
+    })();
 </script>
 
 <style>
@@ -405,8 +778,37 @@
         color: #fff;
     }
     
+    .comment-item {
+        transition: all 0.3s ease;
+    }
+    
     .comment-item:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+        border-color: #ff7236 !important;
+    }
+    
+    .comment-form-container {
+        transition: all 0.3s ease;
+    }
+    
+    .comment-form-container:focus-within {
+        border-color: #ff7236 !important;
+        box-shadow: 0 4px 12px rgba(255, 114, 54, 0.15) !important;
+    }
+    
+    #commentText:focus {
+        border-color: #ff7236 !important;
+        box-shadow: 0 0 0 0.2rem rgba(255, 114, 54, 0.25) !important;
+        outline: none;
+    }
+    
+    .author-avatar {
+        transition: transform 0.3s ease;
+    }
+    
+    .comment-item:hover .author-avatar {
+        transform: scale(1.1);
     }
     
     /* Breadcrumb Styles */
@@ -453,4 +855,3 @@
         font-weight: 500 !important;
     }
 </style>
-
