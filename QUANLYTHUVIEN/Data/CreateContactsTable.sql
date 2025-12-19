@@ -17,3 +17,4 @@ BEGIN
     PRINT 'Table Contacts already exists.';
 END
 
+

@@ -20,3 +20,4 @@ BEGIN
     PRINT 'Table Notifications already exists.';
 END
 
+
