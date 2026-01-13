@@ -16,7 +16,7 @@ namespace QUANLYTHUVIEN.Controllers
             _context = context;
         }
 
-        // Lấy danh sách giỏ hàng từ session
+       
         private List<CartItem> GetCart()
         {
             if (HttpContext.Session == null)
@@ -44,7 +44,7 @@ namespace QUANLYTHUVIEN.Controllers
             }
         }
 
-        // Lưu giỏ hàng vào session
+        
         private void SaveCart(List<CartItem> cart)
         {
             if (HttpContext.Session == null || cart == null)
@@ -63,11 +63,10 @@ namespace QUANLYTHUVIEN.Controllers
             }
             catch
             {
-                // Log error if needed
             }
         }
 
-        // Thêm sách vào giỏ hàng
+
         [HttpPost]
         public async Task<IActionResult> AddToCart(int bookId)
         {
@@ -120,7 +119,7 @@ namespace QUANLYTHUVIEN.Controllers
             }
         }
 
-        // Xem giỏ hàng
+       
         public IActionResult Index()
         {
             var cart = GetCart();
@@ -128,7 +127,7 @@ namespace QUANLYTHUVIEN.Controllers
             return View(cart ?? new List<CartItem>());
         }
 
-        // Xóa sách khỏi giỏ hàng
+     
         [HttpPost]
         public IActionResult RemoveFromCart(int bookId)
         {
@@ -152,13 +151,13 @@ namespace QUANLYTHUVIEN.Controllers
             }
         }
 
-        // Cập nhật số lượng
+        
         [HttpPost]
         public IActionResult UpdateQuantity(int bookId, int quantity)
         {
             try
             {
-                // Đảm bảo quantity tối thiểu là 1
+               
                 if (quantity < 1)
                 {
                     quantity = 1;
@@ -187,7 +186,7 @@ namespace QUANLYTHUVIEN.Controllers
             }
         }
 
-        // Lấy số lượng giỏ hàng (dùng cho AJAX)
+        
         [HttpGet]
         public IActionResult GetCartCount()
         {
@@ -196,7 +195,7 @@ namespace QUANLYTHUVIEN.Controllers
             return Json(new { cartCount = cartCount });
         }
 
-        // Lấy danh sách items trong giỏ hàng (dùng cho dropdown)
+       
         [HttpGet]
         public IActionResult GetCartItems()
         {
@@ -205,7 +204,7 @@ namespace QUANLYTHUVIEN.Controllers
                 var cart = GetCart();
                 var cartJson = HttpContext.Session?.GetString(CartSessionKey);
                 
-                // Debug info
+                
                 var debugInfo = new
                 {
                     sessionExists = HttpContext.Session != null,
@@ -216,7 +215,7 @@ namespace QUANLYTHUVIEN.Controllers
                 
                 var totalAmount = cart?.Sum(c => c.TotalPrice) ?? 0;
                 
-                // Convert to anonymous objects với camelCase để JavaScript dễ đọc
+                
                 var items = new List<object>();
                 if (cart != null && cart.Any())
                 {

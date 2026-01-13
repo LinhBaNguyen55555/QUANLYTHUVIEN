@@ -57,8 +57,7 @@
 </div>
 
 <script>
-    // Hàm addToCart được định nghĩa trong _Layout.cshtml
-    // Nếu chưa có, thêm vào đây
+    
     if (typeof addToCart === 'undefined') {
         function addToCart(bookId) {
             $.ajax({
@@ -95,7 +94,7 @@
     }
     
     function shareBook(bookId, title) {
-        // Tạo alias từ title (giống như trong controller)
+        
         var alias = title.toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/^-+|-+$/g, '');
@@ -109,8 +108,9 @@
             }).catch(function(error) {
                 console.log('Error sharing', error);
             });
-        } else {
-            // Fallback: copy to clipboard
+        } 
+        else {
+            
             var textArea = document.createElement("textarea");
             textArea.value = url;
             document.body.appendChild(textArea);

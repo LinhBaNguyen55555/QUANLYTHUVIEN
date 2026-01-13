@@ -19,7 +19,7 @@ namespace QUANLYTHUVIEN.Controllers
         [Route("blog")]
         public async Task<IActionResult> Index(string searchString, int page = 1)
         {
-            // Load categories và authors cho dropdown tìm kiếm
+            
             ViewBag.Categories = await _context.Categories
                 .OrderBy(c => c.CategoryName)
                 .ToListAsync();
@@ -27,14 +27,14 @@ namespace QUANLYTHUVIEN.Controllers
                 .OrderBy(a => a.AuthorName)
                 .ToListAsync();
 
-            // Query bài viết - chỉ lấy bài đã xuất bản
+            
             var blogsQuery = _context.TbBlogs
                 .Include(b => b.Author)
                 .Include(b => b.TbBlogComments)
                 .Where(b => b.IsPublished == true)
                 .AsQueryable();
 
-            // Tìm kiếm theo tiêu đề hoặc nội dung
+            
             if (!string.IsNullOrEmpty(searchString))
             {
                 blogsQuery = blogsQuery.Where(b => 
@@ -42,7 +42,7 @@ namespace QUANLYTHUVIEN.Controllers
                     (b.Content != null && b.Content.Contains(searchString)));
             }
 
-            // Phân trang
+            
             int pageSize = 9;
             var totalBlogs = await blogsQuery.CountAsync();
             var totalPages = (int)Math.Ceiling(totalBlogs / (double)pageSize);
@@ -53,7 +53,7 @@ namespace QUANLYTHUVIEN.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
-            // ViewBag cho phân trang và search
+            
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalBlogs = totalBlogs;
@@ -72,7 +72,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return NotFound();
             }
 
-            // Lấy thông tin chi tiết bài viết
+            
             var blog = await _context.TbBlogs
                 .Include(b => b.Author)
                 .Include(b => b.TbBlogComments)
@@ -84,11 +84,11 @@ namespace QUANLYTHUVIEN.Controllers
                 return NotFound();
             }
 
-            // Tăng lượt xem
+            
             blog.Views = (blog.Views ?? 0) + 1;
             await _context.SaveChangesAsync();
 
-            // Lấy các bài viết liên quan (mới nhất)
+            
             ViewBag.RelatedBlogs = await _context.TbBlogs
                 .Include(b => b.Author)
                 .Include(b => b.TbBlogComments)
@@ -97,11 +97,11 @@ namespace QUANLYTHUVIEN.Controllers
                 .Take(6)
                 .ToListAsync();
 
-            // Load categories và authors cho dropdown tìm kiếm
+            
             ViewBag.Categories = await _context.Categories.OrderBy(c => c.CategoryName).ToListAsync();
             ViewBag.Authors = await _context.Authors.OrderBy(a => a.AuthorName).ToListAsync();
 
-            // Lấy thông tin customer hiện tại để kiểm tra quyền xóa bình luận
+            
             int? currentCustomerId = null;
             var userId = HttpContext.Session?.GetString("UserId");
             if (!string.IsNullOrEmpty(userId) && int.TryParse(userId, out int userIdInt))
@@ -129,7 +129,7 @@ namespace QUANLYTHUVIEN.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitComment(int blogId, string commentText)
         {
-            // Kiểm tra đăng nhập
+            
             var userId = HttpContext.Session?.GetString("UserId");
             if (string.IsNullOrEmpty(userId))
             {
@@ -147,7 +147,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return Json(new { success = false, message = "Không tìm thấy thông tin người dùng." });
             }
 
-            // Tìm customer
+            
             var customer = await _context.Customers
                 .FirstOrDefaultAsync(c => 
                     (!string.IsNullOrEmpty(user.Email) && c.Email == user.Email) ||
@@ -158,14 +158,14 @@ namespace QUANLYTHUVIEN.Controllers
                 return Json(new { success = false, message = "Không tìm thấy thông tin khách hàng." });
             }
 
-            // Kiểm tra blog có tồn tại không
+            
             var blog = await _context.TbBlogs.FindAsync(blogId);
             if (blog == null || !blog.IsPublished)
             {
                 return Json(new { success = false, message = "Bài viết không tồn tại hoặc đã bị xóa." });
             }
 
-            // Validation
+            
             if (string.IsNullOrWhiteSpace(commentText))
             {
                 return Json(new { success = false, message = "Vui lòng nhập nội dung bình luận." });
@@ -176,14 +176,14 @@ namespace QUANLYTHUVIEN.Controllers
                 return Json(new { success = false, message = "Bình luận không được vượt quá 1000 ký tự." });
             }
 
-            // Tạo comment mới
+            
             var comment = new TbBlogComment
             {
                 BlogId = blogId,
                 CustomerId = customer.CustomerId,
                 CommentText = commentText.Trim(),
                 CreatedDate = DateTime.Now,
-                IsApproved = true // Tự động duyệt (có thể thay đổi thành false nếu cần admin duyệt)
+                IsApproved = true 
             };
 
             try
@@ -198,7 +198,7 @@ namespace QUANLYTHUVIEN.Controllers
             }
         }
 
-        // POST: Blog/DeleteComment - Xóa bình luận
+        // POST: Blog/DeleteComment 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteComment(int commentId)
@@ -221,7 +221,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return Json(new { success = false, message = "Không tìm thấy thông tin người dùng." });
             }
 
-            // Tìm customer
+            
             var customer = await _context.Customers
                 .FirstOrDefaultAsync(c => 
                     (!string.IsNullOrEmpty(user.Email) && c.Email == user.Email) ||
@@ -232,7 +232,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return Json(new { success = false, message = "Không tìm thấy thông tin khách hàng." });
             }
 
-            // Tìm comment
+            
             var comment = await _context.TbBlogComments
                 .Include(c => c.Blog)
                 .FirstOrDefaultAsync(c => c.CommentId == commentId);
@@ -242,7 +242,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return Json(new { success = false, message = "Bình luận không tồn tại." });
             }
 
-            // Kiểm tra quyền: chỉ người đã đăng bình luận mới có thể xóa
+            
             if (comment.CustomerId != customer.CustomerId)
             {
                 return Json(new { success = false, message = "Bạn không có quyền xóa bình luận này." });

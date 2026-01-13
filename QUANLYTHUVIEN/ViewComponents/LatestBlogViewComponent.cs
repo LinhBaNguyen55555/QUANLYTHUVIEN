@@ -17,13 +17,11 @@ namespace QUANLYTHUVIEN.ViewComponents
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            // Lấy 6 bài blog mới nhất
-            // Chúng ta .Include() cả Author và Comments để hiển thị thông tin
             var recentPosts = await _context.TbBlogs
                                 .Include(b => b.Author)
-                                .Include(b => b.TbBlogComments) // Để đếm số lượng comment
+                                .Include(b => b.TbBlogComments) 
                                 .OrderByDescending(b => b.CreatedDate)
-                                .Take(6) // Lấy 6 bài mới nhất
+                                .Take(6) 
                                 .ToListAsync();
 
             return View(recentPosts);

@@ -10,7 +10,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         {
             base.OnActionExecuting(context);
 
-            // Bỏ qua kiểm tra cho trang Login và Logout
+          
             var actionName = context.ActionDescriptor.RouteValues["action"];
             var controllerName = context.ActionDescriptor.RouteValues["controller"];
 
@@ -19,7 +19,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 return;
             }
 
-            // Kiểm tra đăng nhập
+           
             var userId = HttpContext.Session.GetString("UserId");
             if (string.IsNullOrEmpty(userId))
             {
@@ -27,7 +27,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 return;
             }
 
-            // Kiểm tra quyền admin
+           
             var roleName = HttpContext.Session.GetString("RoleName");
             var isAdmin = !string.IsNullOrEmpty(roleName) && 
                          (roleName.ToLower() == "admin" || roleName.ToLower() == "administrator");

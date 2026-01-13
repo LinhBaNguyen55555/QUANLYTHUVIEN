@@ -24,7 +24,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         {
             var contactsQuery = _context.Contacts.AsQueryable();
 
-            // Tìm kiếm
+            
             if (!string.IsNullOrEmpty(searchString))
             {
                 contactsQuery = contactsQuery.Where(c =>

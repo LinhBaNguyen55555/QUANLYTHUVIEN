@@ -24,7 +24,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         {
             var suppliersQuery = _context.Suppliers.AsQueryable();
 
-            // Tìm kiếm
+        
             if (!string.IsNullOrEmpty(searchString))
             {
                 suppliersQuery = suppliersQuery.Where(s =>
@@ -76,14 +76,14 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             {
                 try
                 {
-                    // Kiểm tra tên nhà cung cấp trùng
+                    
                     if (await _context.Suppliers.AnyAsync(s => s.SupplierName.ToLower() == supplier.SupplierName.ToLower()))
                     {
                         ModelState.AddModelError("SupplierName", "Tên nhà cung cấp đã tồn tại.");
                         return View(supplier);
                     }
 
-                    // Kiểm tra email trùng
+                    
                     if (!string.IsNullOrEmpty(supplier.Email) &&
                         await _context.Suppliers.AnyAsync(s => s.Email.ToLower() == supplier.Email.ToLower()))
                     {
@@ -97,7 +97,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _logger.LogInformation($"Nhà cung cấp '{supplier.SupplierName}' đã được tạo thành công bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = $"Nhà cung cấp '{supplier.SupplierName}' đã được tạo thành công!";
 
-                    // Chuyển hướng về trang nguồn
+                    
                     string referer = Request.Headers["Referer"].ToString();
                     if (!string.IsNullOrEmpty(referer) && referer.Contains("/Details"))
                     {
@@ -143,7 +143,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            // Xóa lỗi validation của fromDetails (không phải là trường của model)
+            
             ModelState.Remove("fromDetails");
 
             if (ModelState.IsValid)
@@ -156,14 +156,14 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                         return NotFound();
                     }
 
-                    // Kiểm tra tên nhà cung cấp trùng (trừ chính nó)
+                    
                     if (await _context.Suppliers.AnyAsync(s => s.SupplierName.ToLower() == supplier.SupplierName.ToLower() && s.SupplierId != id))
                     {
                         ModelState.AddModelError("SupplierName", "Tên nhà cung cấp đã tồn tại.");
                         return View(supplier);
                     }
 
-                    // Kiểm tra email trùng (trừ chính nó)
+                    
                     if (!string.IsNullOrEmpty(supplier.Email) &&
                         await _context.Suppliers.AnyAsync(s => s.Email.ToLower() == supplier.Email.ToLower() && s.SupplierId != id))
                     {
@@ -171,7 +171,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                         return View(supplier);
                     }
 
-                    // Cập nhật thông tin
+                    
                     existingSupplier.SupplierName = supplier.SupplierName;
                     existingSupplier.Address = supplier.Address;
                     existingSupplier.Phone = supplier.Phone;
@@ -182,7 +182,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _logger.LogInformation($"Nhà cung cấp '{supplier.SupplierName}' (ID: {supplier.SupplierId}) đã được cập nhật bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = $"Nhà cung cấp '{supplier.SupplierName}' đã được cập nhật thành công!";
 
-                    // Chuyển hướng về trang nguồn
+                    
                     if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
                     {
                         return RedirectToAction(nameof(Details), new { area = "Admin", id = supplier.SupplierId });
@@ -237,7 +237,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
 
-                // Kiểm tra xem nhà cung cấp có đang được sử dụng không
+                
                 if (supplier.Orders.Any())
                 {
                     _logger.LogWarning($"Không thể xóa nhà cung cấp '{supplier.SupplierName}' vì có đơn hàng liên quan");

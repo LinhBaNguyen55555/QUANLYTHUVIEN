@@ -5,8 +5,7 @@
 
     @foreach (var category in Model)
     {
-        // Tạo "slug" (tag) từ CategoryName
-        // Ví dụ: "Kids & Teens" -> "kids-teens"
+        
         string filterTag = category.CategoryName.ToLower()
         .Replace(" & ", "-")
         .Replace(" ", "-");

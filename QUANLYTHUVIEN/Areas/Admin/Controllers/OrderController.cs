@@ -29,7 +29,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     .ThenInclude(od => od.Book)
                 .AsQueryable();
 
-            // Tìm kiếm theo nhà cung cấp
+            
             if (!string.IsNullOrEmpty(searchString))
             {
                 ordersQuery = ordersQuery.Where(o =>
@@ -37,7 +37,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     (o.User != null && o.User.FullName.Contains(searchString)));
             }
 
-            // Lọc theo nhà cung cấp
+            
             if (supplierId.HasValue)
             {
                 ordersQuery = ordersQuery.Where(o => o.SupplierId == supplierId.Value);
@@ -47,7 +47,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
 
-            // Dữ liệu cho dropdown filters
+            
             ViewBag.Suppliers = await _context.Suppliers.OrderBy(s => s.SupplierName).ToListAsync();
             ViewBag.SearchString = searchString;
             ViewBag.SelectedSupplierId = supplierId;
@@ -55,7 +55,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             return View(orders);
         }
 
-        // GET: Admin/Order/Details/5
+        
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -98,7 +98,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 {
                     order.OrderDate = DateTime.Now;
 
-                    // Tính tổng tiền và tạo chi tiết đơn hàng
+                    
                     decimal totalAmount = 0;
                     for (int i = 0; i < selectedBooks.Length; i++)
                     {
@@ -184,7 +184,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                         return NotFound();
                     }
 
-                    // Cập nhật thông tin cơ bản
+                    
                     existingOrder.SupplierId = order.SupplierId;
                     existingOrder.UserId = order.UserId;
 
@@ -248,7 +248,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     return RedirectToAction("Index", "Order", new { area = "Admin" });
                 }
 
-                // Xóa chi tiết đơn hàng trước
+                
                 _context.OrderDetails.RemoveRange(order.OrderDetails);
                 _context.Orders.Remove(order);
                 await _context.SaveChangesAsync();

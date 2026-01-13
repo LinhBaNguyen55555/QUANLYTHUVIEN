@@ -31,13 +31,13 @@ namespace QUANLYTHUVIEN.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // Lấy thông báo của user và thông báo chung (UserId = null)
+           
             var notifications = await _context.Notifications
                 .Where(n => n.UserId == userIdInt || n.UserId == null)
                 .OrderByDescending(n => n.CreatedDate)
                 .ToListAsync();
 
-            // Đếm số thông báo chưa đọc
+           
             var unreadCount = notifications.Count(n => !n.IsRead);
             ViewBag.UnreadCount = unreadCount;
 
@@ -69,7 +69,7 @@ namespace QUANLYTHUVIEN.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // Đếm lại số thông báo chưa đọc
+           
             var unreadCount = await _context.Notifications
                 .CountAsync(n => (n.UserId == userIdInt || n.UserId == null) && !n.IsRead);
 
@@ -125,7 +125,7 @@ namespace QUANLYTHUVIEN.Controllers
             return Json(new { success = true, message = "Đã xóa thông báo." });
         }
 
-        // GET: Notification/GetUnreadCount - API để lấy số thông báo chưa đọc
+        // GET: Notification/GetUnreadCount 
         [HttpGet]
         public async Task<IActionResult> GetUnreadCount()
         {

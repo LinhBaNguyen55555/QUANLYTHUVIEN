@@ -24,7 +24,7 @@ namespace QUANLYTHUVIEN.Controllers
         // Helper methods
         private Rental? GetPendingRental(int rentalId)
         {
-            // Lấy từ session hoặc database
+            
             var rental = _context.Rentals
                 .Include(r => r.Customer)
                 .Include(r => r.RentalDetails)
@@ -100,7 +100,7 @@ namespace QUANLYTHUVIEN.Controllers
         {
             try
             {
-                // Log tất cả query parameters để debug
+              
                 System.Diagnostics.Debug.WriteLine("=== VnPay Callback ===");
                 foreach (var query in Request.Query)
                 {
@@ -115,13 +115,12 @@ namespace QUANLYTHUVIEN.Controllers
                 {
                     int? rentalId = null;
                     
-                    // Lấy OrderId từ response (vnp_TxnRef)
+ 
                     var orderId = response.OrderId;
                     
-                    // Tìm rentalId từ nhiều nguồn
+
                     if (HttpContext.Session != null)
                     {
-                        // Thử 1: Tìm từ session mapping với OrderId
                         if (!string.IsNullOrEmpty(orderId))
                         {
                             var rentalIdFromOrder = HttpContext.Session.GetString($"VnPayOrder_{orderId}");
@@ -131,7 +130,7 @@ namespace QUANLYTHUVIEN.Controllers
                             }
                         }
                         
-                        // Thử 2: Tìm từ LastVnPayRentalId
+            
                         if (!rentalId.HasValue)
                         {
                             var rentalIdStr = HttpContext.Session.GetString("LastVnPayRentalId");
@@ -142,7 +141,7 @@ namespace QUANLYTHUVIEN.Controllers
                         }
                     }
                     
-                    // Thử 3: Parse từ OrderId nếu có format RENTAL_{rentalId}_{timestamp}
+                    
                     if (!rentalId.HasValue && !string.IsNullOrEmpty(orderId) && orderId.StartsWith("RENTAL_"))
                     {
                         var parts = orderId.Split('_');
@@ -152,10 +151,10 @@ namespace QUANLYTHUVIEN.Controllers
                         }
                     }
                     
-                    // Thử 4: Tìm từ OrderDescription trong response
+                    
                     if (!rentalId.HasValue && !string.IsNullOrEmpty(response.OrderDescription))
                     {
-                        // OrderDescription có format: "Name Thanh toán đơn thuê sách #18 Amount"
+                        
                         var match = System.Text.RegularExpressions.Regex.Match(response.OrderDescription, @"#(\d+)");
                         if (match.Success && int.TryParse(match.Groups[1].Value, out int id4))
                         {
@@ -165,20 +164,20 @@ namespace QUANLYTHUVIEN.Controllers
 
                     if (rentalId.HasValue)
                     {
-                        // Cập nhật rental trong database
+                        
                         var dbRental = await _context.Rentals
                             .Include(r => r.RentalDetails)
                             .FirstOrDefaultAsync(r => r.RentalId == rentalId.Value);
 
                         if (dbRental != null)
                         {
-                            // Chỉ cập nhật nếu chưa thanh toán
+                            
                             if (dbRental.Status == "Chờ thanh toán")
                             {
-                                // Cập nhật trạng thái thành "Đang thuê" sau khi thanh toán thành công
+                                
                                 dbRental.Status = "Đang thuê";
 
-                                // Giảm số lượng sách có sẵn
+                               
                                 foreach (var detail in dbRental.RentalDetails)
                                 {
                                     var book = await _context.Books.FindAsync(detail.BookId);
@@ -190,7 +189,7 @@ namespace QUANLYTHUVIEN.Controllers
 
                                 await _context.SaveChangesAsync();
 
-                                // Tạo thông báo khi thanh toán thành công
+                                
                                 var rentalUser = await _context.Users
                                     .FirstOrDefaultAsync(u => u.UserId == dbRental.UserId);
                                 
@@ -207,7 +206,7 @@ namespace QUANLYTHUVIEN.Controllers
                                 }
                             }
 
-                            // Xóa session
+                            
                             if (HttpContext.Session != null)
                             {
                                 HttpContext.Session.Remove($"VnPayRental_{rentalId.Value}");
@@ -218,22 +217,22 @@ namespace QUANLYTHUVIEN.Controllers
                                 }
                             }
 
-                            // Redirect đến trang thành công
+                            
                             return RedirectToAction("VnPayResult", "Payment", new { rentalId = rentalId.Value, status = "success" });
                         }
                     }
 
-                    // Nếu không tìm thấy rentalId, vẫn hiển thị thông báo thành công
+                   
                     TempData["Success"] = "Thanh toán thành công qua VnPay!";
                     return RedirectToAction("VnPayResult", "Payment", new { status = "success" });
                 }
                 else
                 {
-                    // Thanh toán thất bại
+                    
                     var errorMessage = "Thanh toán thất bại.";
                     if (!string.IsNullOrEmpty(response.VnPayResponseCode))
                     {
-                        // Map response code to user-friendly message
+                        
                         errorMessage = response.VnPayResponseCode switch
                         {
                             "07" => "Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường).",
@@ -268,7 +267,7 @@ namespace QUANLYTHUVIEN.Controllers
             }
         }
 
-        // GET: Payment/VnPayResult (Trang kết quả thanh toán VnPay)
+        // GET: Payment/VnPayResult
         public async Task<IActionResult> VnPayResult(int? rentalId, string status)
         {
             if (rentalId.HasValue)
@@ -281,7 +280,6 @@ namespace QUANLYTHUVIEN.Controllers
 
                 if (rental != null)
                 {
-                    // Tự động cập nhật status nếu là "Đã thanh toán" (đơn hàng cũ) thành "Đang thuê"
                     if (rental.Status == "Đã thanh toán" && !rental.ReturnDate.HasValue)
                     {
                         rental.Status = "Đang thuê";

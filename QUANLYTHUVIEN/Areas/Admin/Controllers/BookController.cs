@@ -29,7 +29,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 .Include(b => b.Authors)
                 .AsQueryable();
 
-            // Tìm kiếm
+            
             if (!string.IsNullOrEmpty(searchString))
             {
                 booksQuery = booksQuery.Where(b =>
@@ -40,13 +40,13 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     b.Publisher.PublisherName.Contains(searchString));
             }
 
-            // Lọc theo thể loại
+            
             if (categoryId.HasValue)
             {
                 booksQuery = booksQuery.Where(b => b.CategoryId == categoryId.Value);
             }
 
-            // Lọc theo tác giả
+            
             if (authorId.HasValue)
             {
                 booksQuery = booksQuery.Where(b => b.Authors.Any(a => a.AuthorId == authorId.Value));
@@ -56,7 +56,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 .OrderBy(b => b.BookId)
                 .ToListAsync();
 
-            // Dữ liệu cho dropdown filters
+            
             ViewBag.Categories = await _context.Categories.OrderBy(c => c.CategoryName).ToListAsync();
             ViewBag.Authors = await _context.Authors.OrderBy(a => a.AuthorName).ToListAsync();
             ViewBag.SearchString = searchString;
@@ -107,7 +107,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             {
                 try
                 {
-                    // Thêm các tác giả được chọn
+                    
                     if (selectedAuthors != null && selectedAuthors.Length > 0)
                     {
                         foreach (var authorId in selectedAuthors)
@@ -126,7 +126,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _logger.LogInformation($"Sách '{book.Title}' đã được tạo thành công bởi {User.Identity?.Name ?? "Admin"} với ID {book.BookId}");
                     TempData["Success"] = $"Sách '{book.Title}' đã được tạo thành công!";
 
-                    // Chuyển hướng về trang nguồn
+                    
                     string referer = Request.Headers["Referer"].ToString();
                     if (!string.IsNullOrEmpty(referer) && referer.Contains("/Details"))
                     {
@@ -196,14 +196,14 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            // Xóa lỗi validation của fromDetails (không phải là trường của model)
+            
             ModelState.Remove("fromDetails");
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Cập nhật thông tin sách
+                    
                     var existingBook = await _context.Books
                         .Include(b => b.Authors)
                         .FirstOrDefaultAsync(b => b.BookId == id);
@@ -213,7 +213,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                         return NotFound();
                     }
 
-                    // Cập nhật các trường cơ bản
+                    
                     existingBook.Title = book.Title;
                     existingBook.Isbn = book.Isbn;
                     existingBook.CategoryId = book.CategoryId;
@@ -224,7 +224,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     existingBook.Description = book.Description;
                     existingBook.CoverImage = book.CoverImage;
 
-                    // Cập nhật danh sách tác giả
+                    
                     existingBook.Authors.Clear();
                     if (selectedAuthors != null && selectedAuthors.Length > 0)
                     {
@@ -243,7 +243,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _logger.LogInformation($"Sách '{book.Title}' (ID: {book.BookId}) đã được cập nhật bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = $"Sách '{book.Title}' đã được cập nhật thành công!";
 
-                    // Chuyển hướng về trang nguồn
+                    
                     if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
                     {
                         return RedirectToAction(nameof(Details), new { area = "Admin", id = book.BookId });
@@ -318,7 +318,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
 
-                // Kiểm tra xem sách có đang được sử dụng không
+                
                 var hasOrders = await _context.OrderDetails.AnyAsync(od => od.BookId == id);
                 var hasRentals = await _context.RentalDetails.AnyAsync(rd => rd.BookId == id);
                 var hasRentalPrices = await _context.RentalPrices.AnyAsync(rp => rp.BookId == id);
@@ -330,7 +330,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
 
-                // Xóa các bản ghi RentalPrice liên quan trước
+                
                 if (hasRentalPrices)
                 {
                     var rentalPrices = await _context.RentalPrices
@@ -341,7 +341,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _logger.LogInformation($"Đã xóa {rentalPrices.Count} bản ghi giá thuê liên quan đến sách '{book.Title}'");
                 }
 
-                // Xóa quan hệ với tác giả
+                
                 book.Authors.Clear();
 
                 _context.Books.Remove(book);

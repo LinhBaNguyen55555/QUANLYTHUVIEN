@@ -20,7 +20,6 @@ namespace QUANLYTHUVIEN.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Load categories và authors cho dropdown tìm kiếm
             ViewBag.Categories = await _context.Categories.OrderBy(c => c.CategoryName).ToListAsync();
             ViewBag.Authors = await _context.Authors.OrderBy(a => a.AuthorName).ToListAsync();
             return View();
@@ -30,11 +29,10 @@ namespace QUANLYTHUVIEN.Controllers
         [Route("search")]
         public async Task<IActionResult> Search(string keywords, string catalog, string category, int page = 1)
         {
-            // Lấy danh sách thể loại và tác giả cho dropdown
             ViewBag.Categories = await _context.Categories.OrderBy(c => c.CategoryName).ToListAsync();
             ViewBag.Authors = await _context.Authors.OrderBy(a => a.AuthorName).ToListAsync();
 
-            // Query sách với các điều kiện tìm kiếm
+ 
             var booksQuery = _context.Books
                 .Include(b => b.Category)
                 .Include(b => b.Authors)
@@ -43,7 +41,7 @@ namespace QUANLYTHUVIEN.Controllers
                 .Include(b => b.RentalPrices)
                 .AsQueryable();
 
-            // Tìm kiếm theo từ khóa
+         
             if (!string.IsNullOrEmpty(keywords))
             {
                 booksQuery = booksQuery.Where(b =>
@@ -55,19 +53,19 @@ namespace QUANLYTHUVIEN.Controllers
                     (b.Publisher != null && b.Publisher.PublisherName.Contains(keywords)));
             }
 
-            // Lọc theo tác giả (catalog = tên tác giả)
+           
             if (!string.IsNullOrEmpty(catalog) && catalog != "Tìm kiếm theo tác giả" && catalog != "Search the Catalog")
             {
                 booksQuery = booksQuery.Where(b => b.Authors.Any(a => a.AuthorName == catalog));
             }
 
-            // Lọc theo thể loại
+            
             if (!string.IsNullOrEmpty(category) && category != "Tất cả thể loại" && category != "All Categories")
             {
                 booksQuery = booksQuery.Where(b => b.Category != null && b.Category.CategoryName == category);
             }
 
-            // Phân trang
+           
             int pageSize = 12;
             var totalBooks = await booksQuery.CountAsync();
             var totalPages = (int)Math.Ceiling(totalBooks / (double)pageSize);
@@ -78,7 +76,7 @@ namespace QUANLYTHUVIEN.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
-            // Tính số lượng có sẵn cho từng sách
+            
             foreach (var book in books)
             {
                 var rentedCount = await _context.RentalDetails
@@ -92,7 +90,7 @@ namespace QUANLYTHUVIEN.Controllers
                 ((Dictionary<int, int>)ViewBag.AvailableQuantities)[book.BookId] = Math.Max(0, availableQuantity);
             }
 
-            // ViewBag cho phân trang
+            
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalBooks = totalBooks;
@@ -107,7 +105,7 @@ namespace QUANLYTHUVIEN.Controllers
         [Route("about")]
         public async Task<IActionResult> About()
         {
-            // Load thống kê cho trang About
+            
             var totalBooks = await _context.Books.CountAsync();
             var totalAuthors = await _context.Authors.CountAsync();
             var totalCategories = await _context.Categories.CountAsync();
@@ -133,7 +131,7 @@ namespace QUANLYTHUVIEN.Controllers
             return View();
         }
 
-        // POST: Home/Contact - Xử lý gửi tin nhắn liên hệ
+        // POST: Home/Contact
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("lien-he")]
@@ -142,14 +140,14 @@ namespace QUANLYTHUVIEN.Controllers
         {
             try
             {
-                // Lấy từ form với tên có dấu gạch ngang
+                
                 var first_name = Request.Form["first-name"].ToString();
                 var last_name = Request.Form["last-name"].ToString();
                 var emailValue = Request.Form["email"].ToString();
                 var phoneValue = Request.Form["phone"].ToString();
                 var messageValue = Request.Form["message"].ToString();
 
-                // Validation
+                
                 if (string.IsNullOrWhiteSpace(first_name) && string.IsNullOrWhiteSpace(last_name))
                 {
                     TempData["Error"] = "Vui lòng nhập họ hoặc tên.";
@@ -168,21 +166,21 @@ namespace QUANLYTHUVIEN.Controllers
                     return View();
                 }
 
-                // Kiểm tra email hợp lệ
+                
                 if (!emailValue.Contains("@") || !emailValue.Contains("."))
                 {
                     TempData["Error"] = "Email không hợp lệ.";
                     return View();
                 }
 
-                // Ghép họ và tên
+                
                 var fullName = $"{first_name} {last_name}".Trim();
                 if (string.IsNullOrWhiteSpace(fullName))
                 {
-                    fullName = emailValue.Split('@')[0]; // Dùng phần trước @ của email nếu không có tên
+                    fullName = emailValue.Split('@')[0]; 
                 }
 
-                // Tạo contact mới
+               
                 var contact = new Contact
                 {
                     FullName = fullName,
@@ -195,7 +193,7 @@ namespace QUANLYTHUVIEN.Controllers
                 _context.Contacts.Add(contact);
                 await _context.SaveChangesAsync();
 
-                // Tạo thông báo cho tất cả admin khi có tin nhắn liên hệ mới
+                
                 await NotificationHelper.CreateNotificationForAdminsAsync(
                     _context,
                     "Tin nhắn liên hệ mới",

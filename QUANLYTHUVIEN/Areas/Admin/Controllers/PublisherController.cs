@@ -26,7 +26,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 .Include(p => p.Books)
                 .AsQueryable();
 
-            // Tìm kiếm theo tên nhà xuất bản
+            
             if (!string.IsNullOrEmpty(searchString))
             {
                 publishersQuery = publishersQuery.Where(p => p.PublisherName.Contains(searchString));
@@ -79,7 +79,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Nhà xuất bản '{publisher.PublisherName}' đã được tạo thành công!";
 
-                    // Chuyển hướng về trang nguồn
+                    
                     string referer = Request.Headers["Referer"].ToString();
                     if (!string.IsNullOrEmpty(referer) && referer.Contains("/Details"))
                     {
@@ -114,7 +114,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         {
             if (id != publisher.PublisherId) return NotFound();
 
-            // Xóa lỗi validation của fromDetails (không phải là trường của model)
+            
             ModelState.Remove("fromDetails");
 
             if (ModelState.IsValid)
@@ -131,7 +131,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Nhà xuất bản '{publisher.PublisherName}' đã được cập nhật thành công!";
 
-                    // Chuyển hướng về trang nguồn
+                    
                     if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
                     {
                         return RedirectToAction("Details", "Publisher", new { area = "Admin", id = publisher.PublisherId });

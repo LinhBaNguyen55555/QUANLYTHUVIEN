@@ -21,7 +21,7 @@ namespace QUANLYTHUVIEN.Controllers
             _vnPayService = vnPayService;
         }
 
-        // Lấy danh sách giỏ hàng từ session
+       
         private List<CartItem> GetCart()
         {
             if (HttpContext.Session == null)
@@ -49,7 +49,7 @@ namespace QUANLYTHUVIEN.Controllers
             }
         }
 
-        // Xóa giỏ hàng sau khi thanh toán
+       
         private void ClearCart()
         {
             if (HttpContext.Session != null)
@@ -61,7 +61,7 @@ namespace QUANLYTHUVIEN.Controllers
         // GET: Checkout
         public IActionResult Index()
         {
-            // Kiểm tra đăng nhập
+           
             var userId = HttpContext.Session?.GetString("UserId");
             if (string.IsNullOrEmpty(userId))
             {
@@ -83,7 +83,7 @@ namespace QUANLYTHUVIEN.Controllers
             ViewBag.TotalAmount = totalAmount;
             ViewBag.TotalQuantity = cart.Sum(c => c.Quantity);
 
-            // Lấy thông tin user
+            
             if (int.TryParse(userId, out int userIdInt))
             {
                 var user = _context.Users.FirstOrDefault(u => u.UserId == userIdInt);
@@ -98,7 +98,7 @@ namespace QUANLYTHUVIEN.Controllers
             return View();
         }
 
-        // POST: Checkout/Process
+       
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Process(string fullName, string email, string phone, string address, 
@@ -109,7 +109,7 @@ namespace QUANLYTHUVIEN.Controllers
                 // Debug: Log payment method
                 System.Diagnostics.Debug.WriteLine($"Payment Method received: {paymentMethod}");
                 
-                // Kiểm tra đăng nhập
+                
                 var userIdStr = HttpContext.Session?.GetString("UserId");
                 if (string.IsNullOrEmpty(userIdStr))
                 {
@@ -126,7 +126,7 @@ namespace QUANLYTHUVIEN.Controllers
                     return RedirectToAction("Index", "Cart");
                 }
 
-                // Validation
+                
                 if (string.IsNullOrWhiteSpace(fullName))
                 {
                     ModelState.AddModelError("fullName", "Họ tên là bắt buộc");
@@ -157,7 +157,7 @@ namespace QUANLYTHUVIEN.Controllers
                     return View("Index");
                 }
 
-                // Tìm hoặc tạo Customer
+                
                 var customer = await _context.Customers
                     .FirstOrDefaultAsync(c => c.Email == email && c.Phone == phone);
 
@@ -176,13 +176,13 @@ namespace QUANLYTHUVIEN.Controllers
                 }
                 else
                 {
-                    // Cập nhật thông tin nếu có thay đổi
+                    
                     customer.FullName = fullName;
                     customer.Address = address;
                     await _context.SaveChangesAsync();
                 }
 
-                // Lấy UserId từ session (đã kiểm tra ở đầu method)
+                
                 int userId = 1;
                 if (int.TryParse(userIdStr, out int userIdInt))
                 {
@@ -190,7 +190,7 @@ namespace QUANLYTHUVIEN.Controllers
                 }
                 else
                 {
-                    // Tìm user đầu tiên có role Admin hoặc Librarian
+                    
                     var defaultUser = await _context.Users
                         .FirstOrDefaultAsync(u => u.Role == "Admin" || u.Role == "Librarian");
                     if (defaultUser != null)
@@ -199,17 +199,17 @@ namespace QUANLYTHUVIEN.Controllers
                     }
                 }
 
-                // Tính tổng tiền
+                
                 decimal rentalTotalAmount = 0;
                 foreach (var item in cart)
                 {
                     rentalTotalAmount += item.DailyRate * item.Quantity * rentalDays;
                 }
 
-                // Xác định trạng thái dựa trên phương thức thanh toán
+                
                 string rentalStatus = (paymentMethod == "vnpay") ? "Chờ thanh toán" : "Đang thuê";
 
-                // Tạo Rental
+                
                 var rental = new Rental
                 {
                     CustomerId = customer.CustomerId,
@@ -220,7 +220,7 @@ namespace QUANLYTHUVIEN.Controllers
                     Status = rentalStatus
                 };
 
-                // Tạo RentalDetails
+                
                 foreach (var item in cart)
                 {
                     var rentalDetail = new RentalDetail
@@ -231,7 +231,7 @@ namespace QUANLYTHUVIEN.Controllers
                     };
                     rental.RentalDetails.Add(rentalDetail);
 
-                    // Chỉ giảm số lượng sách nếu đã thanh toán (không phải VnPay)
+                    
                     if (paymentMethod != "vnpay")
                     {
                         var book = await _context.Books.FindAsync(item.BookId);
@@ -245,12 +245,12 @@ namespace QUANLYTHUVIEN.Controllers
                 _context.Rentals.Add(rental);
                 await _context.SaveChangesAsync();
 
-                // Nếu thanh toán qua VnPay, tạo URL thanh toán (thông báo sẽ được tạo sau khi thanh toán thành công)
+                
                 if (!string.IsNullOrEmpty(paymentMethod) && paymentMethod.ToLower() == "vnpay")
                 {
                     try
                     {
-                        // Tạo OrderId từ rentalId để có thể tìm lại sau khi callback
+                        
                         var orderId = $"RENTAL_{rental.RentalId}_{DateTime.Now:yyyyMMddHHmmss}";
                         
                         var paymentModel = new PaymentInformationModel
@@ -262,12 +262,12 @@ namespace QUANLYTHUVIEN.Controllers
                             OrderId = orderId
                         };
 
-                        // Lưu rentalId vào session để xử lý sau khi thanh toán
+                        
                         if (HttpContext.Session != null)
                         {
                             HttpContext.Session.SetString($"VnPayRental_{rental.RentalId}", rental.RentalId.ToString());
                             HttpContext.Session.SetString("LastVnPayRentalId", rental.RentalId.ToString());
-                            // Lưu mapping giữa orderId và rentalId
+                           
                             HttpContext.Session.SetString($"VnPayOrder_{orderId}", rental.RentalId.ToString());
                         }
 
@@ -275,27 +275,24 @@ namespace QUANLYTHUVIEN.Controllers
                         
                         if (!string.IsNullOrEmpty(paymentUrl))
                         {
-                            // Chỉ xóa giỏ hàng khi đã tạo được payment URL thành công
+                            
                             ClearCart();
                             return Redirect(paymentUrl);
                         }
                         else
                         {
                             TempData["Error"] = "Không thể tạo URL thanh toán VnPay";
-                            // Không xóa giỏ hàng nếu có lỗi
                             return RedirectToAction("Index");
                         }
                     }
                     catch (Exception ex)
                     {
-                        TempData["Error"] = $"Có lỗi xảy ra khi tạo URL thanh toán VnPay: {ex.Message}";
-                        // Không xóa giỏ hàng nếu có exception
+                        TempData["Error"] = $"Có lỗi xảy ra khi tạo URL thanh toán VnPay: {ex.Message}";         
                         return RedirectToAction("Index");
                     }
                 }
 
-                // Các phương thức thanh toán khác (thanh toán khi nhận, chuyển khoản)
-                // Tạo thông báo khi hoàn thành phiếu thuê (chỉ cho thanh toán không phải VnPay)
+                
                 if (userIdInt > 0)
                 {
                     var bookTitles = string.Join(", ", cart.Select(c => c.Title).Take(3));
@@ -313,7 +310,6 @@ namespace QUANLYTHUVIEN.Controllers
                     );
                 }
 
-                // Xóa giỏ hàng vì đã thanh toán thành công
                 ClearCart();
                 TempData["Success"] = $"Đặt thuê thành công! Mã đơn: #{rental.RentalId}";
                 return RedirectToAction("Success", new { rentalId = rental.RentalId });

@@ -24,7 +24,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         {
             var categoriesQuery = _context.Categories.AsQueryable();
 
-            // Tìm kiếm
+            
             if (!string.IsNullOrEmpty(searchString))
             {
                 categoriesQuery = categoriesQuery.Where(c =>
@@ -87,7 +87,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             {
                 try
                 {
-                    // Kiểm tra trùng tên
+                    
                     if (await _context.Categories.AnyAsync(c => c.CategoryName.ToLower() == category.CategoryName.ToLower()))
                     {
                         ModelState.AddModelError("CategoryName", "Tên thể loại đã tồn tại.");
@@ -100,7 +100,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _logger.LogInformation($"Thể loại '{category.CategoryName}' đã được tạo thành công bởi {User.Identity?.Name ?? "Admin"} với ID {category.CategoryId}");
                     TempData["Success"] = $"Thể loại '{category.CategoryName}' đã được tạo thành công!";
 
-                    // Chuyển hướng về trang nguồn
+                    
                     string referer = Request.Headers["Referer"].ToString();
                     if (!string.IsNullOrEmpty(referer) && referer.Contains("/Details"))
                     {
@@ -158,14 +158,14 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            // Xóa lỗi validation của fromDetails (không phải là trường của model)
+            
             ModelState.Remove("fromDetails");
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Kiểm tra trùng tên (trừ chính nó)
+                    
                     if (await _context.Categories.AnyAsync(c => c.CategoryName.ToLower() == category.CategoryName.ToLower() && c.CategoryId != id))
                     {
                         ModelState.AddModelError("CategoryName", "Tên thể loại đã tồn tại.");
@@ -178,7 +178,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _logger.LogInformation($"Thể loại '{category.CategoryName}' (ID: {category.CategoryId}) đã được cập nhật bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = $"Thể loại '{category.CategoryName}' đã được cập nhật thành công!";
 
-                    // Chuyển hướng về trang nguồn
+                    
                     if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
                     {
                         return RedirectToAction("Details", "Category", new { area = "Admin", id = category.CategoryId });
@@ -244,7 +244,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     return RedirectToAction("Index", "Category", new { area = "Admin" });
                 }
 
-                // Kiểm tra xem thể loại có đang được sử dụng không
+                
                 if (category.Books.Any())
                 {
                     _logger.LogWarning($"Không thể xóa thể loại '{category.CategoryName}' vì có sách đang sử dụng");

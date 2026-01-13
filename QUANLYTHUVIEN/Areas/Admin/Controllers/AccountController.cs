@@ -58,7 +58,6 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 return View();
             }
 
-            // Kiểm tra quyền admin
             var roleName = user.RoleNavigation?.RoleName ?? user.Role ?? "";
             var isAdmin = !string.IsNullOrEmpty(roleName) && 
                          (roleName.ToLower() == "admin" || roleName.ToLower() == "administrator");

@@ -26,14 +26,14 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 .Include(rp => rp.Book)
                 .AsQueryable();
 
-            // Tìm kiếm theo tên sách
+            
             if (!string.IsNullOrEmpty(searchString))
             {
                 rentalPricesQuery = rentalPricesQuery.Where(rp =>
                     rp.Book.Title.Contains(searchString));
             }
 
-            // Lọc theo sách
+         
             if (bookId.HasValue)
             {
                 rentalPricesQuery = rentalPricesQuery.Where(rp => rp.BookId == bookId.Value);
@@ -44,7 +44,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 .ThenBy(rp => rp.Book.Title)
                 .ToListAsync();
 
-            // Load danh sách sách cho dropdown
+            
             ViewBag.Books = await _context.Books
                 .OrderBy(b => b.Title)
                 .ToListAsync();
@@ -92,7 +92,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             {
                 try
                 {
-                    // Nếu không có EffectiveDate, đặt mặc định là ngày hiện tại
+                    
                     if (!rentalPrice.EffectiveDate.HasValue)
                     {
                         rentalPrice.EffectiveDate = DateOnly.FromDateTime(DateTime.Now);
@@ -152,7 +152,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             {
                 try
                 {
-                    // Nếu không có EffectiveDate, đặt mặc định là ngày hiện tại
+                    
                     if (!rentalPrice.EffectiveDate.HasValue)
                     {
                         rentalPrice.EffectiveDate = DateOnly.FromDateTime(DateTime.Now);

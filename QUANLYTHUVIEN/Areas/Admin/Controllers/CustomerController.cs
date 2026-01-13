@@ -24,7 +24,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         {
             var customersQuery = _context.Customers.AsQueryable();
 
-            // Tìm kiếm
+            
             if (!string.IsNullOrEmpty(searchString))
             {
                 customersQuery = customersQuery.Where(c =>
@@ -77,7 +77,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             {
                 try
                 {
-                    // Kiểm tra email trùng
+                    
                     if (!string.IsNullOrEmpty(customer.Email) &&
                         await _context.Customers.AnyAsync(c => c.Email.ToLower() == customer.Email.ToLower()))
                     {
@@ -93,7 +93,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _logger.LogInformation($"Khách hàng '{customer.FullName}' đã được tạo thành công bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = $"Khách hàng '{customer.FullName}' đã được tạo thành công!";
 
-                    // Chuyển hướng về trang nguồn
+                    
                     string referer = Request.Headers["Referer"].ToString();
                     if (!string.IsNullOrEmpty(referer) && referer.Contains("/Details"))
                     {
@@ -139,7 +139,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            // Xóa lỗi validation của fromDetails (không phải là trường của model)
+            
             ModelState.Remove("fromDetails");
 
             if (ModelState.IsValid)
@@ -152,7 +152,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                         return NotFound();
                     }
 
-                    // Kiểm tra email trùng (trừ chính nó)
+                    
                     if (!string.IsNullOrEmpty(customer.Email) &&
                         await _context.Customers.AnyAsync(c => c.Email.ToLower() == customer.Email.ToLower() && c.CustomerId != id))
                     {
@@ -160,7 +160,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                         return View(customer);
                     }
 
-                    // Cập nhật thông tin
+                    
                     existingCustomer.FullName = customer.FullName;
                     existingCustomer.Email = customer.Email;
                     existingCustomer.Phone = customer.Phone;
@@ -171,7 +171,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _logger.LogInformation($"Khách hàng '{customer.FullName}' (ID: {customer.CustomerId}) đã được cập nhật bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = $"Khách hàng '{customer.FullName}' đã được cập nhật thành công!";
 
-                    // Chuyển hướng về trang nguồn
+                    
                     if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
                     {
                         return RedirectToAction(nameof(Details), new { area = "Admin", id = customer.CustomerId });
@@ -228,7 +228,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
 
-                // Kiểm tra xem khách hàng có đang được sử dụng không
+                
                 if (customer.Rentals.Any() || customer.TbBlogComments.Any())
                 {
                     _logger.LogWarning($"Không thể xóa khách hàng '{customer.FullName}' vì có dữ liệu liên quan");

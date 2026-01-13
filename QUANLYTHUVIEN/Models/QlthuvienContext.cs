@@ -403,7 +403,7 @@ public partial class QlthuvienContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_BookReviews_Customers");
 
-            // Unique constraint: mỗi customer chỉ đánh giá 1 lần cho mỗi sách
+            
             entity.HasIndex(e => new { e.BookId, e.CustomerId })
                 .IsUnique()
                 .HasDatabaseName("UQ_BookReviews_Book_Customer");

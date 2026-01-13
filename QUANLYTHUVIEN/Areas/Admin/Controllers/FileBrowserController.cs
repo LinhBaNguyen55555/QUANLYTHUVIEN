@@ -38,7 +38,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 return Json(new { success = false, message = "Định dạng file không hợp lệ. Vui lòng chọn ảnh (jpg, jpeg, png, gif, bmp, webp)." });
             }
 
-            // Đảm bảo đường dẫn hợp lệ và không bắt đầu bằng / hoặc ~
+            
             folderPath = string.IsNullOrWhiteSpace(folderPath)
                 ? "images"
                 : folderPath.TrimStart('/', '~', '\\');
@@ -51,7 +51,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 Directory.CreateDirectory(targetFolder);
             }
 
-            // Làm sạch tên file và thêm hậu tố để tránh trùng
+            
             var sanitizedName = Regex.Replace(Path.GetFileNameWithoutExtension(file.FileName), @"[^a-zA-Z0-9-_]+", "-").Trim('-');
             if (string.IsNullOrWhiteSpace(sanitizedName))
             {
@@ -97,13 +97,13 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
             try
             {
-                // Chuẩn hóa path, tránh ký tự dẫn tới thư mục khác
+                
                 var cleaned = relativePath.TrimStart('/', '\\', '~');
                 cleaned = cleaned.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
 
                 var fullPath = Path.Combine(_environment.WebRootPath, cleaned);
 
-                // Đảm bảo file nằm trong wwwroot
+                
                 var webRootFull = Path.GetFullPath(_environment.WebRootPath);
                 var targetFull = Path.GetFullPath(fullPath);
                 if (!targetFull.StartsWith(webRootFull, StringComparison.OrdinalIgnoreCase))
@@ -135,10 +135,10 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
             if (Directory.Exists(folderPath))
             {
-                // Lấy tất cả các file ảnh
+                
                 var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
                 
-                // Lấy ảnh từ thư mục gốc
+                
                 var files = Directory.GetFiles(folderPath)
                     .Where(f => allowedExtensions.Contains(Path.GetExtension(f).ToLower()))
                     .Select(f => new
@@ -150,7 +150,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
 
                 imageFiles.AddRange(files);
 
-                // Lấy ảnh từ các thư mục con
+                
                 var subDirectories = Directory.GetDirectories(folderPath);
                 foreach (var subDir in subDirectories)
                 {
@@ -178,7 +178,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             {
                 var webRootPath = _environment.WebRootPath;
                 
-                // Đảm bảo folderPath không bắt đầu bằng / hoặc ~
+                
                 folderPath = folderPath.TrimStart('/', '~', '\\');
                 
                 var fullPath = Path.Combine(webRootPath, folderPath);
@@ -207,7 +207,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 }
                 else
                 {
-                    // Trả về lỗi nếu thư mục không tồn tại
+                    
                     return Json(new { error = $"Thư mục '{folderPath}' không tồn tại. Đường dẫn đầy đủ: {fullPath}" });
                 }
 

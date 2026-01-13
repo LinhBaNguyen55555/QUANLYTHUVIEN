@@ -7,7 +7,6 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
     {
         public IActionResult Index()
         {
-            // Kiểm tra đăng nhập
             var userId = HttpContext.Session.GetString("UserId");
             if (string.IsNullOrEmpty(userId))
             {
@@ -15,7 +14,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 return RedirectToAction("Login", "Account", new { area = "Admin", returnUrl = Request.Path });
             }
 
-            // Kiểm tra quyền admin
+        
             var roleName = HttpContext.Session.GetString("RoleName");
             var isAdmin = !string.IsNullOrEmpty(roleName) && 
                          (roleName.ToLower() == "admin" || roleName.ToLower() == "administrator");
@@ -27,7 +26,6 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 return RedirectToAction("Login", "Account", new { area = "Admin" });
             }
 
-            // Redirect đến trang Dashboard (báo cáo tổng quan)
             return RedirectToAction("Dashboard", "Report", new { area = "Admin" });
         }
     }

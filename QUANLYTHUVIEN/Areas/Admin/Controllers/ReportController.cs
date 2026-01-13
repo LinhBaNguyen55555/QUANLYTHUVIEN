@@ -26,7 +26,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         {
             var dashboardData = new DashboardViewModel();
 
-            // Thống kê tổng quan
+          
             dashboardData.TotalBooks = await _context.Books.CountAsync();
             dashboardData.TotalCustomers = await _context.Customers.CountAsync();
             dashboardData.TotalRentals = await _context.Rentals.CountAsync();
@@ -34,22 +34,22 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             dashboardData.TotalSuppliers = await _context.Suppliers.CountAsync();
             dashboardData.TotalUsers = await _context.Users.CountAsync();
 
-            // Thống kê sách đang được thuê
+            
             dashboardData.ActiveRentals = await _context.Rentals.CountAsync(r => r.Status == "Active");
 
-            // Thống kê doanh thu tháng này
+          
             var currentMonth = DateTime.Now.Month;
             var currentYear = DateTime.Now.Year;
             dashboardData.MonthlyRevenue = await _context.Rentals
                 .Where(r => r.RentalDate.Value.Month == currentMonth && r.RentalDate.Value.Year == currentYear)
                 .SumAsync(r => r.TotalAmount ?? 0);
 
-            // Thống kê doanh thu năm nay
+            
             dashboardData.YearlyRevenue = await _context.Rentals
                 .Where(r => r.RentalDate.Value.Year == currentYear)
                 .SumAsync(r => r.TotalAmount ?? 0);
 
-            // Thống kê sách theo thể loại
+           
             dashboardData.BooksByCategory = await _context.Categories
                 .Select(c => new CategoryStat
                 {
@@ -60,7 +60,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 .Take(10)
                 .ToListAsync();
 
-            // Thống kê sách được thuê nhiều nhất
+            
             dashboardData.TopRentedBooks = await _context.Books
                 .Select(b => new BookRentalStat
                 {
@@ -73,7 +73,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 .Take(10)
                 .ToListAsync();
 
-            // Thống kê khách hàng hoạt động nhất
+            
             dashboardData.TopCustomers = await _context.Customers
                 .Select(c => new CustomerStat
                 {
@@ -85,10 +85,10 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 .Take(10)
                 .ToListAsync();
 
-            // Thống kê doanh thu theo tháng (6 tháng gần nhất)
+            
             dashboardData.MonthlyRevenueChart = await GetMonthlyRevenueDataInternal();
 
-            // Thống kê trạng thái phiếu thuê
+            
             dashboardData.RentalStatusChart = await GetRentalStatusDataInternal();
 
             return View(dashboardData);

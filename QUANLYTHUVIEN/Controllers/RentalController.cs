@@ -25,7 +25,6 @@ namespace QUANLYTHUVIEN.Controllers
         [Route("services/bookrental")]
         public async Task<IActionResult> MyRentals()
         {
-            // Kiểm tra đăng nhập
             var userId = HttpContext.Session?.GetString("UserId");
             if (string.IsNullOrEmpty(userId))
             {
@@ -33,7 +32,6 @@ namespace QUANLYTHUVIEN.Controllers
                 return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("MyRentals", "Rental") });
             }
 
-            // Lấy thông tin user
             if (!int.TryParse(userId, out int userIdInt))
             {
                 TempData["Error"] = "Không tìm thấy thông tin người dùng.";
@@ -47,7 +45,6 @@ namespace QUANLYTHUVIEN.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // Tìm customer dựa trên email hoặc phone của user
             var customer = await _context.Customers
                 .FirstOrDefaultAsync(c => 
                     (!string.IsNullOrEmpty(user.Email) && c.Email == user.Email) ||
@@ -55,12 +52,10 @@ namespace QUANLYTHUVIEN.Controllers
 
             if (customer == null)
             {
-                // Nếu không tìm thấy customer, hiển thị thông báo
                 ViewBag.Message = "Bạn chưa có sách đang thuê nào.";
                 return View(new List<Rental>());
             }
 
-            // Lấy danh sách rental của customer, chỉ lấy những rental đang thuê hoặc chưa trả
             var rentals = await _context.Rentals
                 .Include(r => r.Customer)
                 .Include(r => r.RentalDetails)
@@ -74,7 +69,6 @@ namespace QUANLYTHUVIEN.Controllers
                 .OrderByDescending(r => r.RentalDate)
                 .ToListAsync();
             
-            // Cập nhật các đơn hàng cũ có status "Đã thanh toán" thành "Đang thuê" (nếu chưa trả)
             foreach (var rental in rentals.Where(r => r.Status == "Đã thanh toán" && !r.ReturnDate.HasValue))
             {
                 rental.Status = "Đang thuê";
@@ -84,7 +78,6 @@ namespace QUANLYTHUVIEN.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // Kiểm tra và cập nhật trạng thái hết hạn tự động
             foreach (var rental in rentals)
             {
                 if (rental.ReturnDate.HasValue && rental.ReturnDate.Value < DateTime.Now && rental.Status != "Đã trả")
@@ -101,12 +94,12 @@ namespace QUANLYTHUVIEN.Controllers
             return View(rentals);
         }
 
-        // GET: Rental/RentalHistory - Lịch sử sách đã thuê
+        // GET: Rental/RentalHistory 
         [Route("sach-da-thue")]
         [Route("Rental/RentalHistory")]
         public async Task<IActionResult> RentalHistory()
         {
-            // Kiểm tra đăng nhập
+            
             var userId = HttpContext.Session?.GetString("UserId");
             if (string.IsNullOrEmpty(userId))
             {
@@ -114,7 +107,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("RentalHistory", "Rental") });
             }
 
-            // Lấy thông tin user
+            
             if (!int.TryParse(userId, out int userIdInt))
             {
                 TempData["Error"] = "Không tìm thấy thông tin người dùng.";
@@ -128,7 +121,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // Tìm customer dựa trên email hoặc phone của user
+            
             var customer = await _context.Customers
                 .FirstOrDefaultAsync(c => 
                     (!string.IsNullOrEmpty(user.Email) && c.Email == user.Email) ||
@@ -140,7 +133,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return View(new List<Rental>());
             }
 
-            // Lấy danh sách rental đã trả (Status == "Đã trả")
+            
             var rentals = await _context.Rentals
                 .Include(r => r.Customer)
                 .Include(r => r.RentalDetails)
@@ -154,7 +147,7 @@ namespace QUANLYTHUVIEN.Controllers
                 .OrderByDescending(r => r.ReturnDate ?? r.RentalDate)
                 .ToListAsync();
 
-            // Kiểm tra xem mỗi sách đã được đánh giá chưa
+            
             Dictionary<int, bool> bookReviewStatus = new Dictionary<int, bool>();
             try
             {
@@ -176,7 +169,6 @@ namespace QUANLYTHUVIEN.Controllers
             }
             catch
             {
-                // Bảng BookReviews chưa tồn tại, tất cả đều chưa đánh giá
             }
 
             ViewBag.CustomerName = customer.FullName;
@@ -196,7 +188,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return NotFound();
             }
 
-            // Kiểm tra đăng nhập
+            
             var userId = HttpContext.Session?.GetString("UserId");
             if (string.IsNullOrEmpty(userId))
             {
@@ -204,7 +196,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Details", "Rental", new { id }) });
             }
 
-            // Lấy thông tin user
+          
             if (!int.TryParse(userId, out int userIdInt))
             {
                 TempData["Error"] = "Không tìm thấy thông tin người dùng.";
@@ -218,7 +210,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // Tìm customer
+          
             var customer = await _context.Customers
                 .FirstOrDefaultAsync(c => 
                     (!string.IsNullOrEmpty(user.Email) && c.Email == user.Email) ||
@@ -230,7 +222,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return RedirectToAction("MyRentals", "Rental");
             }
 
-            // Lấy rental và kiểm tra quyền truy cập
+            
             var rental = await _context.Rentals
                 .Include(r => r.Customer)
                 .Include(r => r.User)
@@ -250,14 +242,14 @@ namespace QUANLYTHUVIEN.Controllers
                 return NotFound();
             }
 
-            // Kiểm tra xem rental có thuộc về customer này không
+            
             if (rental.CustomerId != customer.CustomerId)
             {
                 TempData["Error"] = "Bạn không có quyền xem phiếu thuê này.";
                 return RedirectToAction("MyRentals", "Rental");
             }
 
-            // Kiểm tra và cập nhật trạng thái hết hạn tự động
+            
             if (rental.ReturnDate.HasValue && rental.ReturnDate.Value < DateTime.Now && rental.Status != "Đã trả")
             {
                 rental.Status = "Quá hạn";
@@ -277,7 +269,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return NotFound();
             }
 
-            // Kiểm tra đăng nhập
+           
             var userId = HttpContext.Session?.GetString("UserId");
             if (string.IsNullOrEmpty(userId))
             {
@@ -285,7 +277,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Repay", "Rental", new { id }) });
             }
 
-            // Lấy thông tin user
+           
             if (!int.TryParse(userId, out int userIdInt))
             {
                 TempData["Error"] = "Không tìm thấy thông tin người dùng.";
@@ -299,7 +291,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // Tìm customer
+            
             var customer = await _context.Customers
                 .FirstOrDefaultAsync(c => 
                     (!string.IsNullOrEmpty(user.Email) && c.Email == user.Email) ||
@@ -311,7 +303,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return RedirectToAction("MyRentals", "Rental");
             }
 
-            // Lấy rental
+            
             var rental = await _context.Rentals
                 .Include(r => r.Customer)
                 .Include(r => r.RentalDetails)
@@ -323,14 +315,14 @@ namespace QUANLYTHUVIEN.Controllers
                 return NotFound();
             }
 
-            // Kiểm tra quyền truy cập
+            
             if (rental.CustomerId != customer.CustomerId)
             {
                 TempData["Error"] = "Bạn không có quyền thanh toán đơn này.";
                 return RedirectToAction("MyRentals", "Rental");
             }
 
-            // Chỉ cho phép thanh toán lại nếu status là "Chờ thanh toán"
+            
             if (rental.Status != "Chờ thanh toán")
             {
                 TempData["Error"] = "Đơn hàng này không thể thanh toán lại.";
@@ -351,7 +343,7 @@ namespace QUANLYTHUVIEN.Controllers
         [Route("Rental/Repay/{id}")]
         public async Task<IActionResult> Repay(int id, string paymentMethod)
         {
-            // Kiểm tra đăng nhập
+            
             var userId = HttpContext.Session?.GetString("UserId");
             if (string.IsNullOrEmpty(userId))
             {
@@ -359,7 +351,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // Lấy rental
+            
             var rental = await _context.Rentals
                 .Include(r => r.Customer)
                 .Include(r => r.RentalDetails)
@@ -372,17 +364,17 @@ namespace QUANLYTHUVIEN.Controllers
                 return RedirectToAction("MyRentals", "Rental");
             }
 
-            // Kiểm tra status
+            
             if (rental.Status != "Chờ thanh toán")
             {
                 TempData["Error"] = "Đơn hàng này không thể thanh toán lại.";
                 return RedirectToAction("Details", "Rental", new { id });
             }
 
-            // Xử lý thanh toán
+            
             if (!string.IsNullOrEmpty(paymentMethod) && paymentMethod.ToLower() == "vnpay")
             {
-                // Thanh toán qua VnPay
+                
                 try
                 {
                     var orderId = $"RENTAL_{rental.RentalId}_{DateTime.Now:yyyyMMddHHmmss}";
@@ -396,7 +388,7 @@ namespace QUANLYTHUVIEN.Controllers
                         OrderId = orderId
                     };
 
-                    // Lưu rentalId vào session
+                  
                     if (HttpContext.Session != null)
                     {
                         HttpContext.Session.SetString($"VnPayRental_{rental.RentalId}", rental.RentalId.ToString());
@@ -424,10 +416,10 @@ namespace QUANLYTHUVIEN.Controllers
             }
             else
             {
-                // Thanh toán tiền mặt/chuyển khoản
+                
                 rental.Status = "Đang thuê";
                 
-                // Giảm số lượng sách có sẵn
+                
                 foreach (var detail in rental.RentalDetails)
                 {
                     var book = await _context.Books.FindAsync(detail.BookId);
@@ -443,7 +435,7 @@ namespace QUANLYTHUVIEN.Controllers
             }
         }
 
-        // POST: Rental/ReturnBook/5 - Trả sách
+        // POST: Rental/ReturnBook/5 
         [HttpPost]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ReturnBook(int id)
@@ -460,14 +452,14 @@ namespace QUANLYTHUVIEN.Controllers
                 
                 var rentalId = id;
                 
-                // Kiểm tra đăng nhập
+                
                 var userId = HttpContext.Session?.GetString("UserId");
                 if (string.IsNullOrEmpty(userId))
                 {
                     return Json(new { success = false, message = "Vui lòng đăng nhập để trả sách." });
                 }
 
-                // Lấy thông tin user
+                
                 if (!int.TryParse(userId, out int userIdInt))
                 {
                     return Json(new { success = false, message = "Không tìm thấy thông tin người dùng." });
@@ -479,7 +471,7 @@ namespace QUANLYTHUVIEN.Controllers
                     return Json(new { success = false, message = "Không tìm thấy thông tin người dùng." });
                 }
 
-                // Tìm customer
+                
                 var customer = await _context.Customers
                     .FirstOrDefaultAsync(c => 
                         (!string.IsNullOrEmpty(user.Email) && c.Email == user.Email) ||
@@ -490,7 +482,7 @@ namespace QUANLYTHUVIEN.Controllers
                     return Json(new { success = false, message = "Không tìm thấy thông tin khách hàng." });
                 }
 
-                // Lấy rental - AsNoTracking để tránh conflict với tracking
+                
                 var rental = await _context.Rentals
                     .AsNoTracking()
                     .Include(r => r.RentalDetails)
@@ -502,26 +494,25 @@ namespace QUANLYTHUVIEN.Controllers
                     return Json(new { success = false, message = "Không tìm thấy đơn hàng." });
                 }
 
-                // Kiểm tra quyền truy cập
+                
                 if (rental.CustomerId != customer.CustomerId)
                 {
                     return Json(new { success = false, message = "Bạn không có quyền trả sách cho đơn này." });
                 }
 
-                // Kiểm tra đã trả chưa - chỉ kiểm tra status, không kiểm tra ReturnDate vì có thể chưa được lưu
+                
                 if (rental.Status == "Đã trả")
                 {
                     return Json(new { success = false, message = "Sách đã được trả rồi!" });
                 }
 
-                // Kiểm tra đã thanh toán chưa
+               
                 if (rental.Status == "Chờ thanh toán")
                 {
                     return Json(new { success = false, message = "Vui lòng thanh toán đơn hàng trước khi trả sách." });
                 }
 
-                // Cho phép trả sách bất cứ lúc nào (không cần chờ đến ngày trả dự kiến)
-                // Lấy lại rental với tracking để cập nhật
+               
                 var rentalToUpdate = await _context.Rentals
                     .FirstOrDefaultAsync(r => r.RentalId == id);
                 
@@ -530,24 +521,23 @@ namespace QUANLYTHUVIEN.Controllers
                     return Json(new { success = false, message = "Không tìm thấy đơn hàng để cập nhật." });
                 }
 
-                // Kiểm tra lại một lần nữa sau khi lấy với tracking
+                
                 if (rentalToUpdate.Status == "Đã trả")
                 {
                     return Json(new { success = false, message = "Sách đã được trả rồi!" });
                 }
                 
-                // Nếu ReturnDate đã có nhưng status chưa là "Đã trả", có thể là lần trước chưa lưu thành công
-                // Reset ReturnDate để cập nhật lại
+                
                 if (rentalToUpdate.ReturnDate.HasValue && rentalToUpdate.Status != "Đã trả")
                 {
                     System.Diagnostics.Debug.WriteLine($"Warning: Rental {id} has ReturnDate but status is not 'Đã trả'. Resetting ReturnDate.");
                 }
 
-                // Cập nhật trạng thái trả sách
+                
                 rentalToUpdate.ReturnDate = DateTime.Now;
                 rentalToUpdate.Status = "Đã trả";
 
-                // Tạo thông báo khi trả sách thành công
+                
                 var bookTitles = string.Join(", ", rental.RentalDetails.Take(3).Select(rd => rd.Book?.Title ?? "Sách"));
                 if (rental.RentalDetails.Count > 3)
                 {
@@ -562,7 +552,7 @@ namespace QUANLYTHUVIEN.Controllers
                     "success"
                 );
 
-                // Tăng lại số lượng sách có sẵn
+               
                 foreach (var detail in rental.RentalDetails)
                 {
                     if (detail.BookId > 0)

@@ -16,7 +16,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             _context = context;
         }
 
-        // Danh sách bình luận
+
         public IActionResult Index(string? search, bool? status)
         {
             var query = _context.TbBlogComments

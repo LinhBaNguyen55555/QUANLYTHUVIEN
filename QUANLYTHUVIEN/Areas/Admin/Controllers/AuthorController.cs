@@ -26,7 +26,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 .Include(a => a.Books)
                 .AsQueryable();
 
-            // Tìm kiếm theo tên tác giả
+            
             if (!string.IsNullOrEmpty(searchString))
             {
                 authorsQuery = authorsQuery.Where(a => a.AuthorName.Contains(searchString));
@@ -79,7 +79,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Tác giả '{author.AuthorName}' đã được tạo thành công!";
 
-                    // Chuyển hướng về trang nguồn
+                  
                     string referer = Request.Headers["Referer"].ToString();
                     if (!string.IsNullOrEmpty(referer) && referer.Contains("/Details"))
                     {
@@ -114,7 +114,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         {
             if (id != author.AuthorId) return NotFound();
 
-            // Xóa lỗi validation của fromDetails (không phải là trường của model)
+       
             ModelState.Remove("fromDetails");
 
             if (ModelState.IsValid)
@@ -131,7 +131,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Tác giả '{author.AuthorName}' đã được cập nhật thành công!";
 
-                    // Chuyển hướng về trang nguồn
+                    
                     if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
                     {
                         return RedirectToAction("Details", "Author", new { area = "Admin", id = author.AuthorId });
@@ -181,5 +181,5 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         }
     }
 }
-//
+
 

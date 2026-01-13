@@ -19,7 +19,7 @@
                 html += $@"<li class='drop-holder'>
                     <a href='{url}'>{menu.Title} <i class='fa fa-angle-down'></i></a>
                     <ul class='drop-down'>";
-                // Chỉ render menu con cấp 2 (không render menu cấp 3)
+
                 foreach (var child in menu.InverseParent.Where(c => c.IsActive).OrderBy(c => c.Position))
                 {
                     var childUrl = string.IsNullOrEmpty(child.Url) ? "#" : child.Url;

@@ -10,7 +10,7 @@
     var availableQuantity = ViewBag.AvailableQuantity ?? 0;
     var totalQuantity = Model.Quantity ?? 0;
     
-    // Xử lý reviews an toàn
+    
     List<BookReview> reviews = new List<BookReview>();
     if (ViewBag.Reviews != null && ViewBag.Reviews is IEnumerable<BookReview>)
     {

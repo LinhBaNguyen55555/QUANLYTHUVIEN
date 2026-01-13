@@ -26,13 +26,13 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 .Include(m => m.Parent)
                 .AsQueryable();
 
-            // Tìm kiếm theo tên menu
+            
             if (!string.IsNullOrEmpty(searchString))
             {
                 menusQuery = menusQuery.Where(m => m.Title.Contains(searchString));
             }
 
-            // Lọc theo trạng thái
+            
             if (!string.IsNullOrEmpty(status))
             {
                 if (status == "Active")
@@ -91,17 +91,14 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         {
             _logger.LogInformation($"Bắt đầu tạo menu: Title={tbMenu?.Title}, Levels={tbMenu?.Levels}, Position={tbMenu?.Position}, IsActive={tbMenu?.IsActive}");
 
-            // Đảm bảo các giá trị mặc định
+            
             if (tbMenu == null)
             {
                 tbMenu = new TbMenu();
                 ModelState.AddModelError("", "Dữ liệu form không hợp lệ.");
             }
 
-            // Kiểm tra menu không tự tham chiếu đến chính nó (không áp dụng cho Create vì MenuId = 0)
-            // Nhưng vẫn kiểm tra để đảm bảo logic đúng
-
-            // Validate thủ công các trường bắt buộc
+            
             if (string.IsNullOrWhiteSpace(tbMenu.Title))
             {
                 ModelState.AddModelError("Title", "Tiêu đề menu là bắt buộc.");
@@ -130,7 +127,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _logger.LogInformation($"Menu '{tbMenu.Title}' đã được tạo thành công bởi {tbMenu.CreatedBy} với ID {tbMenu.MenuId}");
                     TempData["Success"] = $"Menu '{tbMenu.Title}' đã được tạo thành công!";
 
-                    // Chuyển hướng về trang nguồn
+                    
                     string referer = Request.Headers["Referer"].ToString();
                     if (!string.IsNullOrEmpty(referer) && referer.Contains("/Details"))
                     {
@@ -198,23 +195,23 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            // Xóa lỗi validation của fromDetails (không phải là trường của model)
+            
             ModelState.Remove("fromDetails");
 
-            // Lấy menu hiện tại từ database
+            
             var existingMenu = await _context.TbMenus.FindAsync(id);
             if (existingMenu == null)
             {
                 return NotFound();
             }
 
-            // Kiểm tra menu không tự tham chiếu đến chính nó
+            
             if (tbMenu.ParentId.HasValue && tbMenu.ParentId.Value == tbMenu.MenuId)
             {
                 ModelState.AddModelError("ParentId", "Menu không thể là cha của chính nó.");
             }
 
-            // Kiểm tra vòng lặp tham chiếu (menu con không thể là cha của menu cha)
+            
             if (tbMenu.ParentId.HasValue)
             {
                 var parentMenu = await _context.TbMenus.FindAsync(tbMenu.ParentId.Value);
@@ -224,7 +221,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 }
             }
 
-            // Validate thủ công các trường bắt buộc
+            
             if (string.IsNullOrWhiteSpace(tbMenu.Title))
             {
                 ModelState.AddModelError("Title", "Tiêu đề menu là bắt buộc.");
@@ -244,7 +241,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             {
                 try
                 {
-                    // Cập nhật các trường từ form
+                    
                     existingMenu.Title = tbMenu.Title;
                     existingMenu.Alias = tbMenu.Alias;
                     existingMenu.Url = tbMenu.Url;
@@ -262,7 +259,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _logger.LogInformation($"Menu '{existingMenu.Title}' (ID: {existingMenu.MenuId}) đã được cập nhật bởi {existingMenu.ModifiedBy}");
                     TempData["Success"] = $"Menu '{existingMenu.Title}' đã được cập nhật thành công!";
 
-                    // Chuyển hướng về trang nguồn
+                    
                     if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
                     {
                         return RedirectToAction(nameof(Details), new { area = "Admin", id = existingMenu.MenuId });
@@ -302,7 +299,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 .OrderBy(m => m.Position)
                 .ToList();
             
-            // Cập nhật model với giá trị từ form để hiển thị lại
+            
             existingMenu.Title = tbMenu.Title;
             existingMenu.Alias = tbMenu.Alias;
             existingMenu.Url = tbMenu.Url;
@@ -349,7 +346,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     return RedirectToAction(nameof(Index), new { area = "Admin" });
                 }
 
-                // Kiểm tra xem có menu con không
+                
                 var hasChildren = await _context.TbMenus.AnyAsync(m => m.ParentId == id);
                 if (hasChildren)
                 {

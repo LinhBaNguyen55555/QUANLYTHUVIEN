@@ -203,7 +203,7 @@
             
             console.log('Attempting to return book for rental ID:', rentalId);
             
-            // Hiển thị loading
+           
             var btn = $(buttonElement);
             var originalText = btn.html();
             btn.prop('disabled', true);
@@ -213,7 +213,7 @@
             console.log('Request URL:', requestUrl);
             console.log('Rental ID:', rentalId);
             
-            // Dùng $.ajax() với Content-Type rõ ràng
+            
             $.ajax({
                 url: requestUrl,
                 method: 'POST',

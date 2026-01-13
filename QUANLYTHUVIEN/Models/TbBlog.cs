@@ -58,14 +58,13 @@ public partial class TbBlog
     {
         get
         {
-            // 1. Đường dẫn cơ sở
+            
             const string basePath = "~/images/blog/";
 
-            // 2. Ảnh mặc định (nếu 'Image' trong CSDL bị null hoặc rỗng)
+            
             const string defaultImage = "blog-10.jpg";
 
-            // 3. Logic: 
-            // Nếu 'Image' rỗng, dùng default. Ngược lại, dùng 'Image'.
+            
             return basePath + (string.IsNullOrEmpty(this.Image) ? defaultImage : this.Image);
         }
     }

@@ -106,7 +106,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     rental.RentalDate = DateTime.Now;
                     rental.Status = "Active";
 
-                    // Tính tổng tiền
+                    
                     decimal totalAmount = 0;
                     for (int i = 0; i < selectedBooks.Length; i++)
                     {
@@ -116,7 +116,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                         var book = await _context.Books.FindAsync(bookId);
                         if (book != null && book.Quantity >= quantity)
                         {
-                            var rentalPrice = book.RentalPrices?.FirstOrDefault()?.DailyRate ?? 5000; // Giá mặc định 5000 VNĐ/ngày
+                            var rentalPrice = book.RentalPrices?.FirstOrDefault()?.DailyRate ?? 5000;
                             var rentalDetail = new RentalDetail
                             {
                                 BookId = bookId,
@@ -124,7 +124,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                                 PricePerDay = rentalPrice
                             };
                             rental.RentalDetails.Add(rentalDetail);
-                            totalAmount += rentalPrice * quantity * 7; // Giả sử thuê 7 ngày
+                            totalAmount += rentalPrice * quantity * 7; 
                         }
                     }
 
@@ -196,12 +196,12 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                         return NotFound();
                     }
 
-                    // Cập nhật thông tin cơ bản
+                   
                     existingRental.CustomerId = rental.CustomerId;
                     existingRental.UserId = rental.UserId;
                     existingRental.Status = rental.Status;
 
-                    // Nếu trả sách
+                    
                     if (rental.ReturnDate.HasValue && !existingRental.ReturnDate.HasValue)
                     {
                         existingRental.ReturnDate = DateTime.Now;
@@ -267,7 +267,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     return RedirectToAction("Index", "Rental", new { area = "Admin" });
                 }
 
-                // Xóa chi tiết phiếu thuê trước
+                
                 _context.RentalDetails.RemoveRange(rental.RentalDetails);
                 _context.Rentals.Remove(rental);
                 await _context.SaveChangesAsync();
@@ -305,11 +305,11 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     return Json(new { success = false, message = "Sách đã được trả rồi!" });
                 }
 
-                // Cập nhật trạng thái trả sách
+                
                 rental.ReturnDate = DateTime.Now;
                 rental.Status = "Đã trả";
 
-                // Tăng lại số lượng sách có sẵn
+                
                 foreach (var detail in rental.RentalDetails)
                 {
                     var book = await _context.Books.FindAsync(detail.BookId);

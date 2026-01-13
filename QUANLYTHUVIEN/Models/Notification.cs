@@ -8,7 +8,7 @@ namespace QUANLYTHUVIEN.Models
         [Key]
         public int NotificationId { get; set; }
 
-        public int? UserId { get; set; } // null = thông báo cho tất cả users
+        public int? UserId { get; set; } 
 
         [Required]
         [StringLength(200)]
@@ -18,7 +18,7 @@ namespace QUANLYTHUVIEN.Models
         [StringLength(2000)]
         public string Content { get; set; }
 
-        public string Type { get; set; } // "info", "success", "warning", "danger"
+        public string Type { get; set; } 
 
         public bool IsRead { get; set; } = false;
 

@@ -31,13 +31,11 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 .Include(b => b.Author)
                 .AsQueryable();
 
-            // Tìm kiếm theo tiêu đề
             if (!string.IsNullOrEmpty(searchString))
             {
                 blogsQuery = blogsQuery.Where(b => b.Title.Contains(searchString));
             }
 
-            // Lọc theo trạng thái xuất bản
             if (!string.IsNullOrEmpty(status))
             {
                 if (status == "Published")
@@ -87,9 +85,6 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             {
                 try
                 {
-                    // Lưu đường dẫn ảnh đã chọn từ wwwroot
-                    // Image đã được set từ input khi người dùng chọn từ browser
-                    // Không cần xử lý upload nữa
 
                     blog.CreatedDate = DateTime.Now;
 
@@ -97,7 +92,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Bài viết '{blog.Title}' đã được tạo thành công!";
 
-                    // Chuyển hướng về trang nguồn
+   
                     string referer = Request.Headers["Referer"].ToString();
                     if (!string.IsNullOrEmpty(referer) && referer.Contains("/Details"))
                     {
@@ -149,16 +144,11 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                         return NotFound();
                     }
 
-                    // Lưu đường dẫn ảnh đã chọn từ wwwroot
-                    // Image đã được set từ input khi người dùng chọn từ browser
-                    // Không cần xử lý upload hay xóa ảnh cũ nữa vì ảnh đã có sẵn trong wwwroot
-
-                    // Cập nhật các trường
                     existingBlog.Title = blog.Title;
                     existingBlog.Alias = blog.Alias;
                     existingBlog.Content = blog.Content;
                     existingBlog.AuthorId = blog.AuthorId;
-                    existingBlog.Image = blog.Image; // Lưu đường dẫn ảnh đã chọn
+                    existingBlog.Image = blog.Image; 
                     existingBlog.IsPublished = blog.IsPublished;
                     existingBlog.ModifiedDate = DateTime.Now;
 
@@ -166,7 +156,6 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Bài viết '{blog.Title}' đã được cập nhật thành công!";
 
-                    // Chuyển hướng về trang nguồn
                     if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
                     {
                         return RedirectToAction(nameof(Details), new { area = "Admin", id = blog.BlogId });

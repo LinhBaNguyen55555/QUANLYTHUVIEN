@@ -28,7 +28,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 .Include(u => u.RoleNavigation)
                 .AsQueryable();
 
-            // Tìm kiếm
+            
             if (!string.IsNullOrEmpty(searchString))
             {
                 usersQuery = usersQuery.Where(u =>
@@ -37,7 +37,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     (u.Email != null && u.Email.Contains(searchString)));
             }
 
-            // Lọc theo vai trò
+          
             if (roleId.HasValue)
             {
                 usersQuery = usersQuery.Where(u => u.RoleId == roleId.Value);
@@ -47,7 +47,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 .OrderBy(u => u.UserId)
                 .ToListAsync();
 
-            // Dữ liệu cho dropdown filters
+            
             ViewBag.Roles = await _context.TbRoles.OrderBy(r => r.RoleName).ToListAsync();
             ViewBag.SearchString = searchString;
             ViewBag.SelectedRoleId = roleId;
@@ -90,7 +90,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(string username, string fullName, string email, string phone, int? roleId, string password)
         {
-            // Tạo user object mới
+            
             var user = new User
             {
                 Username = username,
@@ -101,7 +101,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 CreatedAt = DateTime.Now
             };
 
-            // Validate các trường bắt buộc
+            
             if (string.IsNullOrWhiteSpace(user.Username))
             {
                 ModelState.AddModelError("Username", "Tên đăng nhập là bắt buộc.");
@@ -117,7 +117,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 ModelState.AddModelError("RoleId", "Vai trò là bắt buộc.");
             }
 
-            // Validate password
+            
             if (string.IsNullOrWhiteSpace(password))
             {
                 ModelState.AddModelError("password", "Mật khẩu là bắt buộc.");
@@ -131,7 +131,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             {
                 try
                 {
-                    // Kiểm tra username trùng
+                    
                     if (await _context.Users.AnyAsync(u => u.Username.ToLower() == user.Username.ToLower()))
                     {
                         ModelState.AddModelError("Username", "Tên đăng nhập đã tồn tại.");
@@ -139,7 +139,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                         return View(user);
                     }
 
-                    // Kiểm tra email trùng
+                    
                     if (!string.IsNullOrEmpty(user.Email) &&
                         await _context.Users.AnyAsync(u => u.Email.ToLower() == user.Email.ToLower()))
                     {
@@ -148,7 +148,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                         return View(user);
                     }
 
-                    // Hash mật khẩu và set vào user
+                    
                     user.PasswordHash = HashPassword(password);
 
                     _context.Add(user);
@@ -199,17 +199,17 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, string username, string fullName, string email, string phone, int? roleId, string password, string fromDetails)
         {
-            // Lấy user hiện tại từ database
+            
             var existingUser = await _context.Users.FindAsync(id);
             if (existingUser == null)
             {
                 return NotFound();
             }
 
-            // XÓA TOÀN BỘ MODELSTATE VÀ CHỈ VALIDATE THỦ CÔNG
+            
             ModelState.Clear();
 
-            // Validate các trường bắt buộc
+            
             bool isValid = true;
             
             if (string.IsNullOrWhiteSpace(username))
@@ -230,7 +230,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 isValid = false;
             }
 
-            // Password hoàn toàn tùy chọn - chỉ validate độ dài nếu có nhập
+            
             if (!string.IsNullOrWhiteSpace(password) && password.Length < 6)
             {
                 ModelState.AddModelError("password", "Mật khẩu phải có ít nhất 6 ký tự.");
@@ -241,7 +241,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             {
                 try
                 {
-                    // Kiểm tra username trùng (trừ chính nó)
+                    
                     if (await _context.Users.AnyAsync(u => u.Username.ToLower() == username.ToLower() && u.UserId != id))
                     {
                         ModelState.AddModelError("Username", "Tên đăng nhập đã tồn tại.");
@@ -262,7 +262,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                         return View(userForView ?? existingUser);
                     }
 
-                    // Kiểm tra email trùng (trừ chính nó)
+                    
                     if (!string.IsNullOrEmpty(email) &&
                         await _context.Users.AnyAsync(u => u.Email.ToLower() == email.ToLower() && u.UserId != id))
                     {
@@ -284,14 +284,14 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                         return View(userForView ?? existingUser);
                     }
 
-                    // Cập nhật thông tin
+                    
                     existingUser.Username = username;
                     existingUser.FullName = fullName;
                     existingUser.Email = email;
                     existingUser.Phone = phone;
                     existingUser.RoleId = roleId;
 
-                    // Chỉ cập nhật mật khẩu nếu có nhập mới
+                    
                     if (!string.IsNullOrWhiteSpace(password))
                     {
                         existingUser.PasswordHash = HashPassword(password);
@@ -302,7 +302,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     _logger.LogInformation($"Người dùng '{username}' (ID: {id}) đã được cập nhật bởi {User.Identity?.Name ?? "Admin"}");
                     TempData["Success"] = $"Người dùng '{username}' đã được cập nhật thành công!";
 
-                    // Chuyển hướng về trang nguồn
+                    
                     if (!string.IsNullOrEmpty(fromDetails) && fromDetails.ToLower() == "true")
                     {
                         return RedirectToAction("Details", "User", new { area = "Admin", id = id });
@@ -316,7 +316,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                 }
             }
 
-            // Tải lại user với đầy đủ dữ liệu khi có lỗi validation
+            
             var userWithData = await _context.Users
                 .Include(u => u.Orders)
                 .Include(u => u.Rentals)
@@ -325,7 +325,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
             
             if (userWithData != null)
             {
-                // Cập nhật các giá trị từ form vào user đã tải
+                
                 userWithData.Username = username;
                 userWithData.FullName = fullName;
                 userWithData.Email = email;
@@ -380,7 +380,7 @@ namespace QUANLYTHUVIEN.Areas.Admin.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                // Kiểm tra xem người dùng có đang được sử dụng không
+               
                 if (user.Orders.Any() || user.Rentals.Any() || user.TbBlogs.Any())
                 {
                     _logger.LogWarning($"Không thể xóa người dùng '{user.Username}' vì có dữ liệu liên quan");

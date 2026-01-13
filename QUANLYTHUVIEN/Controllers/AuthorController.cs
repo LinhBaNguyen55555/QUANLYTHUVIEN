@@ -17,7 +17,7 @@ namespace QUANLYTHUVIEN.Controllers
         [Route("authors")]
         public async Task<IActionResult> Index(string searchString, int page = 1)
         {
-            // Load categories và authors cho dropdown tìm kiếm
+            
             ViewBag.Categories = await _context.Categories
                 .OrderBy(c => c.CategoryName)
                 .ToListAsync();
@@ -25,19 +25,19 @@ namespace QUANLYTHUVIEN.Controllers
                 .OrderBy(a => a.AuthorName)
                 .ToListAsync();
 
-            // Query tác giả
+            
             var authorsQuery = _context.Authors
                 .Include(a => a.Books)
                     .ThenInclude(b => b.Category)
                 .AsQueryable();
 
-            // Tìm kiếm theo tên tác giả
+            
             if (!string.IsNullOrEmpty(searchString))
             {
                 authorsQuery = authorsQuery.Where(a => a.AuthorName.Contains(searchString));
             }
 
-            // Phân trang
+            
             int pageSize = 12;
             var totalAuthors = await authorsQuery.CountAsync();
             var totalPages = (int)Math.Ceiling(totalAuthors / (double)pageSize);
@@ -48,7 +48,7 @@ namespace QUANLYTHUVIEN.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
-            // ViewBag cho phân trang và search
+            
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalAuthors = totalAuthors;
@@ -67,7 +67,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return NotFound();
             }
 
-            // Lấy thông tin chi tiết tác giả
+            
             var author = await _context.Authors
                 .Include(a => a.Books)
                     .ThenInclude(b => b.Category)
@@ -80,7 +80,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return NotFound();
             }
 
-            // Lấy các tác giả khác (để hiển thị liên quan)
+            
             ViewBag.RelatedAuthors = await _context.Authors
                 .Include(a => a.Books)
                 .Where(a => a.AuthorId != id && a.Books.Any())
@@ -88,7 +88,7 @@ namespace QUANLYTHUVIEN.Controllers
                 .Take(6)
                 .ToListAsync();
 
-            // Load categories và authors cho dropdown tìm kiếm
+            
             ViewBag.Categories = await _context.Categories.OrderBy(c => c.CategoryName).ToListAsync();
             ViewBag.Authors = await _context.Authors.OrderBy(a => a.AuthorName).ToListAsync();
 

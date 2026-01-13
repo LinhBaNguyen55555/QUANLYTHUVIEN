@@ -62,15 +62,7 @@ public partial class Book
     public virtual ICollection<BookReview> BookReviews { get; set; } = new List<BookReview>();
 
 
-    // DÒNG NÀY ĐÃ BỊ XÓA VÌ MÂU THUẪN VỚI CategoryId
-    // public virtual ICollection<Category> Categories { get; set; } = new List<Category>();
-
-
-    // -----------------------------------------------------------------
-    // CÁC THUỘC TÍNH HELPER (Dùng cho View - Không lưu vào CSDL)
-    // -----------------------------------------------------------------
-
-    // 1. Cải tiến cho đường dẫn ảnh
+    
     public string CoverImageUrl
     {
         get
@@ -78,7 +70,7 @@ public partial class Book
             const string basePath = "~/images/books-media/gird-view/";
             const string defaultImage = "book-media-grid-01.jpg";
 
-            // Nếu CoverImage là null hoặc rỗng, dùng ảnh mặc định
+            
             if (string.IsNullOrEmpty(CoverImage))
             {
                 return basePath + defaultImage;
@@ -86,58 +78,58 @@ public partial class Book
 
             var coverImage = CoverImage.Trim();
 
-            // Xử lý các trường hợp đường dẫn khác nhau
+            
             if (coverImage.StartsWith("/images/") || coverImage.StartsWith("~/images/"))
             {
-                // Đã có đường dẫn đầy đủ, giữ nguyên
+                
                 return coverImage.StartsWith("~/") ? coverImage : "~" + coverImage;
             }
             else if (coverImage.StartsWith("images/"))
             {
-                // Có images/ nhưng thiếu dấu ~/
+                
                 return "~/" + coverImage;
             }
             else if (coverImage.StartsWith("/"))
             {
-                // Bắt đầu bằng / nhưng không có images/
+                
                 return "~" + coverImage;
             }
             else if (coverImage.Contains("/"))
             {
-                // Có đường dẫn tương đối (ví dụ: books-media/gird-view/book.jpg)
+                
                 return "~/images/" + coverImage;
             }
             else
             {
-                // Chỉ có tên file
+                
                 return basePath + coverImage;
             }
         }
     }
 
-    // 2. Cải tiến cho việc hiển thị tên tác giả
+    
     public string AuthorNames
     {
         get
         {
-            // Kiểm tra Authors có tồn tại và có phần tử nào không
+            
             if (Authors != null && Authors.Any())
             {
-                // Nối tên các tác giả, cách nhau bằng dấu ", "
+                
                 return string.Join(", ", Authors.Select(a => a.AuthorName));
             }
-            // Trả về "Updating..." nếu không có tác giả
+            
             return "Updating...";
         }
     }
 
-    // 3. Cải tiến cho việc hiển thị ISBN
+    
     public string DisplayIsbn
     {
         get => string.IsNullOrEmpty(Isbn) ? "Updating..." : Isbn;
     }
 
-    // 4. Cải tiến cho việc cắt ngắn mô tả
+    
     public string TruncatedDescription
     {
         get

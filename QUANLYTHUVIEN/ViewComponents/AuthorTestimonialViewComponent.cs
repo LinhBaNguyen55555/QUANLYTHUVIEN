@@ -17,16 +17,15 @@ namespace QUANLYTHUVIEN.ViewComponents
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            // Lấy các tác giả CÓ tiểu sử (!IsNullOrEmpty)
-            // Lấy ngẫu nhiên 6 người
+            
             var authorsWithBio = await _context.Authors
                                         .Where(a => !string.IsNullOrEmpty(a.Biography))
-                                        .OrderBy(a => Guid.NewGuid()) // Lấy ngẫu nhiên
-                                        .Take(8) // Lấy 8 người
+                                        .OrderBy(a => Guid.NewGuid())
+                                        .Take(8) 
                                         .AsNoTracking()
                                         .ToListAsync();
 
-            return View(authorsWithBio); // Trả về file Default.cshtml
+            return View(authorsWithBio);
         }
     }
 }

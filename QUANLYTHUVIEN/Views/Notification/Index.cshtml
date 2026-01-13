@@ -143,7 +143,7 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Đánh dấu đã đọc
+            
             $(document).on('click', '.mark-read-btn', function() {
                 var $btn = $(this);
                 var notificationId = $btn.data('id');
@@ -161,7 +161,7 @@
                             $item.find('.badge-danger').remove();
                             $btn.remove();
                             
-                            // Cập nhật số thông báo chưa đọc
+                            
                             updateUnreadCount(response.unreadCount);
                             
                             if (typeof toastr !== 'undefined') {
@@ -179,7 +179,7 @@
                 });
             });
 
-            // Xóa thông báo
+            
             $(document).on('click', '.delete-notification-btn', function() {
                 if (!confirm('Bạn có chắc chắn muốn xóa thông báo này?')) {
                     return;
@@ -199,7 +199,7 @@
                             $item.fadeOut(300, function() {
                                 $(this).remove();
                                 
-                                // Kiểm tra nếu không còn thông báo nào
+                                
                                 if ($('.notification-item').length === 0) {
                                     location.reload();
                                 }
@@ -220,7 +220,7 @@
                 });
             });
 
-            // Đánh dấu tất cả đã đọc
+           
             $('#markAllReadBtn').on('click', function() {
                 var $btn = $(this);
                 $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Đang xử lý...');
@@ -257,7 +257,7 @@
                 });
             });
 
-            // Cập nhật số thông báo chưa đọc
+            
             function updateUnreadCount(count) {
                 $('#notification-badge').text(count);
                 if (count > 0) {
@@ -267,7 +267,7 @@
                 }
             }
 
-            // Load số thông báo chưa đọc khi trang load
+            
             $.ajax({
                 url: '@Url.Action("GetUnreadCount", "Notification")',
                 type: 'GET',

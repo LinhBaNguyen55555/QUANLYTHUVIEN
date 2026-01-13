@@ -18,7 +18,7 @@ namespace QUANLYTHUVIEN.Controllers
         [Route("books")]
         public async Task<IActionResult> Index(string keywords, string catalog, string category, string orderby, int page = 1)
         {
-            // Load categories và authors cho dropdown tìm kiếm và sidebar
+            
             ViewBag.Categories = await _context.Categories
                 .Include(c => c.Books)
                 .OrderBy(c => c.CategoryName)
@@ -28,7 +28,7 @@ namespace QUANLYTHUVIEN.Controllers
                 .OrderBy(a => a.AuthorName)
                 .ToListAsync();
 
-            // Query sách với các điều kiện tìm kiếm
+            
             var booksQuery = _context.Books
                 .Include(b => b.Category)
                 .Include(b => b.Authors)
@@ -37,7 +37,7 @@ namespace QUANLYTHUVIEN.Controllers
                 .Include(b => b.RentalPrices)
                 .AsQueryable();
 
-            // Tìm kiếm theo từ khóa
+            
             if (!string.IsNullOrEmpty(keywords))
             {
                 booksQuery = booksQuery.Where(b =>
@@ -49,23 +49,23 @@ namespace QUANLYTHUVIEN.Controllers
                     (b.Publisher != null && b.Publisher.PublisherName.Contains(keywords)));
             }
 
-            // Lọc theo tác giả (catalog = tên tác giả)
+            
             if (!string.IsNullOrEmpty(catalog) && catalog != "Tìm kiếm theo tác giả" && catalog != "Search the Catalog" && catalog.Trim() != "")
             {
                 booksQuery = booksQuery.Where(b => b.Authors.Any(a => a.AuthorName == catalog));
             }
 
-            // Lọc theo thể loại
+            
             if (!string.IsNullOrEmpty(category) && category != "Tất cả thể loại" && category != "All Categories" && category.Trim() != "")
             {
                 booksQuery = booksQuery.Where(b => b.Category != null && b.Category.CategoryName == category);
             }
 
-            // Sắp xếp
+            
             switch (orderby)
             {
                 case "Sort by popularity":
-                    // Có thể sắp xếp theo số lượt thuê hoặc view
+                    
                     booksQuery = booksQuery.OrderByDescending(b => b.BookId);
                     break;
                 case "Sort by newness":
@@ -80,7 +80,7 @@ namespace QUANLYTHUVIEN.Controllers
                     break;
             }
 
-            // Phân trang
+            
             int pageSize = 12;
             var totalBooks = await booksQuery.CountAsync();
             var totalPages = (int)Math.Ceiling(totalBooks / (double)pageSize);
@@ -90,7 +90,7 @@ namespace QUANLYTHUVIEN.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
-            // Tính số lượng có sẵn cho từng sách
+           
             foreach (var book in books)
             {
                 var rentedCount = await _context.RentalDetails
@@ -104,7 +104,7 @@ namespace QUANLYTHUVIEN.Controllers
                 ((Dictionary<int, int>)ViewBag.AvailableQuantities)[book.BookId] = Math.Max(0, availableQuantity);
             }
 
-            // ViewBag cho phân trang và filters
+            
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalBooks = totalBooks;
@@ -125,7 +125,7 @@ namespace QUANLYTHUVIEN.Controllers
                 return NotFound();
             }
 
-            // 1. Lấy thông tin chi tiết sách với đầy đủ thông tin
+            
             var book = await _context.Books
                 .Include(b => b.Category)
                 .Include(b => b.Authors)
@@ -139,38 +139,38 @@ namespace QUANLYTHUVIEN.Controllers
                 return NotFound();
             }
 
-            // 2. Lấy sách liên quan (cùng thể loại)
+            
             ViewBag.BooksRelated = await _context.Books
                 .Include(b => b.Category)
                 .Include(b => b.Authors)
                 .Include(b => b.Publisher)
                 .Where(b => b.BookId != id && b.CategoryId == book.CategoryId)
                 .OrderByDescending(b => b.BookId)
-                .Take(6) // Lấy 6 cuốn
+                .Take(6) 
                 .ToListAsync();
 
-            // 3. Lấy bảng giá hiện tại (mới nhất)
+            
             ViewBag.CurrentRentalPrice = book.RentalPrices
                 .OrderByDescending(rp => rp.EffectiveDate)
                 .FirstOrDefault();
 
-            // 4. Tính số lượng sách đang được thuê (status = "Đang thuê")
+            
             var rentedCount = await _context.RentalDetails
                 .Include(rd => rd.Rental)
                 .Where(rd => rd.BookId == id && rd.Rental.Status == "Đang thuê")
                 .SumAsync(rd => rd.Quantity ?? 0);
 
-            // 5. Tính số lượng có sẵn
+            
             var totalQuantity = book.Quantity ?? 0;
             var availableQuantity = totalQuantity - rentedCount;
             ViewBag.AvailableQuantity = Math.Max(0, availableQuantity);
             ViewBag.RentedCount = rentedCount;
 
-            // 6. Load categories và authors cho dropdown tìm kiếm
+            
             ViewBag.Categories = await _context.Categories.OrderBy(c => c.CategoryName).ToListAsync();
             ViewBag.Authors = await _context.Authors.OrderBy(a => a.AuthorName).ToListAsync();
 
-            // 7. Load đánh giá của sách
+            
             List<BookReview> reviews = new List<BookReview>();
             try
             {
@@ -181,15 +181,14 @@ namespace QUANLYTHUVIEN.Controllers
                     .ToListAsync();
             }
             catch
-            {
-                // Bảng BookReviews chưa tồn tại, sử dụng danh sách rỗng
+            {                
                 reviews = new List<BookReview>();
             }
             ViewBag.Reviews = reviews;
             ViewBag.ReviewCount = reviews.Count;
             ViewBag.AverageRating = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
 
-            // 8. Kiểm tra xem user đã trả sách này chưa (để cho phép đánh giá)
+            
             var userId = HttpContext.Session?.GetString("UserId");
             bool canReview = false;
             Customer? customer = null;
@@ -209,14 +208,13 @@ namespace QUANLYTHUVIEN.Controllers
                     {
                         currentCustomerId = customer.CustomerId;
                         
-                        // Kiểm tra xem customer đã thuê và trả sách này chưa
                         var hasReturnedBook = await _context.RentalDetails
                             .Include(rd => rd.Rental)
                             .AnyAsync(rd => rd.BookId == id && 
                                           rd.Rental.CustomerId == customer.CustomerId && 
                                           rd.Rental.Status == "Đã trả");
                         
-                        // Kiểm tra xem đã đánh giá chưa
+                        
                         bool hasReviewed = false;
                         try
                         {
@@ -225,7 +223,6 @@ namespace QUANLYTHUVIEN.Controllers
                         }
                         catch
                         {
-                            // Bảng BookReviews chưa tồn tại
                             hasReviewed = false;
                         }
                         
@@ -239,7 +236,7 @@ namespace QUANLYTHUVIEN.Controllers
             return View(book);
         }
 
-        // POST: Book/SubmitReview - Gửi đánh giá
+        // POST: Book/SubmitReview
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitReview(int bookId, int rating, string comment)
@@ -271,7 +268,6 @@ namespace QUANLYTHUVIEN.Controllers
                 return Json(new { success = false, message = "Không tìm thấy thông tin khách hàng." });
             }
 
-            // Kiểm tra xem đã trả sách chưa
             var hasReturnedBook = await _context.RentalDetails
                 .Include(rd => rd.Rental)
                 .AnyAsync(rd => rd.BookId == bookId && 
@@ -283,7 +279,6 @@ namespace QUANLYTHUVIEN.Controllers
                 return Json(new { success = false, message = "Bạn chỉ có thể đánh giá sách đã thuê và trả." });
             }
 
-            // Kiểm tra xem đã đánh giá chưa
             BookReview? existingReview = null;
             try
             {
@@ -292,7 +287,6 @@ namespace QUANLYTHUVIEN.Controllers
             }
             catch
             {
-                // Bảng BookReviews chưa tồn tại, tiếp tục tạo review mới
             }
 
             if (existingReview != null)
@@ -300,13 +294,13 @@ namespace QUANLYTHUVIEN.Controllers
                 return Json(new { success = false, message = "Bạn đã đánh giá sách này rồi." });
             }
 
-            // Validation
+            
             if (rating < 1 || rating > 5)
             {
                 return Json(new { success = false, message = "Đánh giá phải từ 1 đến 5 sao." });
             }
 
-            // Tạo review mới
+            
             var review = new BookReview
             {
                 BookId = bookId,
@@ -328,7 +322,7 @@ namespace QUANLYTHUVIEN.Controllers
             }
         }
 
-        // POST: Book/DeleteReview - Xóa đánh giá
+        // POST: Book/DeleteReview
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteReview(int reviewId)
@@ -360,14 +354,14 @@ namespace QUANLYTHUVIEN.Controllers
                 return Json(new { success = false, message = "Không tìm thấy thông tin khách hàng." });
             }
 
-            // Tìm review
+           
             var review = await _context.BookReviews.FindAsync(reviewId);
             if (review == null)
             {
                 return Json(new { success = false, message = "Đánh giá không tồn tại." });
             }
 
-            // Kiểm tra quyền: chỉ người đã đánh giá mới có thể xóa
+            
             if (review.CustomerId != customer.CustomerId)
             {
                 return Json(new { success = false, message = "Bạn không có quyền xóa đánh giá này." });
@@ -385,7 +379,7 @@ namespace QUANLYTHUVIEN.Controllers
             }
         }
 
-        // POST: Book/UpdateReview - Cập nhật đánh giá
+        // POST: Book/UpdateReview 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateReview(int reviewId, int rating, string comment)
@@ -417,20 +411,20 @@ namespace QUANLYTHUVIEN.Controllers
                 return Json(new { success = false, message = "Không tìm thấy thông tin khách hàng." });
             }
 
-            // Tìm review
+            
             var review = await _context.BookReviews.FindAsync(reviewId);
             if (review == null)
             {
                 return Json(new { success = false, message = "Đánh giá không tồn tại." });
             }
 
-            // Kiểm tra quyền: chỉ người đã đánh giá mới có thể sửa
+            
             if (review.CustomerId != customer.CustomerId)
             {
                 return Json(new { success = false, message = "Bạn không có quyền chỉnh sửa đánh giá này." });
             }
 
-            // Validation
+            
             if (rating < 1 || rating > 5)
             {
                 return Json(new { success = false, message = "Đánh giá phải từ 1 đến 5 sao." });
@@ -445,7 +439,6 @@ namespace QUANLYTHUVIEN.Controllers
             {
                 review.Rating = rating;
                 review.Comment = comment?.Trim();
-                // Có thể thêm ModifiedDate nếu model có
                 await _context.SaveChangesAsync();
                 return Json(new { success = true, message = "Đánh giá đã được cập nhật thành công!" });
             }

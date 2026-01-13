@@ -17,7 +17,7 @@ namespace QUANLYTHUVIEN.Services
             var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById(_configuration["TimeZoneId"]);
             var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneById);
             
-            // Sử dụng OrderId từ model nếu có, nếu không thì tạo từ Ticks
+            
             var txnRef = !string.IsNullOrEmpty(model.OrderId) ? model.OrderId : DateTime.Now.Ticks.ToString();
             var pay = new VnPayLibrary();
 
